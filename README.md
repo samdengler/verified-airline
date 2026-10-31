@@ -168,10 +168,15 @@ python3 scripts/export_chat.py                   # the policy, its checks, the d
 (cd chat && uv run scripts/chat.py --mode verified "My Main flight left without me. What can I get back if I cancel?")
 ```
 
-The widget is the Ask about fares button in the site's header. Until it is
-published the chat start has no public route, so the button shows only under
-`npm start` or with `?chat` in the address, and a local server stands in for
-the chat's API with your AWS credentials:
+The widget is the Ask about fares button in the site's header. On
+air.dengler.io, CloudFront sends `/api/chat/start` to the chat start and
+`/api/chat/turns/*` to the read of a chat's turn records, through function
+URLs only the distribution can call; a WAF rule blocks an address after 20
+chat starts in five minutes. A $100 monthly budget on the whole account emails
+samdengler@gmail.com at 80% and 100% of actual spend and when the forecast
+passes it. Deploy the chat stack before the site stack, which finds the two
+functions by name. Under `npm start` a local server stands in for the chat's
+API with your AWS credentials:
 
 ```sh
 eval "$(aws configure export-credentials --format env)"
