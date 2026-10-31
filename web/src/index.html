@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<title>Verified Airline</title>
+<base href="/">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath transform='rotate(-30 12 12)' fill='%232B3A67' d='M21.6 12c0-.85-.7-1.45-1.55-1.45H14.3L9.4 3.2H7.6l2.35 7.35H5.5L3.75 8.1H2.4l1.05 3.9-1.05 3.9h1.35l1.75-2.45h4.45L7.6 20.8h1.8l4.9-7.35h5.75c.85 0 1.55-.6 1.55-1.45z'/%3E%3C/svg%3E">
+<script>
+  // Before the page draws: whether to show the Lean model.  ?lean=1 or
+  // ?lean=0 sets it and is remembered; otherwise the remembered choice holds.
+  // The theme is the remembered choice of the dark mode button, or else the
+  // system setting.
+  (function () {
+    var d = document.documentElement, q = null, on = false, t = null;
+    d.className = d.className.replace("no-js", "js");
+    try { q = new URLSearchParams(location.search).get("lean"); } catch (e) {}
+    try {
+      if (q === "1" || q === "0") localStorage.setItem("verified-airline-lean", q);
+      on = (q || localStorage.getItem("verified-airline-lean")) === "1";
+    } catch (e) { on = q === "1"; }
+    if (on) d.classList.add("lean-on");
+    try { t = localStorage.getItem("verified-airline-theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    d.setAttribute("data-theme", t);
+  })();
+</script>
+</head>
+<body>
+<va-root></va-root>
+</body>
+</html>
