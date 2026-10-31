@@ -10,11 +10,11 @@ import { confidence, contradicted, findingRows, tone, turnFor, versionOf, type M
  * draft beside what the traveler was shown.  Switching Verified answers starts
  * a new chat, since a chat's mode is fixed when it starts.
  *
- * The chat start has no public route until the chat is published, so the
- * button shows only under `npm start` (whose proxy reaches
- * chat/scripts/dev_api.py) or with ?chat in the address.
+ * Under `npm start` the proxy sends /api to chat/scripts/dev_api.py; on
+ * air.dengler.io CloudFront sends it to the chat's functions.  PUBLISHED
+ * turns the button on; with it off, ?chat in the address still shows it.
  */
-const PUBLISHED = false;
+const PUBLISHED = true;
 const GREETING_WAIT_MS = 15000;
 
 interface Line {

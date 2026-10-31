@@ -12,6 +12,13 @@ is synthesized; scripts/deploy.sh builds web/ first.
 A GitHub OIDC provider and a publish role let GitHub Actions publish the site
 on a push to main: the role can write to the site bucket, invalidate the
 distribution, and read this stack's outputs, and nothing else.
+
+The support chat's API is on the same distribution, so the page's content
+security policy needs no other origin: /api/chat/start and /api/chat/turns/*
+go to the chat start and the turn records' read in the VerifiedAirlineChat
+stack, through function URLs that only this distribution can call.  A WAF web
+ACL limits how many chats one address can start.  The chat stack deploys
+first; this stack finds its functions by name.
 """
 
 from __future__ import annotations
@@ -36,6 +43,9 @@ from aws_cdk import (
     aws_iam as iam,
 )
 from aws_cdk import (
+    aws_lambda as lambda_,
+)
+from aws_cdk import (
     aws_route53 as route53,
 )
 from aws_cdk import (
@@ -44,8 +54,12 @@ from aws_cdk import (
 from aws_cdk import (
     aws_s3 as s3,
 )
+from aws_cdk import (
+    aws_wafv2 as wafv2,
+)
 from constructs import Construct
 
+from verified_airline_infra.chat_stack import CHAT_START_NAME, TURNS_API_NAME
 from verified_airline_infra.csp import content_security_policy
 
 ZONE_NAME = "dengler.io"
@@ -57,6 +71,8 @@ GITHUB_OIDC = "token.actions.githubusercontent.com"
 # and the repository by their IDs as well, so a renamed or re-created
 # repository cannot assume the role (gh api repos/<repo>/actions/oidc/customization/sub).
 GITHUB_SUBJECT = "repo:samdengler@133874/verified-airline@1440554836:ref:refs/heads/main"
+# Chats one address may start in five minutes; a demo needs a few.
+CHAT_STARTS_PER_5_MIN = 20
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE_DIR = ROOT / "web" / "dist" / "verified-airline" / "browser"
@@ -129,6 +145,8 @@ class VerifiedAirlineStack(cdk.Stack):
         distribution = cloudfront.Distribution(
             self,
             "Distribution",
+            additional_behaviors=self.chat_routes(headers_policy),
+            web_acl_id=self.chat_limit().attr_arn,
             comment="Verified Airline",
             domain_names=[HOST],
             certificate=certificate,
@@ -190,9 +208,72 @@ class VerifiedAirlineStack(cdk.Stack):
         )
 
         cdk.CfnOutput(self, "SiteUrl", value=SITE_URL)
+        cdk.CfnOutput(self, "ChatStartUrl", value=f"{SITE_URL}api/chat/start")
         cdk.CfnOutput(self, "SiteBucketName", value=site_bucket.bucket_name)
         cdk.CfnOutput(self, "DistributionId", value=distribution.distribution_id)
         # The distribution's own address, which answers before air.dengler.io resolves.
         cdk.CfnOutput(self, "DistributionDomainName", value=distribution.distribution_domain_name)
         cdk.CfnOutput(self, "PublishRoleArn", value=publish_role.role_arn)
         cdk.CfnOutput(self, "GitHubOidcProviderArn", value=github.oidc_provider_arn)
+
+    def chat_routes(self, headers_policy):
+        """The chat's two paths, each to its function's URL.  The URLs take
+        only requests CloudFront signs, and nothing is cached.  A POST must
+        carry x-amz-content-sha256, the hash of its body, for CloudFront to
+        sign it; the widget sends it."""
+        routes = {}
+        for path, construct_id, name, methods in (
+            ("/api/chat/start", "ChatStart", CHAT_START_NAME, cloudfront.AllowedMethods.ALLOW_ALL),
+            ("/api/chat/turns/*", "ChatTurns", TURNS_API_NAME, cloudfront.AllowedMethods.ALLOW_GET_HEAD),
+        ):
+            function = lambda_.Function.from_function_attributes(
+                self, f"{construct_id}Function", same_environment=True,
+                function_arn=f"arn:aws:lambda:{self.region}:{self.account}:function:{name}")
+            url = lambda_.FunctionUrl(self, f"{construct_id}FunctionUrl", function=function,
+                                      auth_type=lambda_.FunctionUrlAuthType.AWS_IAM)
+            routes[path] = cloudfront.BehaviorOptions(
+                origin=origins.FunctionUrlOrigin.with_origin_access_control(url),
+                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+                allowed_methods=methods,
+                cache_policy=cloudfront.CachePolicy.CACHING_DISABLED,
+                origin_request_policy=cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+                response_headers_policy=headers_policy,
+            )
+        return routes
+
+    def chat_limit(self):
+        """A web ACL that blocks an address once it has started
+        CHAT_STARTS_PER_5_MIN chats in five minutes; everything else passes."""
+        visibility = lambda name: wafv2.CfnWebACL.VisibilityConfigProperty(
+            cloud_watch_metrics_enabled=True, metric_name=name, sampled_requests_enabled=True)
+        return wafv2.CfnWebACL(
+            self,
+            "ChatLimit",
+            scope="CLOUDFRONT",
+            default_action=wafv2.CfnWebACL.DefaultActionProperty(allow={}),
+            visibility_config=visibility("verified-airline"),
+            rules=[
+                wafv2.CfnWebACL.RuleProperty(
+                    name="chat-starts-per-address",
+                    priority=0,
+                    action=wafv2.CfnWebACL.RuleActionProperty(block={}),
+                    visibility_config=visibility("chat-starts-per-address"),
+                    statement=wafv2.CfnWebACL.StatementProperty(
+                        rate_based_statement=wafv2.CfnWebACL.RateBasedStatementProperty(
+                            limit=CHAT_STARTS_PER_5_MIN,
+                            evaluation_window_sec=300,
+                            aggregate_key_type="IP",
+                            scope_down_statement=wafv2.CfnWebACL.StatementProperty(
+                                byte_match_statement=wafv2.CfnWebACL.ByteMatchStatementProperty(
+                                    field_to_match=wafv2.CfnWebACL.FieldToMatchProperty(uri_path={}),
+                                    positional_constraint="STARTS_WITH",
+                                    search_string="/api/chat/start",
+                                    text_transformations=[
+                                        wafv2.CfnWebACL.TextTransformationProperty(priority=0, type="NONE")],
+                                )
+                            ),
+                        )
+                    ),
+                )
+            ],
+        )

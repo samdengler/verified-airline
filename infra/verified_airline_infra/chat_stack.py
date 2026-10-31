@@ -20,9 +20,11 @@ message/send with a Cognito client-credentials token, which the gateway
 checks; the gateway then calls the agent's runtime with its own role, so the
 runtime keeps IAM authorization and chat/scripts/ask.py still reaches it.  The
 chat start (chat/chat_start, Rust) gets that token and starts the contact on
-the contact flow chat/scripts/contact_flow.py writes; until the widget is
-published it has no public route and is invoked with IAM.  Each turn of a
-chat is recorded in a DynamoDB table for 30 days.
+the contact flow chat/scripts/contact_flow.py writes.  air.dengler.io's
+distribution (the VerifiedAirline stack) routes /api/chat/start to it and
+/api/chat/turns/* to the turn records' read.  Each
+turn of a chat is recorded in a DynamoDB table for 30 days.  A monthly budget
+on the account emails Sam as spend nears it.
 
 guppi-hr's stacks are reference only; this stack depends on nothing of theirs.
 """
@@ -40,6 +42,7 @@ import jsii
 from aws_cdk import Duration, RemovalPolicy
 from aws_cdk import aws_bedrock as bedrock
 from aws_cdk import aws_bedrockagentcore as agentcore
+from aws_cdk import aws_budgets as budgets
 from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_connect as connect
 from aws_cdk import aws_dynamodb as dynamodb
@@ -75,6 +78,14 @@ AGENTS_SCOPE = "agents"
 CONTACT_FLOW_NAME = "verified-airline-chat"
 CHAT_START_DIR = AGENT_DIR / "chat_start"
 CHAT_START_NAME = "verified-airline-chat-start"
+# The function behind GET /api/chat/turns/*, the widget's read of a turn record.
+TURNS_API_NAME = "verified-airline-chat-turns"
+TURNS_API_DIR = AGENT_DIR / "turns_api"
+# A monthly budget on the whole account, since most of what the chat costs
+# (Bedrock, Connect) is not attributed to its resources.  Sam set the limit and
+# the address on 31 October 2026 when the chat was published.
+BUDGET_USD = 100
+BUDGET_EMAIL = "samdengler@gmail.com"
 # cargo-lambda from PyPI, with the Zig linker it cross-compiles with; no install needed.
 CARGO_LAMBDA = ["uvx", "--from", "cargo-lambda", "cargo-lambda", "lambda", "build", "--release", "--arm64"]
 CARGO_LAMBDA_IMAGE = "ghcr.io/cargo-lambda/cargo-lambda:latest"
@@ -196,6 +207,8 @@ class VerifiedAirlineChatStack(cdk.Stack):
         pool, client, token_url = self.machine_identity()
         agents_gateway = self.agents_gateway(runtime, pool, client)
         chat_start = self.chat_start(instance, pool, client, token_url)
+        self.turns_api(turns, chat_dir, rules["rules"])
+        self.budget()
 
         cdk.CfnOutput(self, "PolicyArn", value=policy.attr_policy_arn)
         cdk.CfnOutput(self, "PolicyVersionArn", value=versioned_arn)
@@ -213,6 +226,65 @@ class VerifiedAirlineChatStack(cdk.Stack):
         cdk.CfnOutput(self, "TurnsTableName", value=turns.table_name)
         cdk.CfnOutput(self, "ChatStartFunctionName", value=chat_start.function_name)
         cdk.CfnOutput(self, "ContactFlowName", value=CONTACT_FLOW_NAME)
+
+    def budget(self):
+        """Email when the account's actual spend passes 80% and 100% of the
+        month's budget, and when the month's forecast passes it."""
+        def alert(kind, percent):
+            return budgets.CfnBudget.NotificationWithSubscribersProperty(
+                notification=budgets.CfnBudget.NotificationProperty(
+                    notification_type=kind, comparison_operator="GREATER_THAN", threshold=percent,
+                    threshold_type="PERCENTAGE"),
+                subscribers=[budgets.CfnBudget.SubscriberProperty(subscription_type="EMAIL", address=BUDGET_EMAIL)],
+            )
+        return budgets.CfnBudget(
+            self,
+            "Budget",
+            budget=budgets.CfnBudget.BudgetDataProperty(
+                budget_name="account-monthly",
+                budget_type="COST",
+                time_unit="MONTHLY",
+                budget_limit=budgets.CfnBudget.SpendProperty(amount=BUDGET_USD, unit="USD"),
+            ),
+            notifications_with_subscribers=[alert("ACTUAL", 80), alert("ACTUAL", 100), alert("FORECASTED", 100)],
+        )
+
+    def turns_api(self, turns, chat_dir, rules):
+        """The read of a turn record behind GET /api/chat/turns/*.  Its
+        package is chat/turns_api/handler.py, the agent's turn_view.py, and
+        rules.json: the rules' statements, Lean rules, requirements and
+        theorems, with each requirement's criteria statuses from model.json."""
+        package = chat_dir / "turns-api"
+        if package.exists():
+            shutil.rmtree(package)
+        (package / "airline_agent").mkdir(parents=True)
+        shutil.copy2(TURNS_API_DIR / "handler.py", package / "handler.py")
+        shutil.copy2(AGENT_DIR / "airline_agent" / "turn_view.py", package / "airline_agent" / "turn_view.py")
+        (package / "airline_agent" / "__init__.py").write_text("")
+        model = json.loads((ROOT / "model" / "model.json").read_text())["requirements"]
+        cited = {q for r in rules.values() for q in r["requirements"]}
+        (package / "rules.json").write_text(json.dumps({
+            "rules": rules, "requirements": {q: {"criteria": [{"status": c["status"]} for c in model[q]["criteria"]]}
+                                             for q in sorted(cited)}}))
+        log_group = logs.LogGroup(self, "TurnsApiLogs", log_group_name=f"/aws/lambda/{TURNS_API_NAME}",
+                                  retention=logs.RetentionDays.ONE_MONTH, removal_policy=RemovalPolicy.DESTROY)
+        function = lambda_.Function(
+            self,
+            "TurnsApi",
+            function_name=TURNS_API_NAME,
+            description="Reads a Verified Airline chat's turn records for the widget",
+            runtime=lambda_.Runtime.PYTHON_3_13,
+            architecture=lambda_.Architecture.ARM_64,
+            handler="handler.handler",
+            code=lambda_.Code.from_asset(str(package)),
+            memory_size=256,
+            timeout=Duration.seconds(10),
+            reserved_concurrent_executions=5,
+            log_group=log_group,
+            environment={"TURNS_TABLE": turns.table_name},
+        )
+        turns.grant(function, "dynamodb:GetItem", "dynamodb:Query")
+        return function
 
     def turns_table(self):
         """Each turn of a chat, kept 30 days: the contact, the turn's number,

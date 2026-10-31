@@ -167,3 +167,23 @@ def test_every_fare_rule_names_the_theorem_that_proves_its_fact(export):
     for rid, m in rules.items():
         if rid.startswith(("RBAS", "RMAI", "RFLX")):
             assert [t["name"].split(".")[0] for t in m["theorems"]] == ["Airline"], rid
+
+
+def test_the_budget_emails_before_and_when_the_month_passes_it(template):
+    (budget,) = template.find_resources("AWS::Budgets::Budget").values()
+    props = budget["Properties"]
+    assert props["Budget"]["BudgetLimit"] == {"Amount": 100, "Unit": "USD"}
+    alerts = [(n["Notification"]["NotificationType"], n["Notification"]["Threshold"]) for n in props["NotificationsWithSubscribers"]]
+    assert alerts == [("ACTUAL", 80), ("ACTUAL", 100), ("FORECASTED", 100)]
+    assert all(s["Address"] == "samdengler@gmail.com" for n in props["NotificationsWithSubscribers"] for s in n["Subscribers"])
+
+
+def test_the_turns_read_may_only_read_the_turns_table(template):
+    (function,) = [f for f in template.find_resources("AWS::Lambda::Function").values()
+                   if f["Properties"].get("FunctionName") == "verified-airline-chat-turns"]
+    role = function["Properties"]["Role"]["Fn::GetAtt"][0]
+    actions = sorted(a for p in template.find_resources("AWS::IAM::Policy").values()
+                     if {"Ref": role} in p["Properties"]["Roles"]
+                     for s in p["Properties"]["PolicyDocument"]["Statement"]
+                     for a in (s["Action"] if isinstance(s["Action"], list) else [s["Action"]]))
+    assert actions == ["dynamodb:GetItem", "dynamodb:Query"]

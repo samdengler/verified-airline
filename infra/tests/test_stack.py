@@ -99,3 +99,27 @@ def test_the_publish_role_reaches_only_the_site(template):
             actions.update([s["Action"]] if isinstance(s["Action"], str) else s["Action"])
             assert s["Resource"] != "*", json.dumps(s)
     assert {a.split(":")[0] for a in actions} == {"s3", "cloudfront", "cloudformation"}
+
+
+def test_the_chat_paths_reach_only_their_functions_through_signed_urls(template):
+    (dist,) = template.find_resources("AWS::CloudFront::Distribution").values()
+    behaviors = {b["PathPattern"]: b for b in dist["Properties"]["DistributionConfig"]["CacheBehaviors"]}
+    assert set(behaviors) == {"/api/chat/start", "/api/chat/turns/*"}
+    assert behaviors["/api/chat/turns/*"]["AllowedMethods"] == ["GET", "HEAD"]
+    assert all(b["ViewerProtocolPolicy"] == "https-only" for b in behaviors.values())
+    urls = template.find_resources("AWS::Lambda::Url").values()
+    assert sorted(u["Properties"]["AuthType"] for u in urls) == ["AWS_IAM", "AWS_IAM"]
+    targets = json.dumps([u["Properties"]["TargetFunctionArn"] for u in urls])
+    assert "verified-airline-chat-start" in targets and "verified-airline-chat-turns" in targets
+    permissions = template.find_resources("AWS::Lambda::Permission").values()
+    assert permissions and all(p["Properties"]["Principal"] == "cloudfront.amazonaws.com" for p in permissions)
+
+
+def test_one_address_may_start_only_so_many_chats(template):
+    (acl,) = template.find_resources("AWS::WAFv2::WebACL").values()
+    (rule,) = acl["Properties"]["Rules"]
+    rate = rule["Statement"]["RateBasedStatement"]
+    assert rule["Action"] == {"Block": {}} and rate["Limit"] == 20 and rate["AggregateKeyType"] == "IP"
+    assert rate["ScopeDownStatement"]["ByteMatchStatement"]["SearchString"] == "/api/chat/start"
+    (dist,) = template.find_resources("AWS::CloudFront::Distribution").values()
+    assert "ChatLimit" in json.dumps(dist["Properties"]["DistributionConfig"]["WebACLId"])

@@ -32,6 +32,11 @@ interface Session {
   disconnectParticipant(): Promise<unknown>;
 }
 
+async function sha256(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 let chatjs: Promise<{ create(args: object): Session }> | null = null;
 const loadChatjs = () => {
   // The bundle sets window.connect when it runs and exports nothing.
@@ -56,10 +61,13 @@ export class ChatSession {
     onReply: (chat: ChatSession, m: Incoming) => void,
     onEnded: (chat: ChatSession) => void,
   ): Promise<ChatSession> {
+    const body = JSON.stringify({ mode });
     const response = await fetch('/api/chat/start', {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ mode }),
+      // CloudFront signs the request to the chat start's function URL and
+      // needs the body's hash to do it.
+      headers: { 'content-type': 'application/json', 'x-amz-content-sha256': await sha256(body) },
+      body,
     });
     if (!response.ok) throw new Error(`chat start answered ${response.status}`);
     const details = await response.json();

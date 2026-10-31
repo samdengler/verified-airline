@@ -183,19 +183,24 @@ try {
   if (shots) await page.screenshot({ path: join(shots, 'refunds-phone-dark.png') });
   await ctx.close();
 
-  // The chat: hidden until it is published; with ?chat its panel opens under the policy.
-  // This server has no chat API, so the start fails and says so.
+  // The chat: its panel opens under the policy.  A local server has no chat
+  // API, so the start fails and says so; --url checks the live chat instead.
   ctx = await browser.newContext({ colorScheme: 'light', viewport: { width: 1280, height: 900 } });
   page = await watched(ctx);
   await page.goto(BASE + '/', { waitUntil: 'networkidle' });
   const chatButtons = await page.locator('.chat-open').count();
-  await page.goto(BASE + '/?chat', { waitUntil: 'networkidle' });
   await page.locator('.chat-open').click();
-  await page.locator('.chat-panel .chat-note').last().waitFor();
-  const note = await page.locator('.chat-panel .chat-note').last().textContent();
+  let opened;
+  if (server) {
+    await page.locator('.chat-panel .chat-note').last().waitFor();
+    opened = (await page.locator('.chat-panel .chat-note').last().textContent()) === content.chat.traveler.startFailed;
+  } else {
+    await page.locator('.chat-panel .msg.airline').first().waitFor({ timeout: 30000 });
+    opened = (await page.locator('.chat-panel .msg.airline').first().textContent()).trim() === content.chat.traveler.greeting;
+  }
   const unexpected = page.problems.filter((m) => !/status of (404|405)/.test(m));
-  check('the chat is hidden until published, and opens under the policy with ?chat', chatButtons === 0 && note === content.chat.traveler.startFailed
-    && unexpected.length === 0, JSON.stringify({ chatButtons, note, unexpected }));
+  check('the chat opens under the policy', chatButtons === 1 && opened && unexpected.length === 0,
+    JSON.stringify({ chatButtons, opened, unexpected }));
   await ctx.close();
 
   // Scripts off: the prerendered page reads, and the buttons that need scripts are hidden.
