@@ -18,6 +18,8 @@ jobs:
       # Fails if the wording cites a requirement the model lacks, a criterion
       # no longer open, or an amount the facts lack.
       - run: python3 scripts/render_airline.py
+      # github.io's pages: one redirect to air.dengler.io per page.
+      - run: python3 scripts/redirect_pages.py
       - uses: actions/setup-node@v4
         with: { node-version: "24", cache: npm, cache-dependency-path: web/package-lock.json }
       # The Angular app in web/: its tests, its build with every page
@@ -35,11 +37,12 @@ jobs:
       - run: uv run --dev pytest -q
         working-directory: infra
       - uses: actions/upload-pages-artifact@v3
-        with: { path: build }
+        with: { path: pages }
       - uses: actions/upload-artifact@v4
         with: { name: site, path: web/dist/verified-airline/browser }
-  # Deploys only once Pages is available for the repository: set the
-  # repository variable PAGES_ENABLED to true after turning Pages on.
+  # Deploys github.io's redirects once Pages is available for the
+  # repository: set the repository variable PAGES_ENABLED to true after
+  # turning Pages on.
   deploy:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.PAGES_ENABLED == 'true'
     needs: build

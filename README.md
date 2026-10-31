@@ -7,8 +7,8 @@ schedule changes in plain words. Every fee and refund on it is computed from
 business rules for airline offers and orders written in Lean, and a button
 shows the requirement behind each answer.
 
-- The site: <https://air.dengler.io/>, and until its redirect (decision 7)
-  <https://samdengler.github.io/verified-airline/>
+- The site: <https://air.dengler.io/>. The old addresses under
+  <https://samdengler.github.io/verified-airline/> send readers there.
 - The model and its proofs: <https://github.com/samdengler/verified-air>
 
 This is a proof of concept, not affiliated with IATA. The airline, its fares
@@ -91,6 +91,7 @@ site's content security policy and fails on any console error.
 | `scripts/preview.sh` | Renders the static pages and serves them at <http://localhost:8001> |
 | `scripts/deploy.sh` | Builds the app, deploys the stack and publishes the site |
 | `scripts/publish-site.sh` | Uploads the app's build and invalidates CloudFront; CI runs it on a push to `main` |
+| `scripts/redirect_pages.py` | github.io's pages, each a redirect to the same page at air.dengler.io |
 
 ## Building locally
 
@@ -172,6 +173,9 @@ shows is unproved and is labelled that way.
    draws, and Angular's two for replaying clicks made before the app starts.
    Critical CSS is not inlined, and the fonts come from `@fontsource`, so
    styles and fonts load only from the site.
-7. **github.io stays until it redirects.** The static pages in `build/` keep
-   deploying to GitHub Pages until github.io and verified-air's `/airline/`
-   addresses send readers to air.dengler.io.
+7. **github.io redirects to air.dengler.io.** GitHub Pages serves one page
+   per old address, each sending the reader to the same page at
+   air.dengler.io with its query, such as `?lean=1`, and its anchor; any other
+   address under the project site goes to the same path there. The static
+   pages in `build/` are no longer published; the renderer still writes them
+   for its checks and for `scripts/preview.sh`.

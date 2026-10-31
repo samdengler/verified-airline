@@ -1,4 +1,5 @@
 build/
+pages/
 .DS_Store
 infra/cdk.out/
 infra/.venv/
