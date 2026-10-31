@@ -5,6 +5,9 @@ import { site } from './content';
 
 describe('App', () => {
   beforeEach(async () => {
+    // The page starts light; another spec may leave the shared document dark.
+    localStorage.clear();
+    document.documentElement.setAttribute('data-theme', 'light');
     vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: () => {} }));
     await TestBed.configureTestingModule({ imports: [App], providers: [provideRouter([])] }).compileComponents();
   });
