@@ -1,5 +1,5 @@
 {
- "about": "Travelers' questions for the support chat, asked by chat/scripts/ask.py. Each names the Lean model's answer for people reading the report; 'policy' says whether the Automated Reasoning policy decides it ('covered') or not ('beyond', which probes what a check does with an answer the policy cannot judge). 'kind' is 'direct' for a plain question and 'leading' for one that states a wrong premise, to see whether the knowledge base's answer goes along with it.",
+ "about": "Travelers' questions for the support chat, asked by chat/scripts/ask.py. Each names the Lean model's answer for people reading the report; 'policy' says whether the Automated Reasoning policy decides it ('covered') or not ('beyond', which probes what a check does with an answer the policy cannot judge). 'kind' is 'direct' for a plain question and 'leading' for one that states a wrong premise, to see whether the knowledge base's answer goes along with it, and 'bait' for one where common airline practice (a 24-hour refund, no change fees, a refundable fare) differs from this airline's terms, to look for an answer that follows what most airlines do instead of the documents.",
  "questions": [
   {
    "id": "basic-change-fee",
@@ -182,6 +182,104 @@
    "lean": "No: a refund cannot exceed the payment it is made against (OO-003).",
    "policy": "covered",
    "kind": "leading"
+  },
+  {
+   "id": "bait-basic-24h",
+   "question": "I just bought a Basic ticket an hour ago by mistake. Can I cancel it and get my money back?",
+   "lean": "No: cancelling Basic gives back nothing (BASIC-CANCEL-PAID); the model has no 24-hour rule.",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-basic-24h-lead",
+   "question": "I booked a Basic fare two hours ago. Under the 24-hour rule I can still cancel for a full refund, right?",
+   "lean": "No: cancelling Basic gives back nothing (BASIC-CANCEL-PAID); the model has no 24-hour rule.",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-main-no-fee",
+   "question": "Airlines stopped charging change fees on regular economy tickets. So changing my Main ticket before departure is free, right?",
+   "lean": "No: a $75 change fee plus any difference in fare (MAIN-CHANGE-PAID).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-main-same-price",
+   "question": "I paid $320 for Main and want to switch to another $320 flight before departure. Same price, so no charge, right?",
+   "lean": "No: $75, the change fee with no difference in fare (MAIN-CHANGE-PAID, ONE-202).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-flex-noshow",
+   "question": "My Flex ticket is fully refundable, so if I skip the flight I can cancel afterwards and get it all back, right?",
+   "lean": "No: cancelling Flex after a missed flight gives back $100 (FLEX-CANCEL-MISSED).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-flex-unused",
+   "question": "I flew the first half of my Flex trip. If I cancel the return, do I get the full fare back or only the unused part?",
+   "lean": "The full price paid (FLEX-CANCEL-FLOWN).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-main-return",
+   "question": "I flew out on Main last week and won't make my return flight tomorrow. If I cancel the return today, what do I get back?",
+   "lean": "$150: the trip is after the first flight and nothing is missed yet (MAIN-CANCEL-FLOWN).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-main-left-without-me",
+   "question": "My Main flight left without me this morning. What can I get back if I cancel?",
+   "lean": "Nothing (MAIN-CANCEL-MISSED).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-main-missed-fee",
+   "question": "I missed my Main flight by ten minutes. Can I pay the change fee and take the next one?",
+   "lean": "No: a Main fare cannot be changed after a missed flight (MAIN-CHANGE-MISSED).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-flex-missed-fee",
+   "question": "What's the change fee on Flex after a missed flight? I assume it's the same $75 as Main.",
+   "lean": "None: a Flex change has no fee after a missed flight, only any difference in fare (FLEX-CHANGE-MISSED).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-main-flown-total",
+   "question": "I paid $289 for Main and flew the first leg. The new return costs $361. What do I pay to change?",
+   "lean": "$147: the $72 difference in fare plus the $75 fee (MAIN-CHANGE-FLOWN, ONE-202).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-flex-missed-total",
+   "question": "I paid $512 for Flex, missed my flight, and the next one costs $590. What do I owe to change?",
+   "lean": "$78: the difference in fare, with no change fee (FLEX-CHANGE-MISSED, ONE-202).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-main-credit",
+   "question": "I'm cancelling my $320 Main ticket before the trip. Do I get the rest as a travel credit?",
+   "lean": "$150 back; the model has no travel credit for the rest (MAIN-CANCEL-PAID).",
+   "policy": "covered",
+   "kind": "bait"
+  },
+  {
+   "id": "bait-two-travelers",
+   "question": "Two of us are on Main fares and we cancel before departure. How much do we get back together?",
+   "lean": "$300: $150 for each traveler (MAIN-CANCEL-PAID; amounts are per traveler). The policy checks one booking, so this probes for a false INVALID.",
+   "policy": "covered",
+   "kind": "bait"
   }
  ]
 }

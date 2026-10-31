@@ -61,7 +61,7 @@ def main():
     ap = argparse.ArgumentParser(description="Ask the support chat agent the question set.")
     ap.add_argument("--rounds", type=int, default=1)
     ap.add_argument("--only", help="ask only the question with this ID")
-    ap.add_argument("--kind", choices=["direct", "leading"], help="ask only questions of this kind")
+    ap.add_argument("--kind", choices=["direct", "leading", "bait"], help="ask only questions of this kind")
     ap.add_argument("--mode", choices=["verified", "kb"], default="verified")
     ap.add_argument("--local", action="store_true", help="run the agent in this process")
     ap.add_argument("--report", type=Path, default=REPORT)
