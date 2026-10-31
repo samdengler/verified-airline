@@ -61,6 +61,7 @@ AIRLINE = "Verified Airline"
 FOOTER = ("Verified Airline is a fictional airline. Fares and fees are invented and computed from the Lean model. "
           "Not affiliated with IATA.")
 STORAGE_KEY = "verified-airline-lean"
+THEME_KEY = "verified-airline-theme"
 FONTS = ("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Fira+Sans:wght@400;500;600;700"
          "&family=JetBrains+Mono:wght@400;500;700&display=swap")
 
@@ -75,6 +76,14 @@ FAVICON = ('<link rel="icon" href="data:image/svg+xml,'
            + "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E"
            + f"%3Cpath transform='rotate(-30 12 12)' fill='%232B3A67' d='{PLANE_PATH}'/%3E%3C/svg%3E"
            + '">')
+
+# The dark mode button's two icons, in the text color.
+MOON_SVG = ('<svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" '
+            'stroke-width="2" stroke-linejoin="round" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>')
+SUN_SVG = ('<svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" '
+           'stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/>'
+           '<path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'
+           '</g></svg>')
 
 # The words a traveler never reads, and requirement IDs.  Both may appear only
 # in the parts of a page shown with the Lean model.
@@ -561,7 +570,9 @@ class Renderer:
         return (f'<header class="site"><div class="wrap">'
                 f'<a class="brand" href="{self.href(here, "index")}">{PLANE_SVG}'
                 f'<span class="wordmark">{AIRLINE}</span></a>'
-                f'<nav aria-label="Main">{nav}</nav></div></header>')
+                f'<nav aria-label="Main">{nav}</nav>'
+                f'<button type="button" class="theme-toggle" aria-pressed="false" aria-label="Dark mode" title="Dark mode">'
+                f'{MOON_SVG}{SUN_SVG}</button></div></header>')
 
     def footer(self, here):
         return (f'<footer class="site"><div class="wrap"><p>{esc(FOOTER)}</p>'
@@ -598,8 +609,10 @@ class Renderer:
 <script>
   // Before the page draws: whether to show the Lean model.  ?lean=1 or
   // ?lean=0 sets it and is remembered; otherwise the remembered choice holds.
+  // The theme is the remembered choice of the dark mode button, or else the
+  // system setting.
   (function () {{
-    var d = document.documentElement, q = null, on = false;
+    var d = document.documentElement, q = null, on = false, t = null;
     d.className = d.className.replace("no-js", "js");
     try {{ q = new URLSearchParams(location.search).get("lean"); }} catch (e) {{}}
     try {{
@@ -607,6 +620,9 @@ class Renderer:
       on = (q || localStorage.getItem("{STORAGE_KEY}")) === "1";
     }} catch (e) {{ on = q === "1"; }}
     if (on) d.classList.add("lean-on");
+    try {{ t = localStorage.getItem("{THEME_KEY}"); }} catch (e) {{}}
+    if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    d.setAttribute("data-theme", t);
   }})();
 </script>
 <script src="{up}assets/airline.js" defer></script>

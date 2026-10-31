@@ -1,11 +1,14 @@
 // Verified Airline's policy pages: the button that shows or hides the Lean
-// model, and the popovers of the ∀ markers.  Whether the model shows is set
-// before the page draws, by a script in each page's head (?lean=1 or the
-// remembered choice); this script changes it and remembers the new choice.
+// model, the popovers of the ∀ markers, and the dark mode button.  Whether the
+// model shows, and the theme, are set before the page draws, by a script in
+// each page's head (?lean=1 or the remembered choice; the remembered theme or
+// the system setting); this script changes them and remembers the new choice.
 (function () {
   "use strict";
   var KEY = "verified-airline-lean";
+  var THEME_KEY = "verified-airline-theme";
   var root = document.documentElement;
+  var system = window.matchMedia("(prefers-color-scheme: dark)");
   var current = null;
 
   function popover(button) {
@@ -42,12 +45,42 @@
     });
   }
 
+  function setTheme(theme) {
+    root.setAttribute("data-theme", theme);
+    document.querySelectorAll(".theme-toggle").forEach(function (b) {
+      b.setAttribute("aria-pressed", theme === "dark" ? "true" : "false");
+    });
+  }
+
+  // A choice that matches the system setting is forgotten, so the page
+  // follows the system again.
+  function chooseTheme(theme) {
+    try {
+      if ((theme === "dark") === system.matches) localStorage.removeItem(THEME_KEY);
+      else localStorage.setItem(THEME_KEY, theme);
+    } catch (e) { /* private browsing */ }
+    setTheme(theme);
+  }
+
+  function remembered() {
+    try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; }
+  }
+
   syncToggles();
+  setTheme(root.getAttribute("data-theme") === "dark" ? "dark" : "light");
+  system.addEventListener("change", function () {
+    var t = remembered();
+    if (t !== "light" && t !== "dark") setTheme(system.matches ? "dark" : "light");
+  });
 
   document.addEventListener("click", function (event) {
     var toggle = event.target.closest(".lean-toggle");
     if (toggle) {
       showModel(!root.classList.contains("lean-on"));
+      return;
+    }
+    if (event.target.closest(".theme-toggle")) {
+      chooseTheme(root.getAttribute("data-theme") === "dark" ? "light" : "dark");
       return;
     }
     var marker = event.target.closest("button.lean-marker");

@@ -1,34 +1,50 @@
 /* Verified Airline's policy pages (scripts/render_airline.py).  The layout
    follows the design canvas: a 1120 px column, a light band under the header,
    and an "On this page" list beside the content that stacks above it on a
-   phone.  Parts marked data-lean show only with the Lean model on. */
+   phone.  Parts marked data-lean show only with the Lean model on.
+
+   Each color is light-dark(light, dark).  The pages follow the system
+   setting; data-theme on the root, set by the button in the header, overrides
+   it. */
 
 :root {
-  --indigo: #2B3A67;
-  --ink: #14213D;
-  --body: #374151;
-  --muted: #4B5563;
-  --line: #E5E7EB;
-  --band: #F3F6FA;
-  --foot: #F8FAFC;
-  --field: #C7CED8;
-  --proven-bg: #E0ECF8;
-  --proven-on: #C7D7EE;
-  --amber-bg: #FEF3C7;
-  --amber-on: #FDE68A;
-  --amber-soft: #FFFBEB;
-  --amber-line: #F3D58A;
-  --amber-edge: #D97706;
-  --amber-ink: #92400E;
+  color-scheme: light dark;
+  --page: light-dark(#FFFFFF, #0E1320);
+  --surface: light-dark(#FFFFFF, #161C2E);
+  --indigo: light-dark(#2B3A67, #A9B9EC);
+  --on-indigo: light-dark(#FFFFFF, #0E1320);
+  --ink: light-dark(#14213D, #E8ECF5);
+  --body: light-dark(#374151, #C5CCDA);
+  --muted: light-dark(#4B5563, #9AA3B5);
+  --line: light-dark(#E5E7EB, #283048);
+  --band: light-dark(#F3F6FA, #151B2C);
+  --foot: light-dark(#F8FAFC, #121827);
+  --field: light-dark(#C7CED8, #3A4562);
+  --search-line: light-dark(#D9DEE5, #2C3550);
+  --legend: light-dark(#EAF0F8, #141C33);
+  --legend-line: light-dark(#D5DFEC, #26304B);
+  --pop-line: light-dark(#C9D7EA, #34406A);
+  --shadow: light-dark(rgba(20, 33, 61, 0.14), rgba(0, 0, 0, 0.5));
+  --neutral-bg: light-dark(#EEF0F3, #232A3B);
+  --proven-bg: light-dark(#E0ECF8, #1E2A4D);
+  --proven-on: light-dark(#C7D7EE, #2A3A66);
+  --amber-bg: light-dark(#FEF3C7, #3A2A0A);
+  --amber-on: light-dark(#FDE68A, #4D3810);
+  --amber-soft: light-dark(#FFFBEB, #221A08);
+  --amber-line: light-dark(#F3D58A, #6B4F17);
+  --amber-edge: light-dark(#D97706, #F59E0B);
+  --amber-ink: light-dark(#92400E, #FCD38A);
   /* Fira Sans stands in for Whitney, which needs a paid web license. */
   --sans: "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --serif: "DM Serif Display", Georgia, serif;
   --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
-body { margin: 0; font: 16px/1.5 var(--sans); color: var(--ink); background: #FFFFFF; }
+body { margin: 0; font: 16px/1.5 var(--sans); color: var(--ink); background: var(--page); }
 a { color: var(--indigo); }
 a:hover { color: var(--ink); }
 :focus-visible { outline: 3px solid var(--indigo); outline-offset: 2px; border-radius: 4px; }
@@ -36,7 +52,7 @@ a:hover { color: var(--ink); }
 .amount { font-variant-numeric: tabular-nums; white-space: nowrap; }
 html:not(.lean-on) [data-lean] { display: none !important; }
 
-.skip { position: absolute; left: -9999px; top: 8px; z-index: 20; padding: 8px 14px; background: #FFFFFF; border-radius: 8px; }
+.skip { position: absolute; left: -9999px; top: 8px; z-index: 20; padding: 8px 14px; background: var(--surface); border-radius: 8px; }
 .skip:focus { left: 16px; }
 
 /* Header */
@@ -45,9 +61,17 @@ header.site .wrap { min-height: 72px; display: flex; flex-wrap: wrap; align-item
 .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--indigo); padding: 8px 0; }
 .brand .mark { width: 30px; height: 30px; flex: none; }
 .wordmark { font: 24px/1 var(--serif); letter-spacing: 0.005em; white-space: nowrap; }
-header.site nav { display: flex; flex-wrap: wrap; gap: 4px; }
+header.site nav { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
 header.site nav a { padding: 12px 14px; text-decoration: none; font-weight: 500; color: var(--ink); border-bottom: 2px solid transparent; }
 header.site nav a[aria-current] { font-weight: 600; color: var(--indigo); border-bottom-color: var(--indigo); }
+
+/* The dark mode button: a moon in light mode, a sun in dark mode. */
+.theme-toggle { flex: none; width: 44px; height: 44px; padding: 0; border: 1px solid var(--field); border-radius: 8px;
+  background: var(--surface); color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.theme-toggle:hover { border-color: var(--indigo); }
+.theme-toggle svg { width: 20px; height: 20px; }
+.no-js .theme-toggle, .theme-toggle .sun, [data-theme="dark"] .theme-toggle .moon { display: none; }
+[data-theme="dark"] .theme-toggle .sun { display: block; }
 
 /* The band under the header */
 .band { background: var(--band); }
@@ -58,14 +82,14 @@ header.site nav a[aria-current] { font-weight: 600; color: var(--indigo); border
 h1 { margin: 0; font-size: 38px; line-height: 1.1; font-weight: 700; letter-spacing: -0.01em; }
 .lede { margin: 0; font-size: 18px; line-height: 1.55; color: var(--body); }
 
-.lean-toggle { min-height: 44px; padding: 0 16px; border: 1px solid var(--field); border-radius: 8px; background: #FFFFFF;
+.lean-toggle { min-height: 44px; padding: 0 16px; border: 1px solid var(--field); border-radius: 8px; background: var(--surface);
   color: var(--ink); font: inherit; font-weight: 600; cursor: pointer; }
 .lean-toggle:hover { border-color: var(--indigo); }
 .no-js .lean-toggle { display: none; }
 .lean-toggle .when-on, .lean-on .lean-toggle .when-off { display: none; }
 .lean-on .lean-toggle .when-on { display: inline; }
 
-.lean-legend { background: #EAF0F8; border-bottom: 1px solid #D5DFEC; font-size: 14px; color: var(--body); }
+.lean-legend { background: var(--legend); border-bottom: 1px solid var(--legend-line); font-size: 14px; color: var(--body); }
 .lean-legend .wrap { padding-top: 12px; padding-bottom: 12px; }
 .lean-legend p { margin: 0; line-height: 1.6; }
 .lean-legend .lean-marker { width: 22px; height: 22px; font-size: 12px; vertical-align: -5px; cursor: default; }
@@ -74,12 +98,12 @@ h1 { margin: 0; font-size: 38px; line-height: 1.1; font-weight: 700; letter-spac
 /* Home */
 .hero .wrap { padding-top: 64px; padding-bottom: 64px; gap: 24px; }
 .hero h1 { font-size: 44px; }
-.search { background: #FFFFFF; border: 1px solid #D9DEE5; border-radius: 12px; padding: 20px; display: grid;
+.search { background: var(--surface); border: 1px solid var(--search-line); border-radius: 12px; padding: 20px; display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 16px; align-items: end; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field label { font-size: 13px; font-weight: 600; color: var(--muted); }
-.field input { height: 44px; padding: 0 12px; border: 1px solid var(--field); border-radius: 8px; font: inherit; color: var(--ink); min-width: 0; }
-.search button { height: 44px; border: 0; border-radius: 8px; background: var(--indigo); color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer; }
+.field input { height: 44px; padding: 0 12px; border: 1px solid var(--field); border-radius: 8px; font: inherit; color: var(--ink); background: var(--surface); min-width: 0; }
+.search button { height: 44px; border: 0; border-radius: 8px; background: var(--indigo); color: var(--on-indigo); font: inherit; font-weight: 600; cursor: pointer; }
 .search-note { margin: 0; font-size: 14px; color: var(--muted); }
 .home-section .wrap { padding-top: 64px; padding-bottom: 72px; display: flex; flex-direction: column; gap: 28px; }
 .home-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; }
@@ -162,10 +186,10 @@ table.fares tbody tr:last-child th, table.fares tbody tr:last-child td { border-
 .lean-marker[aria-expanded="true"] { background: var(--proven-on); }
 .lean-marker.open { border-color: var(--amber-edge); background: var(--amber-bg); color: var(--amber-ink); }
 .lean-marker.open[aria-expanded="true"] { background: var(--amber-on); }
-.lean-marker.partial { border-color: var(--muted); background: #FFFFFF; color: var(--muted); }
+.lean-marker.partial { border-color: var(--muted); background: var(--surface); color: var(--muted); }
 
 .lean-pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 5; width: 100%; max-width: 520px; padding: 16px 18px;
-  border: 1px solid #C9D7EA; border-radius: 10px; background: #FFFFFF; box-shadow: 0 10px 28px rgba(20, 33, 61, 0.14);
+  border: 1px solid var(--pop-line); border-radius: 10px; background: var(--surface); box-shadow: 0 10px 28px var(--shadow);
   display: flex; flex-direction: column; gap: 14px; font-size: 14px; color: var(--ink); }
 .lean-pop[hidden] { display: none; }
 .lean-pop.amber { border-color: var(--amber-line); }
@@ -182,7 +206,7 @@ table.fares tbody tr:last-child th, table.fares tbody tr:last-child td { border-
 .badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-weight: 600; font-size: 13px; line-height: 1.4; }
 .badge.proven { background: var(--proven-bg); color: var(--indigo); }
 .badge.open { background: var(--amber-bg); color: var(--amber-ink); }
-.badge.example, .badge.not-checked { background: #EEF0F3; color: var(--body); }
+.badge.example, .badge.not-checked { background: var(--neutral-bg); color: var(--body); }
 
 /* Footer */
 footer.site { border-top: 1px solid var(--line); background: var(--foot); }
@@ -194,7 +218,8 @@ footer.site nav { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 @media (max-width: 720px) {
   .wrap { padding: 0 16px; }
   header.site .wrap { padding-top: 8px; padding-bottom: 8px; }
-  header.site nav { margin: 0 -10px; }
+  header.site nav { margin: 0 -10px; order: 1; flex-basis: calc(100% + 20px); }
+  .theme-toggle { margin-left: auto; }
   header.site nav a { padding: 10px; font-size: 15px; }
   h1 { font-size: 32px; }
   .hero .wrap { padding-top: 40px; padding-bottom: 40px; }
