@@ -1,0 +1,302 @@
+{
+ "source": {
+  "repository": "https://github.com/samdengler/verified-air",
+  "commit": "cdffaaa4726690c7c8a289c9e33fdf631985884a"
+ },
+ "checks": [
+  {
+   "name": "BASIC-CHANGE-PAID right",
+   "rule": "RBASCHGPAID0",
+   "question": "I booked the Basic fare. I have paid for my trip, and my first flight has not left yet. Can I change to a different flight, and is there a fee?",
+   "answer": "No. The Basic fare does not allow a change before departure.",
+   "expect": "VALID"
+  },
+  {
+   "name": "BASIC-CHANGE-PAID wrong",
+   "rule": "RBASCHGPAID0",
+   "question": "I booked the Basic fare. I have paid for my trip, and my first flight has not left yet. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Basic fare a change before departure is allowed for a $75 change fee.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "BASIC-CHANGE-FLOWN right",
+   "rule": "RBASCHGFLWN0",
+   "question": "I booked the Basic fare. I have already taken the first flight of my trip. Can I change to a different flight, and is there a fee?",
+   "answer": "No. The Basic fare does not allow a change after your first flight.",
+   "expect": "VALID"
+  },
+  {
+   "name": "BASIC-CHANGE-FLOWN wrong",
+   "rule": "RBASCHGFLWN0",
+   "question": "I booked the Basic fare. I have already taken the first flight of my trip. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Basic fare a change after your first flight is allowed for a $75 change fee.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "BASIC-CHANGE-MISSED right",
+   "rule": "RBASCHGMISS0",
+   "question": "I booked the Basic fare. I missed my flight. Can I change to a different flight, and is there a fee?",
+   "answer": "No. The Basic fare does not allow a change after a missed flight.",
+   "expect": "VALID"
+  },
+  {
+   "name": "BASIC-CHANGE-MISSED wrong",
+   "rule": "RBASCHGMISS0",
+   "question": "I booked the Basic fare. I missed my flight. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Basic fare a change after a missed flight is allowed for a $75 change fee.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "BASIC-CANCEL-PAID right",
+   "rule": "RBASCXLPAID0",
+   "question": "I booked the Basic fare. I have paid for my trip, and my first flight has not left yet. If I cancel my booking, what do I get back?",
+   "answer": "You get nothing back.",
+   "expect": "VALID"
+  },
+  {
+   "name": "BASIC-CANCEL-PAID wrong",
+   "rule": "RBASCXLPAID0",
+   "question": "I booked the Basic fare. I have paid for my trip, and my first flight has not left yet. If I cancel my booking, what do I get back?",
+   "answer": "You get back the full price you paid.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "BASIC-CANCEL-FLOWN right",
+   "rule": "RBASCXLFLWN0",
+   "question": "I booked the Basic fare. I have already taken the first flight of my trip. If I cancel my booking, what do I get back?",
+   "answer": "You get nothing back.",
+   "expect": "VALID"
+  },
+  {
+   "name": "BASIC-CANCEL-FLOWN wrong",
+   "rule": "RBASCXLFLWN0",
+   "question": "I booked the Basic fare. I have already taken the first flight of my trip. If I cancel my booking, what do I get back?",
+   "answer": "You get back the full price you paid.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "BASIC-CANCEL-MISSED right",
+   "rule": "RBASCXLMISS0",
+   "question": "I booked the Basic fare. I missed my flight. If I cancel my booking, what do I get back?",
+   "answer": "You get nothing back.",
+   "expect": "VALID"
+  },
+  {
+   "name": "BASIC-CANCEL-MISSED wrong",
+   "rule": "RBASCXLMISS0",
+   "question": "I booked the Basic fare. I missed my flight. If I cancel my booking, what do I get back?",
+   "answer": "You get back the full price you paid.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "MAIN-CHANGE-PAID right",
+   "rule": "RMAICHGPAID0",
+   "question": "I booked the Main fare. I have paid for my trip, and my first flight has not left yet. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Main fare a change before departure is allowed for a $75 change fee, plus any difference in fare.",
+   "expect": "VALID"
+  },
+  {
+   "name": "MAIN-CHANGE-PAID wrong",
+   "rule": "RMAICHGPAID0",
+   "question": "I booked the Main fare. I have paid for my trip, and my first flight has not left yet. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Main fare a change before departure is allowed with no change fee.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "MAIN-CHANGE-FLOWN right",
+   "rule": "RMAICHGFLWN0",
+   "question": "I booked the Main fare. I have already taken the first flight of my trip. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Main fare a change after your first flight is allowed for a $75 change fee, plus any difference in fare.",
+   "expect": "VALID"
+  },
+  {
+   "name": "MAIN-CHANGE-FLOWN wrong",
+   "rule": "RMAICHGFLWN0",
+   "question": "I booked the Main fare. I have already taken the first flight of my trip. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Main fare a change after your first flight is allowed with no change fee.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "MAIN-CHANGE-MISSED right",
+   "rule": "RMAICHGMISS0",
+   "question": "I booked the Main fare. I missed my flight. Can I change to a different flight, and is there a fee?",
+   "answer": "No. The Main fare does not allow a change after a missed flight.",
+   "expect": "VALID"
+  },
+  {
+   "name": "MAIN-CHANGE-MISSED wrong",
+   "rule": "RMAICHGMISS0",
+   "question": "I booked the Main fare. I missed my flight. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Main fare a change after a missed flight is allowed for a $75 change fee.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "MAIN-CANCEL-PAID right",
+   "rule": "RMAICXLPAID0",
+   "question": "I booked the Main fare. I have paid for my trip, and my first flight has not left yet. If I cancel my booking, what do I get back?",
+   "answer": "You get $150 back.",
+   "expect": "VALID"
+  },
+  {
+   "name": "MAIN-CANCEL-PAID wrong",
+   "rule": "RMAICXLPAID0",
+   "question": "I booked the Main fare. I have paid for my trip, and my first flight has not left yet. If I cancel my booking, what do I get back?",
+   "answer": "You get back the full price you paid.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "MAIN-CANCEL-FLOWN right",
+   "rule": "RMAICXLFLWN0",
+   "question": "I booked the Main fare. I have already taken the first flight of my trip. If I cancel my booking, what do I get back?",
+   "answer": "You get $150 back.",
+   "expect": "VALID"
+  },
+  {
+   "name": "MAIN-CANCEL-FLOWN wrong",
+   "rule": "RMAICXLFLWN0",
+   "question": "I booked the Main fare. I have already taken the first flight of my trip. If I cancel my booking, what do I get back?",
+   "answer": "You get back the full price you paid.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "MAIN-CANCEL-MISSED right",
+   "rule": "RMAICXLMISS0",
+   "question": "I booked the Main fare. I missed my flight. If I cancel my booking, what do I get back?",
+   "answer": "You get nothing back.",
+   "expect": "VALID"
+  },
+  {
+   "name": "MAIN-CANCEL-MISSED wrong",
+   "rule": "RMAICXLMISS0",
+   "question": "I booked the Main fare. I missed my flight. If I cancel my booking, what do I get back?",
+   "answer": "You get back the full price you paid.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "FLEX-CHANGE-PAID right",
+   "rule": "RFLXCHGPAID0",
+   "question": "I booked the Flex fare. I have paid for my trip, and my first flight has not left yet. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Flex fare a change before departure is allowed with no change fee; you pay only any difference in fare.",
+   "expect": "VALID"
+  },
+  {
+   "name": "FLEX-CHANGE-PAID wrong",
+   "rule": "RFLXCHGPAID0",
+   "question": "I booked the Flex fare. I have paid for my trip, and my first flight has not left yet. Can I change to a different flight, and is there a fee?",
+   "answer": "No. The Flex fare does not allow a change before departure.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "FLEX-CHANGE-FLOWN right",
+   "rule": "RFLXCHGFLWN0",
+   "question": "I booked the Flex fare. I have already taken the first flight of my trip. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Flex fare a change after your first flight is allowed with no change fee; you pay only any difference in fare.",
+   "expect": "VALID"
+  },
+  {
+   "name": "FLEX-CHANGE-FLOWN wrong",
+   "rule": "RFLXCHGFLWN0",
+   "question": "I booked the Flex fare. I have already taken the first flight of my trip. Can I change to a different flight, and is there a fee?",
+   "answer": "No. The Flex fare does not allow a change after your first flight.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "FLEX-CHANGE-MISSED right",
+   "rule": "RFLXCHGMISS0",
+   "question": "I booked the Flex fare. I missed my flight. Can I change to a different flight, and is there a fee?",
+   "answer": "Yes. On the Flex fare a change after a missed flight is allowed with no change fee; you pay only any difference in fare.",
+   "expect": "VALID"
+  },
+  {
+   "name": "FLEX-CHANGE-MISSED wrong",
+   "rule": "RFLXCHGMISS0",
+   "question": "I booked the Flex fare. I missed my flight. Can I change to a different flight, and is there a fee?",
+   "answer": "No. The Flex fare does not allow a change after a missed flight.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "FLEX-CANCEL-PAID right",
+   "rule": "RFLXCXLPAID0",
+   "question": "I booked the Flex fare. I have paid for my trip, and my first flight has not left yet. If I cancel my booking, what do I get back?",
+   "answer": "You get back the full price you paid.",
+   "expect": "VALID"
+  },
+  {
+   "name": "FLEX-CANCEL-PAID wrong",
+   "rule": "RFLXCXLPAID0",
+   "question": "I booked the Flex fare. I have paid for my trip, and my first flight has not left yet. If I cancel my booking, what do I get back?",
+   "answer": "You get nothing back.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "FLEX-CANCEL-FLOWN right",
+   "rule": "RFLXCXLFLWN0",
+   "question": "I booked the Flex fare. I have already taken the first flight of my trip. If I cancel my booking, what do I get back?",
+   "answer": "You get back the full price you paid.",
+   "expect": "VALID"
+  },
+  {
+   "name": "FLEX-CANCEL-FLOWN wrong",
+   "rule": "RFLXCXLFLWN0",
+   "question": "I booked the Flex fare. I have already taken the first flight of my trip. If I cancel my booking, what do I get back?",
+   "answer": "You get nothing back.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "FLEX-CANCEL-MISSED right",
+   "rule": "RFLXCXLMISS0",
+   "question": "I booked the Flex fare. I missed my flight. If I cancel my booking, what do I get back?",
+   "answer": "You get $100 back.",
+   "expect": "VALID"
+  },
+  {
+   "name": "FLEX-CANCEL-MISSED wrong",
+   "rule": "RFLXCXLMISS0",
+   "question": "I booked the Flex fare. I missed my flight. If I cancel my booking, what do I get back?",
+   "answer": "You get back the full price you paid.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "Main change example right",
+   "rule": "RDUEONCHANGE",
+   "question": "I paid $320 for the Main fare, and before departure I want to move to a flight that costs $380. What do I pay?",
+   "answer": "You pay $135: the $60 difference in fare plus the $75 change fee.",
+   "expect": "VALID"
+  },
+  {
+   "name": "Main change example wrong",
+   "rule": "RDUEONCHANGE",
+   "question": "I paid $320 for the Main fare, and before departure I want to move to a flight that costs $380. What do I pay?",
+   "answer": "You pay $60, the difference in fare.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "Refund over its payment right",
+   "rule": "RREFUNDOVER0",
+   "question": "I made one payment of $100. Can I get a refund of $120 against it?",
+   "answer": "No. A refund cannot be more than the payment it is made against.",
+   "expect": "VALID"
+  },
+  {
+   "name": "Refund over its payment wrong",
+   "rule": "RREFUNDOVER0",
+   "question": "I made one payment of $100. Can I get a refund of $120 against it?",
+   "answer": "Yes. A $120 refund against your $100 payment is accepted.",
+   "expect": "INVALID"
+  },
+  {
+   "name": "Two refunds, each within the payment",
+   "rule": null,
+   "question": "I made one payment of $100. Can I get two separate refunds of $60 against it, $120 in total?",
+   "answer": "Yes. Each $60 refund is within your $100 payment, so both are accepted.",
+   "expect": "explore"
+  },
+  {
+   "name": "Two refunds, capped in total",
+   "rule": null,
+   "question": "I made one payment of $100. Can I get two separate refunds of $60 against it, $120 in total?",
+   "answer": "No. Refunds against one payment cannot add up to more than the payment.",
+   "expect": "explore"
+  }
+ ]
+}

@@ -40,7 +40,7 @@ def outputs(stack):
 OUT = outputs("VerifiedAirlineChat")
 LAMBDA = boto3.client("lambda", region_name=REGION)
 TABLE = boto3.resource("dynamodb", region_name=REGION).Table(OUT["TurnsTableName"])
-RULES = json.loads((ROOT / "build" / "chat" / "ar-rules.json").read_text())["rules"]
+RULES = json.loads((ROOT / "model" / "ar-rules.json").read_text())["rules"]
 REQUIREMENTS = json.loads((ROOT / "model" / "model.json").read_text())["requirements"]
 
 

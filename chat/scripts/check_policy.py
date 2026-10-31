@@ -1,4 +1,4 @@
-"""Send each check in build/chat/ar-checks.json through the chat's guardrail.
+"""Send each check in model/ar-checks.json through the chat's guardrail.
 
   uv run scripts/check_policy.py [--only TEXT] [--rounds N] [--report FILE]
 
@@ -26,6 +26,7 @@ from airline_agent.check import check as apply_check  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 CHAT = ROOT / "build" / "chat"
+MODEL = ROOT / "model"
 REGION = "us-east-1"
 
 
@@ -45,8 +46,8 @@ def main():
     ap.add_argument("--rounds", type=int, default=1, help="run every check this many times")
     ap.add_argument("--report", type=Path, default=CHAT / "check-report.json")
     args = ap.parse_args()
-    checks = json.loads((CHAT / "ar-checks.json").read_text())["checks"]
-    rules = json.loads((CHAT / "ar-rules.json").read_text())["rules"]
+    checks = json.loads((MODEL / "ar-checks.json").read_text())["checks"]
+    rules = json.loads((MODEL / "ar-rules.json").read_text())["rules"]
     if args.only:
         checks = [c for c in checks if args.only in c["name"]]
     out = outputs("VerifiedAirlineChat")

@@ -16,6 +16,7 @@ from verified_airline_infra.chat_stack import (
 )
 
 ROOT = Path(__file__).resolve().parents[2]
+MODEL = ROOT / "model"
 
 
 @pytest.fixture(scope="module")
@@ -36,7 +37,7 @@ def template(export):
 
 
 def test_the_policy_is_the_exported_definition(template, export):
-    exported = json.loads((export / "ar-policy.json").read_text())
+    exported = json.loads((MODEL / "ar-policy.json").read_text())
     (policy,) = template.find_resources("AWS::Bedrock::AutomatedReasoningPolicy").values()
     definition = policy["Properties"]["PolicyDefinition"]
     assert [r["Id"] for r in definition["Rules"]] == [r["id"] for r in exported["rules"]]
@@ -45,19 +46,19 @@ def test_the_policy_is_the_exported_definition(template, export):
 
 
 def test_every_rule_names_its_lean_rule(export):
-    rules = json.loads((export / "ar-rules.json").read_text())["rules"]
-    exported = json.loads((export / "ar-policy.json").read_text())
+    rules = json.loads((MODEL / "ar-rules.json").read_text())["rules"]
+    exported = json.loads((MODEL / "ar-policy.json").read_text())
     assert set(rules) == {r["id"] for r in exported["rules"]}
     assert all(m["lean"] and (m["requirements"] or m.get("axiom")) for m in rules.values())
 
 
 def test_every_rule_has_a_right_and_a_wrong_answer(export):
-    checks = json.loads((export / "ar-checks.json").read_text())["checks"]
+    checks = json.loads((MODEL / "ar-checks.json").read_text())["checks"]
     by_rule = {}
     for c in checks:
         by_rule.setdefault(c["rule"], set()).add(c["expect"])
-    exported = json.loads((export / "ar-policy.json").read_text())
-    meaning = json.loads((export / "ar-rules.json").read_text())["rules"]
+    exported = json.loads((MODEL / "ar-policy.json").read_text())
+    meaning = json.loads((MODEL / "ar-rules.json").read_text())["rules"]
     for r in exported["rules"]:
         if r["id"] != "RREFUNDWITHN" and not meaning[r["id"]].get("axiom") and not meaning[r["id"]].get("definition"):
             assert by_rule.get(r["id"]) == {"VALID", "INVALID"}, r["id"]
@@ -162,11 +163,10 @@ def test_turns_are_kept_thirty_days_and_the_agent_writes_them(template):
     assert "FaresPolicyVersion" in json.dumps(env["POLICY_VERSION_ARN"])
 
 
-def test_every_fare_rule_names_the_theorem_that_proves_its_fact(export):
-    rules = json.loads((export / "ar-rules.json").read_text())["rules"]
+def test_every_rule_names_a_theorem_that_proves_it():
+    rules = json.loads((MODEL / "ar-rules.json").read_text())["rules"]
     for rid, m in rules.items():
-        if rid.startswith(("RBAS", "RMAI", "RFLX")):
-            assert [t["name"].split(".")[0] for t in m["theorems"]] == ["Airline"], rid
+        assert m["theorems"] and all(t["name"].startswith("Airline.") and t["url"] for t in m["theorems"]), rid
 
 
 def test_the_budget_emails_before_and_when_the_month_passes_it(template):

@@ -30,7 +30,7 @@ def state(turn):
 
 def statements():
     """Each policy rule's meaning in traveler's words, keyed by rule ID
-    (RULE_STATEMENTS, which the stack sets from build/chat/ar-rules.json)."""
+    (RULE_STATEMENTS, which the stack sets from model/ar-rules.json)."""
     return json.loads(os.environ.get("RULE_STATEMENTS") or "{}")
 
 

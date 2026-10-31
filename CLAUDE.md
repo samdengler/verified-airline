@@ -12,7 +12,7 @@ Verified Airline, a fictional airline's site written from the Verified Air Lean 
 
 ## The model's files
 
-- `model/facts.json` and `model/model.json` come from verified-air; never edit them by hand. `scripts/update-model.sh` copies them, from verified-air's site or from `../verified-air/build/airline-data` after a local build there. Commit `model/` afterwards.
+- `model/facts.json`, `model/model.json`, `model/theorems.json` and the chat's policy (`model/ar-policy.json`, `ar-rules.json`, `ar-checks.json`) come from verified-air; never edit them by hand. A change to the policy's rules belongs in verified-air's `scripts/export_airline_policy.py`. `scripts/update-model.sh` copies them, from verified-air's site or from `../verified-air/build/airline-data` after a local build there. Commit `model/` afterwards.
 - Every amount is a `{{placeholder}}` from `model/facts.json`; never type one. To change a fee or refund, change `Airline/Fares.lean` in verified-air, rebuild there, then update `model/`.
 - The fares must not depend on a reading of the guide: no expiration dates, no refund both full and fixed. `lake exe airline-facts` in verified-air fails if two readings disagree.
 - verified-air's CI runs `scripts/render_airline.py --model <its fresh build> --out <a scratch directory>` through its `scripts/check-airline.sh`. Keep the renderer on Python's standard library, and keep both options working.

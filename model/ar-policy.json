@@ -1,0 +1,206 @@
+{
+ "version": "1.0",
+ "types": [
+  {
+   "name": "FareType",
+   "description": "The fares Verified Airline sells.",
+   "values": [
+    {
+     "value": "BASIC",
+     "description": "The Basic fare, the lowest price, with no changes."
+    },
+    {
+     "value": "MAIN",
+     "description": "The Main fare."
+    },
+    {
+     "value": "FLEX",
+     "description": "The Flex fare, the most flexible."
+    }
+   ]
+  },
+  {
+   "name": "TripStage",
+   "description": "How far along the trip the traveler is when they ask.",
+   "values": [
+    {
+     "value": "PAID_BEFORE_DEPARTURE",
+     "description": "The booking is paid and the first flight of the trip has not departed."
+    },
+    {
+     "value": "AFTER_FIRST_FLIGHT",
+     "description": "The traveler has taken the first flight of the trip."
+    },
+    {
+     "value": "AFTER_MISSED_FLIGHT",
+     "description": "The traveler missed a flight or did not show up for it."
+    }
+   ]
+  }
+ ],
+ "variables": [
+  {
+   "name": "fare",
+   "type": "FareType",
+   "description": "The fare the traveler booked with Verified Airline: BASIC, MAIN or FLEX. Set it from the fare named in the question or the answer, such as 'my Main ticket' (MAIN) or 'a Flex fare' (FLEX)."
+  },
+  {
+   "name": "tripStage",
+   "type": "TripStage",
+   "description": "Where the traveler is in the trip when they ask. PAID_BEFORE_DEPARTURE when the booking is paid and the first flight has not left ('before departure', 'I haven't flown yet'). AFTER_FIRST_FLIGHT when the traveler has taken the first flight of the trip ('after my first flight', 'partway through the trip'). AFTER_MISSED_FLIGHT when the traveler missed a flight ('I missed my flight', 'no-show', 'after a missed flight')."
+  },
+  {
+   "name": "changeAllowed",
+   "type": "BOOL",
+   "description": "Whether Verified Airline allows the traveler to change the flight in this situation. Set it only when the answer says outright that a change is allowed ('yes, you can change') or not allowed ('changes are not allowed'). Do not set it from a fee or an amount to pay alone."
+  },
+  {
+   "name": "changeFeeUsd",
+   "type": "NUMBER",
+   "description": "The change fee in US dollars that Verified Airline charges for an allowed change, not counting any difference in fare between the old and the new flight. 0 when the answer says there is no change fee or that the traveler pays only the fare difference."
+  },
+  {
+   "name": "cancellationRefundUsd",
+   "type": "NUMBER",
+   "description": "The amount in US dollars that Verified Airline gives back when the traveler cancels the booking, when the answer states it as a dollar amount ('$150 back'), or 0 when it says nothing comes back. When the answer says 'the full price', set refundIsFullPrice instead and leave this unset."
+  },
+  {
+   "name": "refundIsFullPrice",
+   "type": "BOOL",
+   "description": "Whether cancelling gives back the full price the traveler paid for the fare. True when the answer says 'full refund', 'the full price back' or 'all your money back'. False when the answer names a smaller amount or says nothing comes back."
+  },
+  {
+   "name": "paidUsd",
+   "type": "NUMBER",
+   "description": "The price in US dollars the traveler paid for the fare they booked."
+  },
+  {
+   "name": "newFareUsd",
+   "type": "NUMBER",
+   "description": "The price in US dollars of the new flight the traveler wants to change to."
+  },
+  {
+   "name": "fareDifferenceUsd",
+   "type": "NUMBER",
+   "description": "The difference in fare in US dollars on a change: the new flight's price minus the price the traveler paid. Set it only when a dollar amount is stated for it, such as 'the $60 difference in fare'. Leave it unset for 'plus any difference in fare' or 'only the fare difference', which name no amount."
+  },
+  {
+   "name": "amountDueUsd",
+   "type": "NUMBER",
+   "description": "The total in US dollars the traveler pays Verified Airline to make a change: the change fee plus the difference in fare when the new flight costs more than what was paid."
+  },
+  {
+   "name": "paymentUsd",
+   "type": "NUMBER",
+   "description": "The amount in US dollars of one payment the traveler made to Verified Airline."
+  },
+  {
+   "name": "refundRequestUsd",
+   "type": "NUMBER",
+   "description": "The amount in US dollars of one refund the traveler asks for against that one payment."
+  },
+  {
+   "name": "refundAccepted",
+   "type": "BOOL",
+   "description": "Whether Verified Airline accepts that one refund against that one payment."
+  }
+ ],
+ "rules": [
+  {
+   "id": "RBASCHGPAID0",
+   "expression": "(=> (and (= fare BASIC) (= tripStage PAID_BEFORE_DEPARTURE)) (not changeAllowed))"
+  },
+  {
+   "id": "RBASCHGFLWN0",
+   "expression": "(=> (and (= fare BASIC) (= tripStage AFTER_FIRST_FLIGHT)) (not changeAllowed))"
+  },
+  {
+   "id": "RBASCHGMISS0",
+   "expression": "(=> (and (= fare BASIC) (= tripStage AFTER_MISSED_FLIGHT)) (not changeAllowed))"
+  },
+  {
+   "id": "RBASCXLPAID0",
+   "expression": "(=> (and (= fare BASIC) (= tripStage PAID_BEFORE_DEPARTURE)) (and (= cancellationRefundUsd 0) (not refundIsFullPrice)))"
+  },
+  {
+   "id": "RBASCXLFLWN0",
+   "expression": "(=> (and (= fare BASIC) (= tripStage AFTER_FIRST_FLIGHT)) (and (= cancellationRefundUsd 0) (not refundIsFullPrice)))"
+  },
+  {
+   "id": "RBASCXLMISS0",
+   "expression": "(=> (and (= fare BASIC) (= tripStage AFTER_MISSED_FLIGHT)) (and (= cancellationRefundUsd 0) (not refundIsFullPrice)))"
+  },
+  {
+   "id": "RMAICHGPAID0",
+   "expression": "(=> (and (= fare MAIN) (= tripStage PAID_BEFORE_DEPARTURE)) (and changeAllowed (= changeFeeUsd 75)))"
+  },
+  {
+   "id": "RMAICHGFLWN0",
+   "expression": "(=> (and (= fare MAIN) (= tripStage AFTER_FIRST_FLIGHT)) (and changeAllowed (= changeFeeUsd 75)))"
+  },
+  {
+   "id": "RMAICHGMISS0",
+   "expression": "(=> (and (= fare MAIN) (= tripStage AFTER_MISSED_FLIGHT)) (not changeAllowed))"
+  },
+  {
+   "id": "RMAICXLPAID0",
+   "expression": "(=> (and (= fare MAIN) (= tripStage PAID_BEFORE_DEPARTURE)) (and (= cancellationRefundUsd 150) (not refundIsFullPrice)))"
+  },
+  {
+   "id": "RMAICXLFLWN0",
+   "expression": "(=> (and (= fare MAIN) (= tripStage AFTER_FIRST_FLIGHT)) (and (= cancellationRefundUsd 150) (not refundIsFullPrice)))"
+  },
+  {
+   "id": "RMAICXLMISS0",
+   "expression": "(=> (and (= fare MAIN) (= tripStage AFTER_MISSED_FLIGHT)) (and (= cancellationRefundUsd 0) (not refundIsFullPrice)))"
+  },
+  {
+   "id": "RFLXCHGPAID0",
+   "expression": "(=> (and (= fare FLEX) (= tripStage PAID_BEFORE_DEPARTURE)) (and changeAllowed (= changeFeeUsd 0)))"
+  },
+  {
+   "id": "RFLXCHGFLWN0",
+   "expression": "(=> (and (= fare FLEX) (= tripStage AFTER_FIRST_FLIGHT)) (and changeAllowed (= changeFeeUsd 0)))"
+  },
+  {
+   "id": "RFLXCHGMISS0",
+   "expression": "(=> (and (= fare FLEX) (= tripStage AFTER_MISSED_FLIGHT)) (and changeAllowed (= changeFeeUsd 0)))"
+  },
+  {
+   "id": "RFLXCXLPAID0",
+   "expression": "(=> (and (= fare FLEX) (= tripStage PAID_BEFORE_DEPARTURE)) (and refundIsFullPrice (= cancellationRefundUsd paidUsd)))"
+  },
+  {
+   "id": "RFLXCXLFLWN0",
+   "expression": "(=> (and (= fare FLEX) (= tripStage AFTER_FIRST_FLIGHT)) (and refundIsFullPrice (= cancellationRefundUsd paidUsd)))"
+  },
+  {
+   "id": "RFLXCXLMISS0",
+   "expression": "(=> (and (= fare FLEX) (= tripStage AFTER_MISSED_FLIGHT)) (and (= cancellationRefundUsd 100) (not refundIsFullPrice)))"
+  },
+  {
+   "id": "RFAREDIFFERN",
+   "expression": "(= fareDifferenceUsd (- newFareUsd paidUsd))"
+  },
+  {
+   "id": "RDUEONCHANGE",
+   "expression": "(=> (and changeAllowed (>= fareDifferenceUsd 0) (>= paidUsd changeFeeUsd)) (= amountDueUsd (+ fareDifferenceUsd changeFeeUsd)))"
+  },
+  {
+   "id": "RREFUNDOVER0",
+   "expression": "(=> (> refundRequestUsd paymentUsd) (not refundAccepted))"
+  },
+  {
+   "id": "RREFUNDWITHN",
+   "expression": "(=> (<= refundRequestUsd paymentUsd) refundAccepted)"
+  },
+  {
+   "id": "RNONNEGATIVE",
+   "expression": "(and (>= changeFeeUsd 0) (>= cancellationRefundUsd 0) (>= newFareUsd 0) (>= amountDueUsd 0) (>= paymentUsd 0) (>= refundRequestUsd 0))"
+  },
+  {
+   "id": "RPAIDPOSITIV",
+   "expression": "(> paidUsd 0)"
+  }
+ ]
+}

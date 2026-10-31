@@ -5,10 +5,10 @@
 Bedrock stores test cases on an Automated Reasoning policy and runs them
 against one of the policy's builds; the console shows the results beside the
 policy.  CloudFormation manages neither, so this script does both.  Every check
-in build/chat/ar-checks.json with an expected result becomes a test case: the
+in model/ar-checks.json with an expected result becomes a test case: the
 question as query content, the answer as guard content, the expected result as
 the aggregated finding.  Test cases no check describes are deleted.  A build
-that imports build/chat/ar-policy.json gives the tests the deployed definition
+that imports model/ar-policy.json gives the tests the deployed definition
 to run against; the build only produces a result and leaves the policy as it
 is.  scripts/check_policy.py stays the test of the deployed guardrail, its
 version, its role and its cross-Region profile; these tests cover the policy
@@ -24,7 +24,7 @@ from pathlib import Path
 import boto3
 
 ROOT = Path(__file__).resolve().parents[2]
-CHAT = ROOT / "build" / "chat"
+MODEL = ROOT / "model"
 REGION = "us-east-1"
 DONE = ("COMPLETED", "FAILED", "CANCELLED")
 
@@ -98,8 +98,8 @@ def main():
     ap = argparse.ArgumentParser(description="Sync the policy's test cases with the checks and run them.")
     ap.add_argument("--no-run", action="store_true", help="sync the test cases only")
     args = ap.parse_args()
-    checks = [c for c in json.loads((CHAT / "ar-checks.json").read_text())["checks"] if c["expect"] != "explore"]
-    definition = json.loads((CHAT / "ar-policy.json").read_text())
+    checks = [c for c in json.loads((MODEL / "ar-checks.json").read_text())["checks"] if c["expect"] != "explore"]
+    definition = json.loads((MODEL / "ar-policy.json").read_text())
     arn = outputs("VerifiedAirlineChat")["PolicyArn"]
     bedrock = boto3.client("bedrock", region_name=REGION)
     ids = sync_cases(bedrock, arn, checks)

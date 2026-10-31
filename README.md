@@ -48,6 +48,12 @@ verified-air's build:
   criteria with their statuses, the open questions behind each open
   criterion, and links into the review document. verified-air's
   `scripts/export_airline.py` writes it from the model's status.
+- `model/theorems.json`. The Lean theorem behind each fare fact, and behind
+  each of the support chat's general rules, with a link to its line.
+- `model/ar-policy.json`, `model/ar-rules.json` and `model/ar-checks.json`.
+  The support chat's Automated Reasoning policy, each rule's Lean rule,
+  requirements, sentence and theorems, and a right and a wrong answer for each
+  rule. verified-air's `scripts/export_airline_policy.py` writes them.
 
 `scripts/update-model.sh` copies the newest files from verified-air's site,
 where they are served under `/airline-data/`, or from a local build. The
@@ -92,7 +98,7 @@ site's content security policy and fails on any console error.
 | `scripts/deploy.sh` | Builds the app, deploys the stack and publishes the site |
 | `scripts/publish-site.sh` | Uploads the app's build and invalidates CloudFront; CI runs it on a push to `main` |
 | `scripts/redirect_pages.py` | github.io's pages, each a redirect to the same page at air.dengler.io |
-| `scripts/export_chat.py` | The support chat's files from the model's: the Automated Reasoning policy, its checks, the knowledge base's documents |
+| `scripts/export_chat.py` | The support chat's knowledge base documents, from the model's files and the rendered pages |
 | `chat/` | The support chat's agent (`airline_agent/`), its container, and its scripts |
 
 ## Building locally
@@ -138,10 +144,12 @@ The support chat is being built in steps; the design is the Claude Doc
 `VerifiedAirlineChat` stack in `infra/`. Nothing in it is typed by hand from
 the model:
 
-- `scripts/export_chat.py` writes, into `build/chat/`, an Amazon Bedrock
-  Automated Reasoning policy for fares and refunds, generated from
-  `facts.json`, with each rule's Lean rule and requirements; right and wrong
-  answers for every rule; and the knowledge base's documents.
+- verified-air writes an Amazon Bedrock Automated Reasoning policy for fares
+  and refunds from its model, with each rule's Lean rule, requirements and
+  theorems, and right and wrong answers for every rule;
+  `scripts/update-model.sh` copies them into `model/`.
+  `scripts/export_chat.py` writes the knowledge base's documents into
+  `build/chat/kb/`.
 - The stack loads the policy as JSON, versions it, and attaches it to a
   guardrail. It also holds a Bedrock managed knowledge base, a tools gateway
   that exposes its Retrieve as an MCP tool, and the airline agent on AgentCore
@@ -156,7 +164,7 @@ the model:
   days and answers with the text the traveler is shown.
 
 ```sh
-python3 scripts/export_chat.py                   # the policy, its checks, the documents
+python3 scripts/export_chat.py                   # the knowledge base's documents
 (cd infra && npx aws-cdk@2 deploy VerifiedAirlineChat)
 (cd chat && uv run scripts/sync_kb.py)           # upload the documents and ingest them
 (cd chat && uv run scripts/check_policy.py --rounds 3)   # right and wrong answers through the guardrail
@@ -270,3 +278,11 @@ shows is unproved and is labelled that way.
     to its runtimes because its agents act for a signed-in employee. An
     anonymous traveler has no identity for the agent to carry, and an IAM
     runtime still serves `chat/scripts/ask.py`.
+12. **The chat's policy is written in verified-air.** Its generator moved
+    there on 31 October 2026 (verified-air decision 54), so the policy is one
+    of the model's files, built with the theorems it cites and copied here by
+    `scripts/update-model.sh` like `facts.json`. Every rule now names a
+    theorem, the general rules and the two axioms included. One rule changed
+    to match its theorem: the amount due on a change is the fee plus the fare
+    difference when the price paid covers the fee. `scripts/export_chat.py`
+    keeps the knowledge base's documents, which need this repository's pages.

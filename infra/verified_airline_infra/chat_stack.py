@@ -1,13 +1,15 @@
 """The VerifiedAirlineChat stack: the support chat's backend.
 
-The Automated Reasoning policy is the definition scripts/export_chat.py writes
-from the Lean model's facts.json, loaded as JSON: CloudFormation creates the
-policy from it and runs no extraction, so no LLM writes a rule.  A numbered
-policy version is attached to a guardrail, and each policy definition gets
-its own numbered guardrail version, which the chat calls.
+The Automated Reasoning policy is model/ar-policy.json, which verified-air
+writes from the Lean model's files and scripts/update-model.sh copies here,
+loaded as JSON: CloudFormation creates the policy from it and runs no
+extraction, so no LLM writes a rule.  A numbered policy version is attached to
+a guardrail, and each policy definition gets its own numbered guardrail
+version, which the chat calls.
 
-The knowledge base is a Bedrock managed knowledge base over the documents the
-same script writes (chat/scripts/sync_kb.py uploads them and ingests).  The
+The knowledge base is a Bedrock managed knowledge base over the documents
+scripts/export_chat.py writes (chat/scripts/sync_kb.py uploads them and
+ingests).  The
 tools gateway exposes its Retrieve as the MCP tool docs___Retrieve and
 authorizes callers by IAM; the airline agent, a Strands agent on AgentCore
 Runtime, is the only caller its role allows.
@@ -55,6 +57,9 @@ from constructs import Construct
 
 ROOT = Path(__file__).resolve().parents[2]
 CHAT_DIR = ROOT / "build" / "chat"
+# The model's files, verified-air's build copied by scripts/update-model.sh,
+# with the chat's policy among them.
+MODEL_DIR = ROOT / "model"
 AGENT_DIR = ROOT / "chat"
 GUARDRAIL_PROFILE = "us.guardrail.v1:0"
 KB_PREFIX = "kb/"
@@ -122,10 +127,10 @@ def chat_start_code() -> lambda_.Code:
     )
 
 
-def load_definition(chat_dir: Path) -> dict:
-    path = chat_dir / "ar-policy.json"
+def load_definition(model_dir: Path) -> dict:
+    path = model_dir / "ar-policy.json"
     if not path.exists():
-        raise SystemExit(f"no {path}; run python3 scripts/export_chat.py first")
+        raise SystemExit(f"no {path}; run scripts/update-model.sh")
     return json.loads(path.read_text())
 
 
@@ -148,10 +153,11 @@ def policy_definition(d: dict) -> Policy.PolicyDefinitionProperty:
 
 
 class VerifiedAirlineChatStack(cdk.Stack):
-    def __init__(self, scope: Construct, construct_id: str, *, chat_dir: Path, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, *, chat_dir: Path, model_dir: Path = MODEL_DIR,
+                 **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        definition = load_definition(chat_dir)
+        definition = load_definition(model_dir)
         digest = hashlib.sha256(json.dumps(definition, sort_keys=True).encode()).hexdigest()[:8]
 
         policy = Policy(
@@ -193,7 +199,7 @@ class VerifiedAirlineChatStack(cdk.Stack):
             description=f"Fares policy definition {digest}",
         )
 
-        rules = json.loads((chat_dir / "ar-rules.json").read_text())
+        rules = json.loads((model_dir / "ar-rules.json").read_text())
         statements = {rule: m["statement"] for rule, m in rules["rules"].items()}
         provenance = {"LEAN_MODEL_COMMIT": rules["source"]["commit"], "POLICY_VERSION_ARN": versioned_arn}
         traveler = json.loads((ROOT / "content" / "chat.json").read_text())["traveler"]
