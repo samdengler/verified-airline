@@ -39,9 +39,10 @@ TOOLS_GATEWAY_NAME = "verified-airline-tools"
 KB_TARGET_NAME = "docs"
 RUNTIME_NAME = "verified_airline_agent"
 # The same model answers in both modes, so the guardrail is the only difference.
-# Claude Sonnet 4.6 is the strongest Claude model this account has enabled in
-# Bedrock (31 October 2026); a newer one needs its access enabled first.
-MODEL_ID = "us.anthropic.claude-sonnet-4-6"
+# Claude Haiku 4.5: in step 2 it misstated fees and refunds the policy covers
+# (12 of 62 bait answers) and Claude Sonnet 4.6 never did, and the demo needs
+# a wrong answer for the guardrail to catch.
+MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
 Policy = bedrock.CfnAutomatedReasoningPolicy
 
