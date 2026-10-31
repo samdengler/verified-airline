@@ -199,7 +199,9 @@ the pages. A verified reply carries a ∀ Verified mark that opens its answer
 certificate: what the check took as given, what it read the answer as saying,
 the rules it applied with their Lean rules and criteria, and the policy,
 guardrail and verified-air versions. Compare shows the draft beside what the
-traveler was shown.
+traveler was shown. New chat in the panel's header ends the chat and starts an
+empty one; switching Verified answers does the same, since a chat's mode is
+fixed when it starts.
 
 The canvas deploy reads the designer's API key from
 `~/.config/verified-airline/acxd_api_key`. The key, the designer's workspace

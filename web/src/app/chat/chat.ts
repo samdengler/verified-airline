@@ -7,8 +7,9 @@ import { confidence, contradicted, findingRows, tone, turnFor, versionOf, type M
  * The support chat: a button in the header and a panel over the page.  Each
  * reply shows how it was checked.  In verified mode a verified reply carries a
  * ∀ Verified mark that opens its answer certificate, and Compare shows the
- * draft beside what the traveler was shown.  Switching Verified answers starts
- * a new chat, since a chat's mode is fixed when it starts.
+ * draft beside what the traveler was shown.  New chat in the panel's header
+ * ends the chat and starts an empty one.  Switching Verified answers also
+ * starts a new chat, since a chat's mode is fixed when it starts.
  *
  * Under `npm start` the proxy sends /api to chat/scripts/dev_api.py; on
  * air.dengler.io CloudFront sends it to the chat's functions.  PUBLISHED
@@ -46,6 +47,9 @@ type Status = 'idle' | 'starting' | 'ready' | 'waiting' | 'failed' | 'ended';
           <h2>{{ w.title }}</h2>
           <button type="button" class="chat-switch" role="switch" [attr.aria-checked]="verified()" [disabled]="status() === 'starting' || status() === 'waiting'" (click)="toggleVerified()">
             <span class="track" aria-hidden="true"><span class="thumb"></span></span>{{ w.verifiedToggle }}
+          </button>
+          <button type="button" class="chat-new" [attr.aria-label]="w.newChat" [title]="w.newChat" [disabled]="status() === 'starting'" (click)="restart()">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" d="M4 5h16v11H9l-5 4zM12 7.5v5M9.5 10h5"/></svg>
           </button>
           <button type="button" class="chat-close" [attr.aria-label]="w.close" (click)="open.set(false)">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
