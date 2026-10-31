@@ -153,6 +153,7 @@ python3 scripts/export_chat.py                   # the policy, its checks, the d
 (cd infra && npx aws-cdk@2 deploy VerifiedAirlineChat)
 (cd chat && uv run scripts/sync_kb.py)           # upload the documents and ingest them
 (cd chat && uv run scripts/check_policy.py --rounds 3)   # right and wrong answers through the guardrail
+(cd chat && uv run scripts/policy_tests.py)      # the same answers as the policy's own tests, run in Bedrock
 (cd chat && uv run scripts/ask.py --rounds 2)    # the question set, through the agent
 (cd chat && uv run python -m airline_agent.cli "What does a Main change cost?")
 ```
