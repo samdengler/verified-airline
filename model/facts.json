@@ -1,0 +1,113 @@
+{"generatedBy": "lake exe airline-facts",
+ "fares":
+ {"main":
+  {"price": {"currency": "USD", "cents": 32000},
+   "name": "Main",
+   "change":
+   {"noShow": {"rule": "MAIN-CHANGE-MISSED", "decision": "refused"},
+    "beforeDeparture":
+    {"rule": "MAIN-CHANGE-PAID",
+     "fee": {"currency": "USD", "cents": 7500},
+     "decision": "allowed",
+     "approximate": false},
+    "afterDeparture":
+    {"rule": "MAIN-CHANGE-FLOWN",
+     "fee": {"currency": "USD", "cents": 7500},
+     "decision": "allowed",
+     "approximate": false}},
+   "cancel":
+   {"noShow":
+    {"toOriginalForm": false,
+     "rule": "MAIN-CANCEL-MISSED",
+     "refund": {"currency": "USD", "cents": 0},
+     "kind": "nothing"},
+    "beforeDeparture":
+    {"toOriginalForm": true,
+     "rule": "MAIN-CANCEL-PAID",
+     "refund": {"currency": "USD", "cents": 15000},
+     "kind": "fixed"},
+    "afterDeparture":
+    {"toOriginalForm": true,
+     "rule": "MAIN-CANCEL-FLOWN",
+     "refund": {"currency": "USD", "cents": 15000},
+     "kind": "fixed"}}},
+  "flex":
+  {"price": {"currency": "USD", "cents": 52000},
+   "name": "Flex",
+   "change":
+   {"noShow":
+    {"rule": "FLEX-CHANGE-MISSED",
+     "fee": {"currency": "USD", "cents": 0},
+     "decision": "allowed",
+     "approximate": false},
+    "beforeDeparture":
+    {"rule": "FLEX-CHANGE-PAID",
+     "fee": {"currency": "USD", "cents": 0},
+     "decision": "allowed",
+     "approximate": false},
+    "afterDeparture":
+    {"rule": "FLEX-CHANGE-FLOWN",
+     "fee": {"currency": "USD", "cents": 0},
+     "decision": "allowed",
+     "approximate": false}},
+   "cancel":
+   {"noShow":
+    {"toOriginalForm": true,
+     "rule": "FLEX-CANCEL-MISSED",
+     "refund": {"currency": "USD", "cents": 10000},
+     "kind": "fixed"},
+    "beforeDeparture":
+    {"toOriginalForm": true,
+     "rule": "FLEX-CANCEL-PAID",
+     "refund": {"currency": "USD", "cents": 52000},
+     "kind": "full"},
+    "afterDeparture":
+    {"toOriginalForm": true,
+     "rule": "FLEX-CANCEL-FLOWN",
+     "refund": {"currency": "USD", "cents": 52000},
+     "kind": "full"}}},
+  "basic":
+  {"price": {"currency": "USD", "cents": 18900},
+   "name": "Basic",
+   "change":
+   {"noShow": {"rule": "BASIC-CHANGE-MISSED", "decision": "refused"},
+    "beforeDeparture": {"rule": "BASIC-CHANGE-PAID", "decision": "refused"},
+    "afterDeparture": {"rule": "BASIC-CHANGE-FLOWN", "decision": "refused"}},
+   "cancel":
+   {"noShow":
+    {"toOriginalForm": false,
+     "rule": "BASIC-CANCEL-MISSED",
+     "refund": {"currency": "USD", "cents": 0},
+     "kind": "nothing"},
+    "beforeDeparture":
+    {"toOriginalForm": false,
+     "rule": "BASIC-CANCEL-PAID",
+     "refund": {"currency": "USD", "cents": 0},
+     "kind": "nothing"},
+    "afterDeparture":
+    {"toOriginalForm": false,
+     "rule": "BASIC-CANCEL-FLOWN",
+     "refund": {"currency": "USD", "cents": 0},
+     "kind": "nothing"}}}},
+ "fareOrder": ["basic", "main", "flex"],
+ "examples":
+ {"mainChange":
+  {"youPay": {"currency": "USD", "cents": 13500},
+   "weReturn": {"currency": "USD", "cents": 0},
+   "oldPrice": {"currency": "USD", "cents": 32000},
+   "newPrice": {"currency": "USD", "cents": 38000},
+   "fee": {"currency": "USD", "cents": 7500},
+   "fare": "main"},
+  "mainCancel":
+  {"refund": {"currency": "USD", "cents": 15000},
+   "price": {"currency": "USD", "cents": 32000},
+   "fare": "main"},
+  "flexCancel":
+  {"refund": {"currency": "USD", "cents": 52000},
+   "price": {"currency": "USD", "cents": 52000},
+   "fare": "flex"},
+  "basicCancel":
+  {"refund": {"currency": "USD", "cents": 0},
+   "price": {"currency": "USD", "cents": 18900},
+   "fare": "basic"}},
+ "cases": 16}
