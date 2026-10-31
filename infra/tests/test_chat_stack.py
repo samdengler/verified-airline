@@ -8,7 +8,7 @@ from pathlib import Path
 import aws_cdk as cdk
 import pytest
 from aws_cdk.assertions import Template
-from verified_airline_infra.chat_stack import GUARDRAIL_PROFILE, VerifiedAirlineChatStack
+from verified_airline_infra.chat_stack import CONNECT_ALIAS, GUARDRAIL_PROFILE, VerifiedAirlineChatStack
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -97,3 +97,11 @@ def test_one_model_answers_both_modes(template):
     env = runtime["Properties"]["EnvironmentVariables"]
     assert env["MODEL_ID"].startswith("us.anthropic.claude-")
     assert "GUARDRAIL_VERSION" in env and "TOOLS_GATEWAY_URL" in env
+
+
+def test_the_connect_instance_is_kept_and_uses_connect_users(template):
+    (instance,) = template.find_resources("AWS::Connect::Instance").values()
+    assert instance["DeletionPolicy"] == "Retain"
+    assert instance["Properties"]["InstanceAlias"] == CONNECT_ALIAS
+    assert instance["Properties"]["IdentityManagementType"] == "CONNECT_MANAGED"
+    assert instance["Properties"]["Attributes"]["OutboundCalls"] is False

@@ -12,6 +12,10 @@ tools gateway exposes its Retrieve as the MCP tool docs___Retrieve and
 authorizes callers by IAM; the airline agent, a Strands agent on AgentCore
 Runtime, is the only caller its role allows.
 
+The Connect instance carries the chat in front of the agent.  It is kept if
+the stack is deleted, since the designer's workspace, its API user and the
+admin user are made on it by hand once.
+
 guppi-hr's stacks are reference only; this stack depends on nothing of theirs.
 """
 
@@ -25,6 +29,7 @@ import aws_cdk as cdk
 from aws_cdk import RemovalPolicy
 from aws_cdk import aws_bedrock as bedrock
 from aws_cdk import aws_bedrockagentcore as agentcore
+from aws_cdk import aws_connect as connect
 from aws_cdk import aws_ecr_assets as ecr_assets
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_s3 as s3
@@ -38,6 +43,8 @@ KB_PREFIX = "kb/"
 TOOLS_GATEWAY_NAME = "verified-airline-tools"
 KB_TARGET_NAME = "docs"
 RUNTIME_NAME = "verified_airline_agent"
+# Instance aliases are unique across AWS; the alias is also the access URL's host.
+CONNECT_ALIAS = "verified-airline"
 # The same model answers in both modes, so the guardrail is the only difference.
 # Claude Haiku 4.5: in step 2 it misstated fees and refunds the policy covers
 # (12 of 62 bait answers) and Claude Sonnet 4.6 never did, and the demo needs
@@ -121,6 +128,7 @@ class VerifiedAirlineChatStack(cdk.Stack):
         knowledge_base, data_source, kb_bucket = self.knowledge_base()
         tools_gateway = self.tools_gateway(knowledge_base, data_source)
         runtime = self.agent_runtime(tools_gateway, guardrail, guardrail_version, policy)
+        instance = self.connect_instance()
 
         cdk.CfnOutput(self, "PolicyArn", value=policy.attr_policy_arn)
         cdk.CfnOutput(self, "PolicyVersionArn", value=versioned_arn)
@@ -132,6 +140,31 @@ class VerifiedAirlineChatStack(cdk.Stack):
         cdk.CfnOutput(self, "ToolsGatewayUrl", value=tools_gateway.attr_gateway_url)
         cdk.CfnOutput(self, "RuntimeArn", value=runtime.attr_agent_runtime_arn)
         cdk.CfnOutput(self, "ModelId", value=MODEL_ID)
+        cdk.CfnOutput(self, "ConnectInstanceId", value=instance.attr_id)
+        cdk.CfnOutput(self, "ConnectAccessUrl", value=f"https://{CONNECT_ALIAS}.my.connect.aws")
+
+    def connect_instance(self):
+        """A chat-only instance with Connect's own user directory.  The
+        attributes match guppi-hr's instance, on which the Agentic CX designer
+        ran; contact flow logs are on so a canvas hand-off can be traced."""
+        instance = connect.CfnInstance(
+            self,
+            "ConnectInstance",
+            instance_alias=CONNECT_ALIAS,
+            identity_management_type="CONNECT_MANAGED",
+            attributes=connect.CfnInstance.AttributesProperty(
+                inbound_calls=True,
+                outbound_calls=False,
+                contactflow_logs=True,
+                contact_lens=True,
+                auto_resolve_best_voices=True,
+                early_media=True,
+                enhanced_chat_monitoring=True,
+                multi_party_chat_conference=True,
+            ),
+        )
+        instance.apply_removal_policy(RemovalPolicy.RETAIN)
+        return instance
 
     def service_role(self, construct_id, service, description):
         """A role a Bedrock or AgentCore service assumes for this account only."""
