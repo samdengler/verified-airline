@@ -160,3 +160,10 @@ def test_turns_are_kept_thirty_days_and_the_agent_writes_them(template):
     assert json.loads(env["RULE_STATEMENTS"])
     assert len(env["LEAN_MODEL_COMMIT"]) == 40
     assert "FaresPolicyVersion" in json.dumps(env["POLICY_VERSION_ARN"])
+
+
+def test_every_fare_rule_names_the_theorem_that_proves_its_fact(export):
+    rules = json.loads((export / "ar-rules.json").read_text())["rules"]
+    for rid, m in rules.items():
+        if rid.startswith(("RBAS", "RMAI", "RFLX")):
+            assert [t["name"].split(".")[0] for t in m["theorems"]] == ["Airline"], rid

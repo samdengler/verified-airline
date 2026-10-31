@@ -29,7 +29,7 @@ export interface Turn {
   question: string;
   draft: string;
   check: { result: string; findings: Finding[]; rulesApplied: string[]; untranslated: string[] } | null;
-  rules: Record<string, { statement: string; lean: string; requirements: Requirement[] }>;
+  rules: Record<string, { statement: string; lean: string; requirements: Requirement[]; theorems?: { name: string; url: string }[] }>;
   provenance: { leanModelCommit?: string; policyVersion?: string; guardrailVersion?: string } | null;
 }
 

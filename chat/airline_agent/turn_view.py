@@ -1,7 +1,7 @@
 """What the widget may read of a turn: its state, the draft, the check, and
-for the answer certificate, each cited rule's statement, Lean rule and
-requirements with their criteria's status.  The passages retrieval returned
-stay in the record."""
+for the answer certificate, each cited rule's statement, Lean rule,
+requirements with their criteria's status, and the theorem proving its
+fact.  The passages retrieval returned stay in the record."""
 
 import json
 
@@ -27,7 +27,8 @@ def view(item, rules, requirements):
         "draft": body["answer"],
         "check": check and {k: check[k] for k in ("result", "findings", "rulesApplied", "untranslated")},
         "rules": {r: {"statement": rules[r]["statement"], "lean": rules[r]["lean"],
-                      "requirements": [criteria(requirements, q) for q in rules[r]["requirements"]]}
+                      "requirements": [criteria(requirements, q) for q in rules[r]["requirements"]],
+                      "theorems": [{"name": t["name"], "url": t["url"]} for t in rules[r].get("theorems", [])]}
                   for r in cited if r in rules},
         "provenance": body.get("provenance"),
     }

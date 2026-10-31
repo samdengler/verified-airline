@@ -62,6 +62,9 @@
 .cert-rules li { display: flex; align-items: flex-start; gap: 10px; }
 .cert-rules .lean-marker { width: 26px; height: 26px; font-size: 13px; cursor: default; }
 .cert-lean { font-size: 12.5px; color: var(--muted); }
+.cert-theorem { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px !important; font-size: 13px; }
+.cert-theorem .badge { padding: 1px 7px; font-size: 12px; }
+.cert-theorem + .cert-lean { margin-top: 4px !important; }
 .cert-meta { padding-top: 8px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
 .chat-detail.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px; }
 .chat-detail.compare .full { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; }

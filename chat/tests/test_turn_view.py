@@ -5,7 +5,9 @@ import json
 from airline_agent.turn_view import view
 
 RULES = {"RMAICXLMISS0": {"lean": "MAIN-CANCEL-MISSED", "requirements": ["ONE-503"],
-                          "statement": "On Main, cancelling after a missed flight returns nothing."}}
+                          "statement": "On Main, cancelling after a missed flight returns nothing.",
+                          "theorems": [{"fact": "fares.main.cancel.noShow", "name": "Airline.main_cancel_noShow",
+                                        "url": "https://example.test/Theorems.lean#L123"}]}}
 REQUIREMENTS = {"ONE-503": {"criteria": [{"status": "proven"}, {"status": "proven"}, {"status": "open"}]}}
 
 
@@ -28,6 +30,7 @@ def test_each_cited_rule_carries_its_statement_lean_rule_and_criteria():
     rule = view(item(), RULES, REQUIREMENTS)["rules"]["RMAICXLMISS0"]
     assert rule["lean"] == "MAIN-CANCEL-MISSED"
     assert rule["requirements"] == [{"id": "ONE-503", "proven": 2, "total": 3}]
+    assert rule["theorems"] == [{"name": "Airline.main_cancel_noShow", "url": "https://example.test/Theorems.lean#L123"}]
 
 
 def test_a_knowledge_base_turn_has_no_check_and_no_rules():

@@ -105,6 +105,9 @@ type Status = 'idle' | 'starting' | 'ready' | 'waiting' | 'failed' | 'ended';
                         <span class="lean-marker" [class.open]="r.tone === 'open'" aria-hidden="true">∀</span>
                         <div>
                           <p>{{ r.statement }}</p>
+                          @for (t of r.theorems; track t.name) {
+                            <p class="cert-theorem"><span class="badge proven">{{ lean.provenBadge }}</span> {{ lean.theorem }} <a [href]="t.url"><code>{{ t.name }}</code></a></p>
+                          }
                           <p class="cert-lean"><code>{{ r.lean }}</code> · {{ r.ids }} · {{ r.proven }} of {{ r.total }} {{ lean.proven }}</p>
                         </div>
                       </li>
@@ -237,6 +240,7 @@ export class Chat implements OnDestroy {
       proven: r.requirements.reduce((n, q) => n + q.proven, 0),
       total: r.requirements.reduce((n, q) => n + q.total, 0),
       tone: tone(r.requirements),
+      theorems: r.theorems ?? [],
     }));
   }
 

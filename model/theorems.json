@@ -1,0 +1,153 @@
+{
+ "source": {
+  "repository": "https://github.com/samdengler/verified-air",
+  "commit": "5df67f0e860438c511877dc3056fe08f3db125c5",
+  "site": "https://samdengler.github.io/verified-air/"
+ },
+ "facts": {
+  "fares.basic.cancel.afterDeparture": {
+   "theorem": "Airline.basic_cancel_afterDeparture",
+   "statement": "On Basic, a cancellation after the first flight returns nothing.",
+   "rule": "BASIC-CANCEL-FLOWN",
+   "path": "Airline/Theorems.lean",
+   "line": 76,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L76"
+  },
+  "fares.basic.cancel.beforeDeparture": {
+   "theorem": "Airline.basic_cancel_beforeDeparture",
+   "statement": "On Basic, a cancellation before departure returns nothing.",
+   "rule": "BASIC-CANCEL-PAID",
+   "path": "Airline/Theorems.lean",
+   "line": 70,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L70"
+  },
+  "fares.basic.cancel.noShow": {
+   "theorem": "Airline.basic_cancel_noShow",
+   "statement": "On Basic, a cancellation after a missed flight returns nothing.",
+   "rule": "BASIC-CANCEL-MISSED",
+   "path": "Airline/Theorems.lean",
+   "line": 82,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L82"
+  },
+  "fares.basic.change.afterDeparture": {
+   "theorem": "Airline.basic_change_afterDeparture",
+   "statement": "On Basic, a change of flight after the first flight is refused.",
+   "rule": "BASIC-CHANGE-FLOWN",
+   "path": "Airline/Theorems.lean",
+   "line": 58,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L58"
+  },
+  "fares.basic.change.beforeDeparture": {
+   "theorem": "Airline.basic_change_beforeDeparture",
+   "statement": "On Basic, a change of flight before departure is refused.",
+   "rule": "BASIC-CHANGE-PAID",
+   "path": "Airline/Theorems.lean",
+   "line": 52,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L52"
+  },
+  "fares.basic.change.noShow": {
+   "theorem": "Airline.basic_change_noShow",
+   "statement": "On Basic, a change of flight after a missed flight is refused.",
+   "rule": "BASIC-CHANGE-MISSED",
+   "path": "Airline/Theorems.lean",
+   "line": 64,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L64"
+  },
+  "fares.flex.cancel.afterDeparture": {
+   "theorem": "Airline.flex_cancel_afterDeparture",
+   "statement": "On Flex, a cancellation after the first flight returns the item's whole price to the original form of payment.",
+   "rule": "FLEX-CANCEL-FLOWN",
+   "path": "Airline/Theorems.lean",
+   "line": 159,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L159"
+  },
+  "fares.flex.cancel.beforeDeparture": {
+   "theorem": "Airline.flex_cancel_beforeDeparture",
+   "statement": "On Flex, a cancellation before departure returns the item's whole price to the original form of payment.",
+   "rule": "FLEX-CANCEL-PAID",
+   "path": "Airline/Theorems.lean",
+   "line": 152,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L152"
+  },
+  "fares.flex.cancel.noShow": {
+   "theorem": "Airline.flex_cancel_noShow",
+   "statement": "On Flex, a cancellation after a missed flight returns 100 dollars to the original form of payment, whatever the item's price.",
+   "rule": "FLEX-CANCEL-MISSED",
+   "path": "Airline/Theorems.lean",
+   "line": 166,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L166"
+  },
+  "fares.flex.change.afterDeparture": {
+   "theorem": "Airline.flex_change_afterDeparture",
+   "statement": "On Flex, a change of flight after the first flight is allowed with no fee, priced from the request's old and new prices.",
+   "rule": "FLEX-CHANGE-FLOWN",
+   "path": "Airline/Theorems.lean",
+   "line": 138,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L138"
+  },
+  "fares.flex.change.beforeDeparture": {
+   "theorem": "Airline.flex_change_beforeDeparture",
+   "statement": "On Flex, a change of flight before departure is allowed with no fee, priced from the request's old and new prices.",
+   "rule": "FLEX-CHANGE-PAID",
+   "path": "Airline/Theorems.lean",
+   "line": 131,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L131"
+  },
+  "fares.flex.change.noShow": {
+   "theorem": "Airline.flex_change_noShow",
+   "statement": "On Flex, a change of flight after a missed flight is allowed with no fee, priced from the request's old and new prices.",
+   "rule": "FLEX-CHANGE-MISSED",
+   "path": "Airline/Theorems.lean",
+   "line": 145,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L145"
+  },
+  "fares.main.cancel.afterDeparture": {
+   "theorem": "Airline.main_cancel_afterDeparture",
+   "statement": "On Main, a cancellation after the first flight returns 150 dollars to the original form of payment, whatever the item's price.",
+   "rule": "MAIN-CANCEL-FLOWN",
+   "path": "Airline/Theorems.lean",
+   "line": 117,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L117"
+  },
+  "fares.main.cancel.beforeDeparture": {
+   "theorem": "Airline.main_cancel_beforeDeparture",
+   "statement": "On Main, a cancellation before departure returns 150 dollars to the original form of payment, whatever the item's price.",
+   "rule": "MAIN-CANCEL-PAID",
+   "path": "Airline/Theorems.lean",
+   "line": 110,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L110"
+  },
+  "fares.main.cancel.noShow": {
+   "theorem": "Airline.main_cancel_noShow",
+   "statement": "On Main, a cancellation after a missed flight returns nothing.",
+   "rule": "MAIN-CANCEL-MISSED",
+   "path": "Airline/Theorems.lean",
+   "line": 123,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L123"
+  },
+  "fares.main.change.afterDeparture": {
+   "theorem": "Airline.main_change_afterDeparture",
+   "statement": "On Main, a change of flight after the first flight is allowed with a 75 dollar fee as its penalty, priced from the request's old and new prices.",
+   "rule": "MAIN-CHANGE-FLOWN",
+   "path": "Airline/Theorems.lean",
+   "line": 97,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L97"
+  },
+  "fares.main.change.beforeDeparture": {
+   "theorem": "Airline.main_change_beforeDeparture",
+   "statement": "On Main, a change of flight before departure is allowed with a 75 dollar fee as its penalty, priced from the request's old and new prices.",
+   "rule": "MAIN-CHANGE-PAID",
+   "path": "Airline/Theorems.lean",
+   "line": 90,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L90"
+  },
+  "fares.main.change.noShow": {
+   "theorem": "Airline.main_change_noShow",
+   "statement": "On Main, a change of flight after a missed flight is refused.",
+   "rule": "MAIN-CHANGE-MISSED",
+   "path": "Airline/Theorems.lean",
+   "line": 103,
+   "url": "https://github.com/samdengler/verified-air/blob/5df67f0e860438c511877dc3056fe08f3db125c5/Airline/Theorems.lean#L103"
+  }
+ }
+}

@@ -16,7 +16,9 @@ ar-policy.json
 ar-rules.json
     Each rule's ID with the Lean rule and requirements it encodes, and a
     sentence for people, so the chat can show a finding's rules the way the
-    site shows a section's requirement.
+    site shows a section's requirement.  A fare rule also names the Lean
+    theorem that proves its fact, from theorems.json, which the chat's answer
+    certificate links.
 ar-checks.json
     Questions with a right and a wrong answer for each rule, which
     chat/scripts/check_policy.py sends through the guardrail.  A right answer
@@ -457,6 +459,26 @@ def knowledge_base(facts, model):
     return docs
 
 
+def link_theorems(meaning, path, model):
+    """Give each fare rule the theorem verified-air proves its fact with,
+    matched by the Lean rule's name.  The theorems must come from the same
+    commit as model.json; a fare rule with no theorem stops the export."""
+    if not path.exists():
+        return
+    theorems = json.loads(path.read_text())
+    if theorems["source"]["commit"] != model["source"].get("commit"):
+        sys.exit(f"export_chat: {path} is from {theorems['source']['commit'][:7]}, model.json from "
+                 f"{(model['source'].get('commit') or '')[:7]}; run scripts/update-model.sh")
+    by_rule = {}
+    for key, t in theorems["facts"].items():
+        by_rule.setdefault(t["rule"], []).append({"fact": key, "name": t["theorem"], "url": t["url"]})
+    for rid, m in meaning.items():
+        if m["lean"] in by_rule:
+            m["theorems"] = by_rule[m["lean"]]
+        elif rid.startswith(("RBAS", "RMAI", "RFLX")):
+            sys.exit(f"export_chat: no theorem in {path} proves {m['lean']} ({rid})")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Write the support chat's files from the Lean model's files.")
     ap.add_argument("--model", type=Path, default=MODEL, help="the directory with facts.json and model.json")
@@ -465,6 +487,7 @@ def main():
     facts = json.loads((args.model / "facts.json").read_text())
     model = json.loads((args.model / "model.json").read_text())
     definition, meaning, checks = policy(facts, model)
+    link_theorems(meaning, args.model / "theorems.json", model)
     args.out.mkdir(parents=True, exist_ok=True)
     source = {"commit": model["source"].get("commit"), "repository": model["source"].get("repository")}
     (args.out / "ar-policy.json").write_text(json.dumps(definition, indent=1) + "\n")
