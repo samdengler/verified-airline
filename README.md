@@ -168,6 +168,24 @@ python3 scripts/export_chat.py                   # the policy, its checks, the d
 (cd chat && uv run scripts/chat.py --mode verified "My Main flight left without me. What can I get back if I cancel?")
 ```
 
+The widget is the Ask about fares button in the site's header. Until it is
+published the chat start has no public route, so the button shows only under
+`npm start` or with `?chat` in the address, and a local server stands in for
+the chat's API with your AWS credentials:
+
+```sh
+eval "$(aws configure export-credentials --format env)"
+(cd chat && uv run scripts/dev_api.py)           # /api/chat/start and /api/chat/turns on 127.0.0.1:8790
+npm --prefix web start                           # http://localhost:4200, which proxies /api there
+```
+
+Its wording is in `content/chat.json`, which the renderer checks as it checks
+the pages. A verified reply carries a ∀ Verified mark that opens its answer
+certificate: what the check took as given, what it read the answer as saying,
+the rules it applied with their Lean rules and criteria, and the policy,
+guardrail and verified-air versions. Compare shows the draft beside what the
+traveler was shown.
+
 The canvas deploy reads the designer's API key from
 `~/.config/verified-airline/acxd_api_key`. The key, the designer's workspace
 and the Connect admin user were made by hand once.

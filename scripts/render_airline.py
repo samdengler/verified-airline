@@ -101,6 +101,32 @@ STATUS_WORD = {"proven": "proven", "open": "open", "example": "example only", "n
 esc = html.escape
 
 
+def load_chat():
+    """The support chat's wording from content/chat.json, if there is one.
+    Every string under traveler is checked as the pages are: no word a
+    traveler never reads, no requirement ID, no typed amount."""
+    path = CONTENT / "chat.json"
+    if not path.exists():
+        return None
+    chat = json.loads(path.read_text())
+
+    def strings(value, key):
+        if isinstance(value, str):
+            yield key, value
+        elif isinstance(value, list):
+            for i, v in enumerate(value):
+                yield from strings(v, f"{key}[{i}]")
+        else:
+            for k, v in value.items():
+                yield from strings(v, f"{key}.{k}" if key else k)
+    for key, text in strings(chat["traveler"], ""):
+        if BANNED.search(text):
+            fail("content/chat.json", f"traveler.{key} uses a word or ID a traveler never reads: {text!r}")
+        if TYPED_AMOUNT.search(text):
+            fail("content/chat.json", f"traveler.{key} types an amount: {text!r}")
+    return {"traveler": chat["traveler"], "lean": chat["lean"]}
+
+
 class BuildError(Exception):
     pass
 
@@ -767,6 +793,7 @@ def main():
                 out[slug] = r.policy(slug)
         for slug, text in out.items():
             check_hidden(text, f"the {slug} page")
+        chat = load_chat()
         if args.content:
             a = Renderer(pages, facts, model, m["source"], app=True)
             app = {"index": a.home(), "policies": a.hub()}
@@ -796,7 +823,8 @@ def main():
     if args.content:
         args.content.parent.mkdir(parents=True, exist_ok=True)
         args.content.write_text(json.dumps({
-            "airline": AIRLINE, "footer": FOOTER, "source": m["source"], "pages": app}, indent=1) + "\n")
+            "airline": AIRLINE, "footer": FOOTER, "source": m["source"], "pages": app, "chat": chat},
+            indent=1) + "\n")
         print(f"wrote {args.content}: the same pages for the app")
 
 

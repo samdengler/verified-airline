@@ -183,6 +183,21 @@ try {
   if (shots) await page.screenshot({ path: join(shots, 'refunds-phone-dark.png') });
   await ctx.close();
 
+  // The chat: hidden until it is published; with ?chat its panel opens under the policy.
+  // This server has no chat API, so the start fails and says so.
+  ctx = await browser.newContext({ colorScheme: 'light', viewport: { width: 1280, height: 900 } });
+  page = await watched(ctx);
+  await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+  const chatButtons = await page.locator('.chat-open').count();
+  await page.goto(BASE + '/?chat', { waitUntil: 'networkidle' });
+  await page.locator('.chat-open').click();
+  await page.locator('.chat-panel .chat-note').last().waitFor();
+  const note = await page.locator('.chat-panel .chat-note').last().textContent();
+  const unexpected = page.problems.filter((m) => !/status of (404|405)/.test(m));
+  check('the chat is hidden until published, and opens under the policy with ?chat', chatButtons === 0 && note === content.chat.traveler.startFailed
+    && unexpected.length === 0, JSON.stringify({ chatButtons, note, unexpected }));
+  await ctx.close();
+
   // Scripts off: the prerendered page reads, and the buttons that need scripts are hidden.
   ctx = await browser.newContext({ colorScheme: 'dark', javaScriptEnabled: false, viewport: { width: 1280, height: 900 } });
   page = await ctx.newPage();

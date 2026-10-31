@@ -1,5 +1,8 @@
 """The states a turn is shown in, and the text of a withheld answer."""
 
+import json
+from pathlib import Path
+
 from airline_agent import reply
 
 
@@ -33,7 +36,9 @@ def test_a_withheld_answer_says_what_the_fares_say_and_drops_the_draft():
     meaning = {"RMAICXLMISS0": "On Main, cancelling after a missed flight returns nothing."}
     t = turn(INVALID, INVALID)
     t["answer"] = "You get $150 back."
-    text = reply.text(t, reply.WITHHELD, meaning)
+    words = json.loads((Path(__file__).resolve().parents[2] / "content" / "chat.json").read_text())["traveler"]
+    text = reply.text(t, reply.WITHHELD, meaning, words)
+    assert text.startswith(words["withheld"])
     assert "$150" not in text
     assert text.endswith("The fares say: On Main, cancelling after a missed flight returns nothing.")
     assert text.count("On Main") == 1

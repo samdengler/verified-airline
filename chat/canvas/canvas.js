@@ -10,12 +10,15 @@
  * that text. It has no generative node of its own, so every answer comes from the agent
  * and the guardrail sits in one place.
  *
+ * Its wording comes from content/chat.json, where the renderer checks it.
+ *
  * The contact flow (chat/scripts/contact_flow.py) puts the contact attributes `mode` and
  * `agentsToken`, which the chat start sets, into the context variables of the same names.
  */
 
 const crypto = require('crypto');
 const questions = require('../questions.json').questions;
+const wording = require('../../content/chat.json').traveler;
 
 const CONV = '{System.conversationId:NLX.System}';
 const UTTERANCE = '{System.utterance:NLX.System}';
@@ -126,7 +129,7 @@ function askFlow() {
     }),
     node('greet', 'basic', {
       children: ['listen'],
-      messages: ["Hi, I answer questions about Verified Airline's fares: what a change costs and what a cancellation gives back."],
+      messages: [wording.greeting],
       metadata: { stateModifications: [{ type: 'context', name: 'greeted', modification: 'set', value: { type: 'constant', value: 1 } }] },
     }),
     // A user_input node with an unconditional edge does not wait for input (guppi-hr's
@@ -152,7 +155,7 @@ function askFlow() {
     node('reply', 'basic', { children: ['toListen'], messages: [`{${ASK}.result.parts.0.text:NLX.Variable}`] }),
     node('unreachable', 'basic', {
       children: ['toListen'],
-      messages: ["Sorry, Verified Airline's answers could not be reached just now. Please ask again."],
+      messages: [wording.unreachable],
     }),
     // A second user_input reached in the same turn re-reads that turn's utterance, so a
     // reply ends the turn with a redirect to the listen node.

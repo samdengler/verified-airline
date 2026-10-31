@@ -2,13 +2,14 @@ import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
+import { Chat } from './chat/chat';
 import { site } from './content';
 import { Theme } from './theme';
 
 /** The site's header and footer, the same as on the static pages, around the page the router shows. */
 @Component({
   selector: 'va-root',
-  imports: [RouterOutlet, RouterLink],
+  imports: [RouterOutlet, RouterLink, Chat],
   template: `
     <a class="skip" [attr.href]="path() + '#content'">Skip to content</a>
     <header class="site"><div class="wrap">
@@ -16,6 +17,7 @@ import { Theme } from './theme';
       <nav aria-label="Main">
         <a routerLink="/">Book</a><a routerLink="/">My trips</a><a routerLink="/">Check in</a><a routerLink="/policies" [attr.aria-current]="current()">Travel policies</a>
       </nav>
+      <va-chat />
       <button type="button" class="theme-toggle" [attr.aria-pressed]="theme.dark()" aria-label="Dark mode" title="Dark mode" (click)="theme.toggle()"><svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg><svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg></button>
     </div></header>
     <router-outlet />

@@ -185,6 +185,8 @@ class VerifiedAirlineChatStack(cdk.Stack):
         rules = json.loads((chat_dir / "ar-rules.json").read_text())
         statements = {rule: m["statement"] for rule, m in rules["rules"].items()}
         provenance = {"LEAN_MODEL_COMMIT": rules["source"]["commit"], "POLICY_VERSION_ARN": versioned_arn}
+        traveler = json.loads((ROOT / "content" / "chat.json").read_text())["traveler"]
+        provenance["CHAT_WORDING"] = json.dumps({k: traveler[k] for k in ("withheld", "faresSay")})
 
         knowledge_base, data_source, kb_bucket = self.knowledge_base()
         tools_gateway = self.tools_gateway(knowledge_base, data_source)
@@ -561,7 +563,7 @@ class VerifiedAirlineChatStack(cdk.Stack):
                 "TURNS_TABLE": turns.table_name,
                 # What a withheld answer's reply says the fares say.
                 "RULE_STATEMENTS": json.dumps(statements, separators=(",", ":")),
-                # The answer certificate's last line.
+                # The answer certificate's last line, and the withheld reply's words.
                 **provenance,
             },
         )

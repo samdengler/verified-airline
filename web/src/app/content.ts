@@ -17,7 +17,13 @@ export const site = {
   modelSite: content.source.site,
 };
 
+/** The Lean model's repository, which commits link into. */
+export const modelRepository = content.source.repository;
+
 export const pages: Readonly<Record<string, PageContent>> = content.pages;
+
+/** The support chat's wording, from content/chat.json, which the renderer checks as it checks the pages. */
+export const chatWording = content.chat;
 
 /** The six policy pages, under /policies/. */
 export const policySlugs = Object.keys(pages).filter((slug) => slug !== 'index' && slug !== 'policies');

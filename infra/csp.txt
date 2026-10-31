@@ -1,1 +1,1 @@
-default-src 'self'; script-src 'self' {script_hashes}; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+default-src 'self'; script-src 'self' {script_hashes}; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://participant.connect.us-east-1.amazonaws.com wss://*.transport.connect.us-east-1.amazonaws.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'

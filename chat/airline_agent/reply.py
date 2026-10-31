@@ -34,15 +34,19 @@ def statements():
     return json.loads(os.environ.get("RULE_STATEMENTS") or "{}")
 
 
-def text(turn, shown_state, meaning=None):
+def wording():
+    """The withheld reply's words, from content/chat.json (CHAT_WORDING, set
+    by the stack)."""
+    return json.loads(os.environ["CHAT_WORDING"])
+
+
+def text(turn, shown_state, meaning=None, words=None):
     """The reply's text.  A withheld draft is replaced by what the fares say
     on the point the draft got wrong."""
     if shown_state != WITHHELD:
         return turn["answer"]
     meaning = statements() if meaning is None else meaning
+    words = wording() if words is None else words
     contradicted = [r for f in turn["check"]["findings"] if f["kind"] == "invalid" for r in f.get("rules", [])]
     said = list(dict.fromkeys(meaning[r] for r in contradicted if r in meaning))
-    reply = "Verified Airline held back this answer because it contradicts the airline's fares."
-    if said:
-        reply += " The fares say: " + " ".join(said)
-    return reply
+    return " ".join([words["withheld"], *([words["faresSay"], *said] if said else [])])
