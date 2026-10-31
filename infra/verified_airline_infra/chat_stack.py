@@ -182,13 +182,14 @@ class VerifiedAirlineChatStack(cdk.Stack):
             description=f"Fares policy definition {digest}",
         )
 
-        meaning = json.loads((chat_dir / "ar-rules.json").read_text())["rules"]
-        statements = {rule: m["statement"] for rule, m in meaning.items()}
+        rules = json.loads((chat_dir / "ar-rules.json").read_text())
+        statements = {rule: m["statement"] for rule, m in rules["rules"].items()}
+        provenance = {"LEAN_MODEL_COMMIT": rules["source"]["commit"], "POLICY_VERSION_ARN": versioned_arn}
 
         knowledge_base, data_source, kb_bucket = self.knowledge_base()
         tools_gateway = self.tools_gateway(knowledge_base, data_source)
         turns = self.turns_table()
-        runtime = self.agent_runtime(tools_gateway, guardrail, guardrail_version, policy, turns, statements)
+        runtime = self.agent_runtime(tools_gateway, guardrail, guardrail_version, policy, turns, statements, provenance)
         instance = self.connect_instance()
         pool, client, token_url = self.machine_identity()
         agents_gateway = self.agents_gateway(runtime, pool, client)
@@ -494,7 +495,7 @@ class VerifiedAirlineChatStack(cdk.Stack):
         target.node.add_dependency(source)
         return gateway
 
-    def agent_runtime(self, tools_gateway, guardrail, guardrail_version, policy, turns, statements):
+    def agent_runtime(self, tools_gateway, guardrail, guardrail_version, policy, turns, statements, provenance):
         image = ecr_assets.DockerImageAsset(self, "AgentImage", directory=str(AGENT_DIR),
                                             platform=ecr_assets.Platform.LINUX_ARM64)
         role = self.service_role("AgentRole", "bedrock-agentcore.amazonaws.com",
@@ -560,6 +561,8 @@ class VerifiedAirlineChatStack(cdk.Stack):
                 "TURNS_TABLE": turns.table_name,
                 # What a withheld answer's reply says the fares say.
                 "RULE_STATEMENTS": json.dumps(statements, separators=(",", ":")),
+                # The answer certificate's last line.
+                **provenance,
             },
         )
         # AgentCore checks the image pull grant when it creates the runtime, so

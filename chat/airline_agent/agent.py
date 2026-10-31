@@ -61,7 +61,11 @@ def answer(question, mode="kb"):
         reply = str(agent(question)).strip()
         chunks = retrieved(agent.messages)
     turn = {"mode": mode, "question": question, "answer": reply, "model": model_id, "retrieved": chunks,
-            "ms": {"answer": round((time.monotonic() - started) * 1000)}}
+            "ms": {"answer": round((time.monotonic() - started) * 1000)},
+            # Where the documents and the policy came from, for the answer certificate.
+            "provenance": {"leanModelCommit": os.environ.get("LEAN_MODEL_COMMIT"),
+                           "policyVersion": os.environ.get("POLICY_VERSION_ARN"),
+                           "guardrailVersion": os.environ.get("GUARDRAIL_VERSION")}}
     if mode == "verified":
         runtime = session.client("bedrock-runtime")
         turn["check"] = check(runtime, os.environ["GUARDRAIL_ID"], os.environ["GUARDRAIL_VERSION"], question, reply)

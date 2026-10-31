@@ -158,3 +158,5 @@ def test_turns_are_kept_thirty_days_and_the_agent_writes_them(template):
     env = runtime["Properties"]["EnvironmentVariables"]
     assert "TURNS_TABLE" in env
     assert json.loads(env["RULE_STATEMENTS"])
+    assert len(env["LEAN_MODEL_COMMIT"]) == 40
+    assert "FaresPolicyVersion" in json.dumps(env["POLICY_VERSION_ARN"])
