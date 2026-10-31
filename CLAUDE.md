@@ -4,8 +4,10 @@ Verified Airline, a fictional airline's site written from the Verified Air Lean 
 
 ## Working on the site
 
-- `scripts/preview.sh` renders the pages and serves them at http://localhost:8001.
-- For a visual change, take screenshots (headless Chrome works) and show them before pushing.
+- The site is the Angular app in `web/`, at https://air.dengler.io/. `npm --prefix web start` serves it at http://localhost:4200; `scripts/preview.sh` serves the static pages at http://localhost:8001. The app needs Node 24.15 or later.
+- `npm --prefix web run build && npm --prefix web run check` builds the app and checks every page in Chrome under the site's content security policy. Run it, `npm --prefix web test`, and `(cd infra && uv run --dev pytest -q)` before pushing.
+- For a visual change, take screenshots (the browser check's `--shots DIR` saves some) and show them before pushing.
+- `scripts/deploy.sh` deploys the `VerifiedAirline` stack and publishes the site; `--site-only` publishes only. It needs AWS credentials for the account with the dengler.io zone. A change to an inline script needs the full deploy, since the policy allows inline scripts by hash.
 - Push straight to `main`. No pull requests, no merge commits.
 
 ## The model's files
@@ -19,6 +21,7 @@ Verified Airline, a fictional airline's site written from the Verified Air Lean 
 
 - Each `##` section of a policy page ends with `{model: ID, ...}` and each item under "Still being decided" with `{open: criterion}`. When a cited criterion is proven, the build stops: rewrite that item's wording. Since verified-air's CI checks this repository's `main`, rewrite it here before the proof is pushed there.
 - Traveler-facing wording never says rule, theorem or criterion, and shows no requirement ID; the build checks the pages with the Lean model hidden. Those words belong in the popovers.
+- Traveler-facing wording lives in `content/`, where the renderer checks it; the app shows the renderer's HTML. Angular templates hold only the header, the footer and the not-found page.
 
 ## What the site may claim
 

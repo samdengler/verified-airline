@@ -18,8 +18,26 @@ jobs:
       # Fails if the wording cites a requirement the model lacks, a criterion
       # no longer open, or an amount the facts lack.
       - run: python3 scripts/render_airline.py
+      - uses: actions/setup-node@v4
+        with: { node-version: "24", cache: npm, cache-dependency-path: web/package-lock.json }
+      # The Angular app in web/: its tests, its build with every page
+      # prerendered, and the browser check against that build served as
+      # CloudFront serves it.
+      - run: npm ci --no-audit --no-fund
+        working-directory: web
+      - run: npm test
+        working-directory: web
+      - run: npm run build
+        working-directory: web
+      - run: npm run check
+        working-directory: web
+      - uses: astral-sh/setup-uv@v6
+      - run: uv run --dev pytest -q
+        working-directory: infra
       - uses: actions/upload-pages-artifact@v3
         with: { path: build }
+      - uses: actions/upload-artifact@v4
+        with: { name: site, path: web/dist/verified-airline/browser }
   # Deploys only once Pages is available for the repository: set the
   # repository variable PAGES_ENABLED to true after turning Pages on.
   deploy:
@@ -32,3 +50,22 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+  # Publishes the app to air.dengler.io with the VerifiedAirline stack's
+  # publish role, which only a push to main may assume.  Runs once the
+  # repository variable AWS_PUBLISH_ROLE_ARN holds the stack's PublishRoleArn
+  # output.  A change to the stack itself is deployed with scripts/deploy.sh.
+  # No GitHub environment here: one would change the OIDC token's subject
+  # from the branch to the environment, which the role does not trust.
+  publish:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_PUBLISH_ROLE_ARN != ''
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { name: site, path: web/dist/verified-airline/browser }
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_PUBLISH_ROLE_ARN }}
+          aws-region: us-east-1
+      - run: scripts/publish-site.sh

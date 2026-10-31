@@ -7,7 +7,8 @@ schedule changes in plain words. Every fee and refund on it is computed from
 business rules for airline offers and orders written in Lean, and a button
 shows the requirement behind each answer.
 
-- The site: <https://samdengler.github.io/verified-airline/>
+- The site: <https://air.dengler.io/>, and until its redirect (decision 7)
+  <https://samdengler.github.io/verified-airline/>
 - The model and its proofs: <https://github.com/samdengler/verified-air>
 
 This is a proof of concept, not affiliated with IATA. The airline, its fares
@@ -25,8 +26,13 @@ amber when any is open. Where a criterion is open, the page says the point is
 still being decided and tells the traveler to contact the airline; its marker
 shows the open question and links to it.
 
-The pages are static HTML with every popover already in the page, so they
-need no data fetching and read with scripts off.
+The pages follow the system's light or dark setting, and a button in the
+header overrides it and remembers the choice.
+
+The site is an Angular app (`web/`). Every page is rendered to HTML when the
+site is built, with every popover already in the page, so the pages need no
+data fetching and read with scripts off. Once the app starts, links within the
+site change the page without reloading it.
 
 ## Where the amounts and statuses come from
 
@@ -65,34 +71,70 @@ therefore stops verified-air's build until the wording here no longer calls
 the point still being decided. Rewrite the wording here first, then push the
 proof.
 
+The app takes its pages from the same script: `--content` writes each page's
+band and body as JSON, checked like the static pages, with links from the
+site's root. CI also runs the app's unit tests, the stack's tests, and
+`web/scripts/browser-check.mjs`, which loads every page in Chrome under the
+site's content security policy and fails on any console error.
+
 ## Layout
 
 | Path | Holds |
 | --- | --- |
 | `content/*.md` | The wording of each page; the docstring of `scripts/render_airline.py` describes the format |
-| `assets/` | The stylesheet, and the script that shows and hides the Lean model |
+| `assets/` | The stylesheet, shared by the static pages and the app, and the static pages' script |
 | `model/` | `facts.json` and `model.json` from verified-air, committed |
-| `scripts/render_airline.py` | The pages and their checks, written to `build/` |
+| `web/` | The Angular app: the header and footer, the page component that shows the renderer's pages, the browser check |
+| `infra/` | The `VerifiedAirline` CDK stack (Python): the site at air.dengler.io and its publish role |
+| `scripts/render_airline.py` | The pages and their checks, written to `build/`, and with `--content` for the app |
 | `scripts/update-model.sh` | Copies new model files into `model/` |
-| `scripts/preview.sh` | Renders the pages and serves them at <http://localhost:8001> |
+| `scripts/preview.sh` | Renders the static pages and serves them at <http://localhost:8001> |
+| `scripts/deploy.sh` | Builds the app, deploys the stack and publishes the site |
+| `scripts/publish-site.sh` | Uploads the app's build and invalidates CloudFront; CI runs it on a push to `main` |
 
 ## Building locally
 
-The build needs Python 3.12 and nothing else.
+The renderer needs Python 3.12 and nothing else. The app needs Node 24.15 or
+later, which Angular CLI 22 requires. The stack needs uv and AWS credentials
+for the account that holds the dengler.io zone.
 
 ```sh
-scripts/preview.sh                                          # http://localhost:8001
+scripts/preview.sh                                          # the static pages, http://localhost:8001
+npm --prefix web start                                      # the app, http://localhost:4200
+npm --prefix web test                                       # the app's unit tests
+npm --prefix web run build && npm --prefix web run check    # the build, checked in Chrome
+(cd infra && uv run --dev pytest -q)                        # the stack's tests
 scripts/update-model.sh                                     # the newest model from verified-air's site
 scripts/update-model.sh ../verified-air/build/airline-data  # or from a local build of verified-air
 ```
 
+## Hosting
+
+`scripts/deploy.sh` builds the app, deploys the `VerifiedAirline` stack to
+us-east-1, and publishes the site. The stack serves the app's build from a
+private S3 bucket through CloudFront at air.dengler.io, as guppi-gpt serves
+chat.dengler.io. A CloudFront Function serves each page from its prerendered
+`index.html`; a path with no page gets the app's shell, which shows its
+not-found page, with status 404.
+
+The content security policy is `infra/csp.txt` with the hash of each inline
+script in the build, so it allows no other inline script and no inline style,
+and every font is served from the site. Because the hashes come from the
+build, a change to an inline script needs `scripts/deploy.sh`;
+`scripts/publish-site.sh` refuses a build whose scripts the live policy lacks.
+
+On a push to `main`, CI publishes the site with the stack's publish role,
+which may only write to the site bucket and invalidate its distribution. The
+job runs once the repository variable `AWS_PUBLISH_ROLE_ARN` holds the stack's
+`PublishRoleArn` output.
+
 ## Planned
 
-A booking flow and a customer support widget. On the site, only what the
-model computes counts as checked: amounts from `facts.json`, statuses from
-`model.json`, and later the Rust rules that verified-air proves equal to the
-model, compiled to WebAssembly. Anything else the flow or the widget shows is
-unproved and is labelled that way.
+A support chat on Amazon Connect, then a booking flow and a bookings API. On
+the site, only what the model computes counts as checked: amounts from
+`facts.json`, statuses from `model.json`, and later the Rust rules that
+verified-air proves equal to the model. Anything else the chat or the flow
+shows is unproved and is labelled that way.
 
 ## Decisions
 
@@ -105,3 +147,31 @@ unproved and is labelled that way.
    and committed, so the site's version of the model is pinned and each
    update shows as a diff. The old addresses under `verified-air/airline/`
    send readers to the same pages here.
+2. **The site is an Angular app on AWS at air.dengler.io.** The booking
+   flow, sign-in and a support chat that stays open from page to page need
+   one app, and the chat and the bookings API need AWS. The site has its own
+   stack. It is not a project on chat.dengler.io, whose page is a chat for
+   signed-in members; it copies that stack's hosting instead. Angular because
+   it is the framework most used at work.
+3. **Every page is rendered when the site is built.** The amounts and
+   statuses are fixed by the model's files, so nothing about a page needs
+   computing when it is read. The pages load as HTML and read with scripts
+   off, as the static pages did.
+4. **The renderer still writes every page.** `render_airline.py` stays on
+   Python's standard library, since verified-air's CI runs it, and keeps all
+   its checks. The app shows the HTML it writes as it stands, past Angular's
+   sanitizer, which would remove the markers' buttons and the sections' ids.
+   That HTML is built from this repository's files when the site is built.
+   Traveler-facing wording stays in `content/`.
+5. **The CDK stack is in Python and deploys from a laptop.**
+   `scripts/deploy.sh` follows guppi-gpt's. CI publishes only the site, with
+   a role that cannot change the stack.
+6. **Inline scripts are allowed by hash.** Angular's automatic policy cannot
+   be used with prerendered pages, so the stack hashes the build's inline
+   scripts: the one that sets the theme and the Lean model before the page
+   draws, and Angular's two for replaying clicks made before the app starts.
+   Critical CSS is not inlined, and the fonts come from `@fontsource`, so
+   styles and fonts load only from the site.
+7. **github.io stays until it redirects.** The static pages in `build/` keep
+   deploying to GitHub Pages until github.io and verified-air's `/airline/`
+   addresses send readers to air.dengler.io.
