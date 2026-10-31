@@ -16,19 +16,17 @@ finding as returned.
 import argparse
 import json
 import sys
-import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import boto3
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from airline_agent.check import check as apply_check  # noqa: E402
+
 ROOT = Path(__file__).resolve().parents[2]
 CHAT = ROOT / "build" / "chat"
 REGION = "us-east-1"
-KINDS = ["valid", "invalid", "satisfiable", "impossible", "translationAmbiguous", "tooComplex", "noTranslations"]
-# Worst first, as AWS's integration guide sorts them.
-SEVERITY = {"tooComplex": 0, "translationAmbiguous": 0, "impossible": 1, "invalid": 2, "satisfiable": 3,
-            "valid": 4, "noTranslations": 5}
 
 
 def outputs(stack):
@@ -37,56 +35,8 @@ def outputs(stack):
     return {o["OutputKey"]: o["OutputValue"] for o in s["Outputs"]}
 
 
-def kind_of(finding):
-    return next((k for k in KINDS if k in finding), None)
-
-
-def logic(items):
-    return [i.get("logic") or i.get("naturalLanguage") for i in items or []]
-
-
-def summarize(finding):
-    kind = kind_of(finding)
-    body = finding[kind]
-    t = body.get("translation") or {}
-    rules = body.get("supportingRules") or body.get("contradictingRules") or []
-    if kind == "translationAmbiguous":
-        return {"kind": kind, "options": [
-            {"premises": logic(tr.get("premises")), "claims": logic(tr.get("claims"))}
-            for o in body.get("options", []) for tr in o.get("translations", [])]}
-    return {
-        "kind": kind,
-        "premises": logic(t.get("premises")),
-        "claims": logic(t.get("claims")),
-        "confidence": t.get("confidence"),
-        "untranslated": [u.get("text") for u in (t.get("untranslatedPremises") or []) + (t.get("untranslatedClaims") or [])],
-        "rules": [r.get("identifier") for r in rules],
-    }
-
-
 def check(runtime, guardrail, version, c):
-    started = time.monotonic()
-    response = runtime.apply_guardrail(
-        guardrailIdentifier=guardrail,
-        guardrailVersion=version,
-        source="OUTPUT",
-        content=[
-            {"text": {"text": c["question"], "qualifiers": ["query"]}},
-            {"text": {"text": c["answer"], "qualifiers": ["guard_content"]}},
-        ],
-    )
-    ms = round((time.monotonic() - started) * 1000)
-    findings = [f for a in response.get("assessments", []) for f in a.get("automatedReasoningPolicy", {}).get("findings", [])]
-    units = response.get("usage", {}).get("automatedReasoningPolicyUnits")
-    kinds = [kind_of(f) for f in findings]
-    result = min(kinds, key=lambda k: SEVERITY.get(k, 0)) if kinds else None
-    return {**c, "result": result.upper() if result else "NONE", "findings": [summarize(f) for f in findings],
-            "units": units, "ms": ms, "action": response.get("action")}
-
-
-def result_name(kind):
-    return {"TRANSLATIONAMBIGUOUS": "TRANSLATION_AMBIGUOUS", "TOOCOMPLEX": "TOO_COMPLEX",
-            "NOTRANSLATIONS": "NO_TRANSLATIONS"}.get(kind, kind)
+    return {**c, **apply_check(runtime, guardrail, version, c["question"], c["answer"])}
 
 
 def main():
@@ -107,8 +57,6 @@ def main():
     results, failed = [], 0
     for i, c in enumerate(checks):
         rounds = runs[i * args.rounds:(i + 1) * args.rounds]
-        for r in rounds:
-            r["result"] = result_name(r["result"])
         seen = [r["result"] for r in rounds]
         ok = c["expect"] == "explore" or all(x == c["expect"] for x in seen)
         failed += not ok

@@ -92,6 +92,8 @@ site's content security policy and fails on any console error.
 | `scripts/deploy.sh` | Builds the app, deploys the stack and publishes the site |
 | `scripts/publish-site.sh` | Uploads the app's build and invalidates CloudFront; CI runs it on a push to `main` |
 | `scripts/redirect_pages.py` | github.io's pages, each a redirect to the same page at air.dengler.io |
+| `scripts/export_chat.py` | The support chat's files from the model's: the Automated Reasoning policy, its checks, the knowledge base's documents |
+| `chat/` | The support chat's agent (`airline_agent/`), its container, and its scripts |
 
 ## Building locally
 
@@ -129,9 +131,35 @@ which may only write to the site bucket and invalidate its distribution. The
 job runs once the repository variable `AWS_PUBLISH_ROLE_ARN` holds the stack's
 `PublishRoleArn` output.
 
+## Support chat
+
+The support chat is being built in steps; the design is the Claude Doc
+"Verified Airline support chat: design". Its backend is the
+`VerifiedAirlineChat` stack in `infra/`. Nothing in it is typed by hand from
+the model:
+
+- `scripts/export_chat.py` writes, into `build/chat/`, an Amazon Bedrock
+  Automated Reasoning policy for fares and refunds, generated from
+  `facts.json`, with each rule's Lean rule and requirements; right and wrong
+  answers for every rule; and the knowledge base's documents.
+- The stack loads the policy as JSON, versions it, and attaches it to a
+  guardrail. It also holds a Bedrock managed knowledge base, a tools gateway
+  that exposes its Retrieve as an MCP tool, and the airline agent on AgentCore
+  Runtime, which answers from the knowledge base and, in verified mode, sends
+  its answer through the guardrail.
+
+```sh
+python3 scripts/export_chat.py                   # the policy, its checks, the documents
+(cd infra && npx aws-cdk@2 deploy VerifiedAirlineChat)
+(cd chat && uv run scripts/sync_kb.py)           # upload the documents and ingest them
+(cd chat && uv run scripts/check_policy.py --rounds 3)   # right and wrong answers through the guardrail
+(cd chat && uv run scripts/ask.py --rounds 2)    # the question set, through the agent
+(cd chat && uv run python -m airline_agent.cli "What does a Main change cost?")
+```
+
 ## Planned
 
-A support chat on Amazon Connect, then a booking flow and a bookings API. On
+The support chat's widget on Amazon Connect, then a booking flow and a bookings API. On
 the site, only what the model computes counts as checked: amounts from
 `facts.json`, statuses from `model.json`, and later the Rust rules that
 verified-air proves equal to the model. Anything else the chat or the flow
@@ -179,3 +207,17 @@ shows is unproved and is labelled that way.
    address under the project site goes to the same path there. The static
    pages in `build/` are no longer published; the renderer still writes them
    for its checks and for `scripts/preview.sh`.
+8. **The Automated Reasoning policy is generated.** Bedrock accepts a policy
+   definition as JSON, so `scripts/export_chat.py` writes it from
+   `facts.json` and CloudFormation loads it; no LLM writes a rule. It encodes
+   only what the model decides: no rule mentions a total of refunds, which is
+   the open question OO-003.2. Two axioms carry what the model's types say:
+   money is never negative, and every fare's price is positive.
+9. **The policy's variables are kept few and apart.** Every miss in step 1
+   was in the check's translation from text to variables, never in a rule.
+   A variable that duplicated another, such as one for the kind of request,
+   made the translating models disagree, so the policy has none.
+10. **The chat stack depends on nothing outside this repository.** guppi-hr
+    and guppi-gpt are reference only. The tools gateway authorizes the agent
+    by IAM; the anonymous chat's identity comes from a Cognito user pool in
+    this stack when Connect arrives.

@@ -65,3 +65,35 @@ def test_the_guardrail_names_a_numbered_policy_version_through_the_profile(templ
     joined = json.dumps(policy_ref)
     assert "Fn::Join" in joined and "Version" in joined
     assert len(template.find_resources("AWS::Bedrock::GuardrailVersion")) == 1
+
+
+def test_the_tools_gateway_authorizes_by_iam_and_offers_only_retrieve(template):
+    (gateway,) = template.find_resources("AWS::BedrockAgentCore::Gateway").values()
+    assert gateway["Properties"]["AuthorizerType"] == "AWS_IAM"
+    assert gateway["Properties"]["ProtocolType"] == "MCP"
+    (target,) = template.find_resources("AWS::BedrockAgentCore::GatewayTarget").values()
+    connector = target["Properties"]["TargetConfiguration"]["Mcp"]["Connector"]
+    assert connector["Source"]["ConnectorId"] == "bedrock-knowledge-bases"
+    assert [c["Name"] for c in connector["Configurations"]] == ["Retrieve"]
+
+
+def test_the_agent_reaches_only_this_gateway_and_this_guardrail(template):
+    statements = [s for p in template.find_resources("AWS::IAM::Policy").values()
+                  for s in p["Properties"]["PolicyDocument"]["Statement"]]
+
+    def resources(action):
+        found = [s["Resource"] for s in statements
+                 if action in (s["Action"] if isinstance(s["Action"], list) else [s["Action"]])]
+        assert found, action
+        return json.dumps(found)
+    assert "ToolsGateway" in resources("bedrock-agentcore:InvokeGateway")
+    assert "Guardrail" in resources("bedrock:ApplyGuardrail")
+    assert "FaresPolicy" in resources("bedrock:InvokeAutomatedReasoningPolicy")
+    assert "*" not in json.loads(resources("bedrock-agentcore:InvokeGateway"))[0]
+
+
+def test_one_model_answers_both_modes(template):
+    (runtime,) = template.find_resources("AWS::BedrockAgentCore::Runtime").values()
+    env = runtime["Properties"]["EnvironmentVariables"]
+    assert env["MODEL_ID"].startswith("us.anthropic.claude-")
+    assert "GUARDRAIL_VERSION" in env and "TOOLS_GATEWAY_URL" in env

@@ -4,7 +4,11 @@ version = "0.1.0"
 description = "Verified Airline's support chat: its scripts and its agent"
 requires-python = ">=3.12"
 dependencies = [
+    "bedrock-agentcore>=1.0",
     "boto3>=1.40",
+    "httpx>=0.27",
+    "mcp>=2.3",
+    "strands-agents>=1.54",
 ]
 
 [dependency-groups]

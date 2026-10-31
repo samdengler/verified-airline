@@ -1,0 +1,113 @@
+{
+ "about": "Travelers' questions for the support chat, asked by chat/scripts/ask.py. Each names the Lean model's answer for people reading the report; 'policy' says whether the Automated Reasoning policy decides it ('covered') or not ('beyond', which probes what a check does with an answer the policy cannot judge).",
+ "questions": [
+  {
+   "id": "basic-change-fee",
+   "question": "I'm on a Basic ticket and my plans changed. Can I move my flight to next week if I pay a fee?",
+   "lean": "No: the Basic fare allows no change at any stage (BASIC-CHANGE-PAID).",
+   "policy": "covered"
+  },
+  {
+   "id": "main-change-flown",
+   "question": "What does it cost to change a Main fare after I've already flown the first leg?",
+   "lean": "A $75 change fee plus any difference in fare (MAIN-CHANGE-FLOWN).",
+   "policy": "covered"
+  },
+  {
+   "id": "main-change-missed",
+   "question": "I missed my Main flight this morning. Can I rebook onto the next flight?",
+   "lean": "No: a Main fare cannot be changed after a missed flight (MAIN-CHANGE-MISSED).",
+   "policy": "covered"
+  },
+  {
+   "id": "flex-change-missed",
+   "question": "I missed my Flex flight. Can I change to a later one, and is there a fee?",
+   "lean": "Yes, with no change fee; only any difference in fare (FLEX-CHANGE-MISSED).",
+   "policy": "covered"
+  },
+  {
+   "id": "main-cancel-paid",
+   "question": "If I cancel my Main booking before the trip starts, how much do I get back?",
+   "lean": "$150 (MAIN-CANCEL-PAID).",
+   "policy": "covered"
+  },
+  {
+   "id": "main-cancel-flown",
+   "question": "I flew out on my Main ticket but want to cancel the rest of the trip. What do I get back?",
+   "lean": "$150 (MAIN-CANCEL-FLOWN).",
+   "policy": "covered"
+  },
+  {
+   "id": "main-cancel-missed",
+   "question": "I missed my flight on a Main fare. If I cancel the rest, do I get anything back?",
+   "lean": "Nothing (MAIN-CANCEL-MISSED).",
+   "policy": "covered"
+  },
+  {
+   "id": "flex-cancel-paid",
+   "question": "I booked Flex and want to cancel before departure. Do I get all my money back?",
+   "lean": "Yes, the full price paid (FLEX-CANCEL-PAID).",
+   "policy": "covered"
+  },
+  {
+   "id": "flex-cancel-missed",
+   "question": "I was a no-show on my Flex flight. What do I get back if I cancel now?",
+   "lean": "$100 (FLEX-CANCEL-MISSED).",
+   "policy": "covered"
+  },
+  {
+   "id": "basic-cancel-paid",
+   "question": "Can I get any refund on a Basic fare if I cancel before departure?",
+   "lean": "No, nothing comes back (BASIC-CANCEL-PAID).",
+   "policy": "covered"
+  },
+  {
+   "id": "main-change-total",
+   "question": "I paid $320 for Main and the new flight I want costs $380. What's the total to change before departure?",
+   "lean": "$135: the $60 difference in fare plus the $75 fee (ONE-202, MAIN-CHANGE-PAID).",
+   "policy": "covered"
+  },
+  {
+   "id": "flex-change-total",
+   "question": "I paid $520 for Flex and want to switch to a $600 flight before departure. What do I pay?",
+   "lean": "$80: the difference in fare, with no change fee (ONE-202, FLEX-CHANGE-PAID).",
+   "policy": "covered"
+  },
+  {
+   "id": "flex-no-fee",
+   "question": "Is there ever a change fee on the Flex fare?",
+   "lean": "No: a Flex change has no fee at any stage (FLEX-CHANGE-PAID, -FLOWN, -MISSED).",
+   "policy": "covered"
+  },
+  {
+   "id": "main-cheaper-flight",
+   "question": "My Main fare cost $320 and I'm changing to a cheaper $300 flight before departure. What do I pay or get back?",
+   "lean": "The model nets the $20 lower fare against the $75 fee, but how an excess penalty is handled is a reading the model leaves open (ONE-202.4).",
+   "policy": "beyond"
+  },
+  {
+   "id": "cancel-unpaid",
+   "question": "Can I cancel a booking I haven't paid for yet, and will I owe anything?",
+   "lean": "Yes, at any time, and there is nothing to pay (ONE-203).",
+   "policy": "beyond"
+  },
+  {
+   "id": "two-refunds",
+   "question": "I paid $100 and already got a $60 refund. Can I get another $60 refund on the same payment?",
+   "lean": "Each refund alone is within the payment, so the model accepts it; whether refunds are capped in total is still open (OO-003.2).",
+   "policy": "covered"
+  },
+  {
+   "id": "which-fare",
+   "question": "Which fare should I buy if I might need to cancel before I fly?",
+   "lean": "Flex returns the full price, Main returns $150, Basic returns nothing (the cancel terms before departure).",
+   "policy": "covered"
+  },
+  {
+   "id": "airline-cancelled",
+   "question": "Verified Airline cancelled my Basic flight. Do I get a refund?",
+   "lean": "Still being decided: how much of the fare comes back when the airline cancels a flight and cannot move the traveler; the page asks the traveler to contact the airline (schedule changes).",
+   "policy": "beyond"
+  }
+ ]
+}
