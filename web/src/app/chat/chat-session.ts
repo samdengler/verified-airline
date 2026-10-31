@@ -46,6 +46,8 @@ export class ChatSession {
   private session: Session | null = null;
   private readonly seen = new Set<string>();
   ended = false;
+  /** Whether the canvas's greeting has come; the chat takes questions after it. */
+  greeted = false;
 
   private constructor(readonly contact: string, readonly mode: Mode) {}
 

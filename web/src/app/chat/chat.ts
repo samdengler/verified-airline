@@ -15,6 +15,7 @@ import { confidence, contradicted, findingRows, tone, turnFor, versionOf, type M
  * chat/scripts/dev_api.py) or with ?chat in the address.
  */
 const PUBLISHED = false;
+const GREETING_WAIT_MS = 15000;
 
 interface Line {
   key: string;
@@ -271,7 +272,11 @@ export class Chat implements OnDestroy {
         },
       );
       this.chat = chat;
-      this.status.set('ready');
+      // Ready once the greeting comes, so a question is never paired with it;
+      // a greeting that never comes does not hold the chat up for long.
+      setTimeout(() => {
+        if (this.chat === chat && this.status() === 'starting') this.status.set('ready');
+      }, GREETING_WAIT_MS);
     } catch {
       this.status.set('failed');
     }
@@ -295,6 +300,12 @@ export class Chat implements OnDestroy {
   private reply(chat: ChatSession, m: Incoming): void {
     // A chat ended by a switch of mode may still deliver a line; it no longer counts.
     if (chat.ended) return;
+    if (!chat.greeted) {
+      chat.greeted = true;
+      this.add({ kind: 'airline', text: m.text });
+      if (this.status() === 'starting') this.status.set('ready');
+      return;
+    }
     const question = this.pending;
     if (question === null) {
       this.add({ kind: 'airline', text: m.text });
