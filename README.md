@@ -154,7 +154,9 @@ the model:
   guardrail. It also holds a Bedrock managed knowledge base, a tools gateway
   that exposes its Retrieve as an MCP tool, and the airline agent on AgentCore
   Runtime, which answers from the knowledge base and, in verified mode, sends
-  its answer through the guardrail.
+  its answer through the guardrail. The agent wraps Retrieve in a search tool
+  that takes plain text: given Retrieve's own schema, the model sent the query
+  as a bare string on every turn's first call, and Retrieve refused it.
 - A chat runs on the stack's Amazon Connect instance. The Rust chat start in
   `chat/chat_start/` gets a Cognito client-credentials token and starts the
   contact with the mode and the token as attributes. The contact flow hands

@@ -1,7 +1,7 @@
 """One turn of the support chat.
 
-The agent searches the knowledge base through the tools gateway's MCP tool and
-answers from what it returns.  In "kb" mode that answer is the reply; in
+The agent searches the knowledge base through the tools gateway's MCP tool,
+wrapped so the model passes plain text, and answers from what it returns.  In "kb" mode that answer is the reply; in
 "verified" mode the same answer also goes through the Automated Reasoning
 guardrail, and the reply carries the guardrail's result as returned.  Either
 way the turn records the chunks retrieval returned, so a slip can be traced.
@@ -9,9 +9,10 @@ way the turn records the chunks retrieval returned, so a slip can be traced.
 
 import os
 import time
+import uuid
 
 import boto3
-from strands import Agent
+from strands import Agent, tool
 from strands.models import BedrockModel
 from strands.tools.mcp import MCPClient
 
@@ -31,6 +32,30 @@ SYSTEM = (
     "If the documents do not answer the question, or say it is still being decided, say so and suggest contacting "
     "Verified Airline."
 )
+
+
+def search_tool(tools):
+    """The knowledge base search, as a tool that takes the query as plain text.
+
+    The gateway's Retrieve wants {"retrievalQuery": {"text": ...}}, and the
+    model's first call on every turn passed the query as a bare string, which
+    Retrieve refused; each turn then cost a second model call to retry."""
+    name = next(t.tool_name for t in tools.list_tools_sync() if t.tool_name.endswith("___Retrieve"))
+
+    @tool
+    def search_documents(query: str) -> str:
+        """Search Verified Airline's documents on fares, changes and cancellations.
+
+        Args:
+            query: What to look up, in plain words.
+        """
+        result = tools.call_tool_sync(uuid.uuid4().hex, name, {"retrievalQuery": {"text": query}})
+        text = "\n".join(c["text"] for c in result["content"] if "text" in c)
+        if result["status"] != "success":
+            raise RuntimeError(text)
+        return text
+
+    return search_documents
 
 
 def retrieved(messages):
@@ -54,7 +79,7 @@ def answer(question, mode="kb"):
     with tools:
         agent = Agent(
             model=BedrockModel(model_id=model_id, boto_session=session),
-            tools=tools.list_tools_sync(),
+            tools=[search_tool(tools)],
             system_prompt=SYSTEM,
             callback_handler=None,
         )
