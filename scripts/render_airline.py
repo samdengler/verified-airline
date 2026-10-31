@@ -35,11 +35,13 @@ items under "Still being decided" ending in `{open: ONE-503.5}`, paragraphs
 table (`fares`), worked examples (`example`), the stages of a trip (`stages`)
 and the home page's questions (`questions`).
 
-  python3 scripts/render_airline.py [--model DIR] [--out DIR]
+  python3 scripts/render_airline.py [--model DIR] [--out DIR] [--content FILE]
 
-verified-air's CI runs this script with --model pointing at a fresh build of
-the model, so a proof that settles a question these pages call still being
-decided stops that build too.  It needs only Python's standard library.
+--content also writes the pages for the Angular app in web/ as one JSON file:
+each page's band and body, with links from the site's root, checked like the
+pages.  verified-air's CI runs this script with --model pointing at a fresh
+build of the model, so a proof that settles a question these pages call still
+being decided stops that build too.  It needs only Python's standard library.
 """
 
 import argparse
@@ -368,8 +370,11 @@ def check_hidden(page_html, where):
 # ------------------------------------------------------------------ render
 
 class Renderer:
-    def __init__(self, pages, facts, model, source):
+    def __init__(self, pages, facts, model, source, app=False):
+        """With app, the pages are parts for the Angular app in web/: links
+        start at the site's root, and page() returns the band and body."""
         self.pages, self.facts, self.model, self.source = pages, facts, model, source
+        self.app = app
         self.pop = 0
 
     # Paths --------------------------------------------------------------
@@ -380,9 +385,16 @@ class Renderer:
 
     def href(self, here, slug, anchor=""):
         """A link from page `here` to page `slug`."""
+        if self.app:
+            return "/" + self.path_of(slug) + (f"#{anchor}" if anchor else "")
         up = "../" * self.path_of(here).count("/")
         target = up + self.path_of(slug)
         return (target or "./") + (f"#{anchor}" if anchor else "")
+
+    def fragment(self, here, anchor):
+        """A link to a section of page `here`.  The app's pages set a base
+        URL, so their links name the page too."""
+        return self.href(here, here, anchor) if self.app else f"#{anchor}"
 
     # Text ---------------------------------------------------------------
     def inline(self, text, here):
@@ -594,6 +606,8 @@ class Renderer:
 
     def page(self, here, title, body, band):
         doc_title = AIRLINE if here == "index" else f"{title}: {AIRLINE}"
+        if self.app:
+            return {"path": "/" + self.path_of(here), "title": doc_title, "band": band, "body": body}
         up = "../" * self.path_of(here).count("/")
         return f"""<!DOCTYPE html>
 <html lang="en" class="no-js">
@@ -663,7 +677,7 @@ class Renderer:
                             f'{self.blocks(s.blocks, "index")}</div></section>')
         hero = f"""<section class="band hero"><div class="wrap">
 <h1>{self.inline(m["title"], "index")}</h1>
-<form class="search" onsubmit="return false" aria-describedby="search-note">
+<form class="search"{"" if self.app else ' onsubmit="return false"'} aria-describedby="search-note">
 <div class="field"><label for="from">From</label><input id="from" value="Atlanta (ATL)" autocomplete="off"></div>
 <div class="field"><label for="to">To</label><input id="to" placeholder="City or airport" autocomplete="off"></div>
 <div class="field"><label for="depart">Depart</label><input id="depart" placeholder="Add date" autocomplete="off"></div>
@@ -707,7 +721,7 @@ class Renderer:
         p = self.pages[slug]
         nav, sections = [], []
         for s in p["sections"]:
-            nav.append(f'<li><a href="#{s.anchor}">{self.inline(s.title, slug)}</a></li>')
+            nav.append(f'<li><a href="{self.fragment(slug, s.anchor)}">{self.inline(s.title, slug)}</a></li>')
             items = []
             for it in s.items:
                 items.append(f'<div class="deciding"><div class="heading-row"><h3>{self.inline(it.title, slug)}</h3>'
@@ -731,6 +745,7 @@ def main():
     ap = argparse.ArgumentParser(description="Render Verified Airline's policy pages.")
     ap.add_argument("--model", type=Path, default=MODEL, help="the directory with model.json and facts.json")
     ap.add_argument("--out", type=Path, default=OUT, help="where to write the pages")
+    ap.add_argument("--content", type=Path, help="also write the pages for the Angular app to this JSON file")
     args = ap.parse_args()
     for f in ("model.json", "facts.json"):
         if not (args.model / f).exists():
@@ -752,6 +767,14 @@ def main():
                 out[slug] = r.policy(slug)
         for slug, text in out.items():
             check_hidden(text, f"the {slug} page")
+        if args.content:
+            a = Renderer(pages, facts, model, m["source"], app=True)
+            app = {"index": a.home(), "policies": a.hub()}
+            for slug in out:
+                if slug not in app:
+                    app[slug] = a.policy(slug)
+            for slug, part in app.items():
+                check_hidden(part["band"] + part["body"], f"the app's {slug} page")
     except BuildError as e:
         sys.exit(f"render_airline: {e}")
     for d in ("index.html", "policies", "assets", "facts.json", "model.json"):
@@ -770,6 +793,11 @@ def main():
         shutil.copy(args.model / f, args.out / f)
     commit = (m["source"].get("commit") or "")[:7] or "an uncommitted build"
     print(f"rendered {args.out}: {len(out)} pages, {r.pop} markers, from verified-air at {commit}")
+    if args.content:
+        args.content.parent.mkdir(parents=True, exist_ok=True)
+        args.content.write_text(json.dumps({
+            "airline": AIRLINE, "footer": FOOTER, "source": m["source"], "pages": app}, indent=1) + "\n")
+        print(f"wrote {args.content}: the same pages for the app")
 
 
 if __name__ == "__main__":
