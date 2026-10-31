@@ -22,6 +22,8 @@ for tool in npm npx uv aws curl python3; do
 done
 
 (cd web && npm ci --silent --no-audit --no-fund && npm run build --silent)
+# The CDK app also synthesizes the chat stack, which reads the policy export.
+python3 scripts/export_chat.py >/dev/null
 if [[ "$SITE_ONLY" == 0 ]]; then
   (cd infra && npx --yes aws-cdk@2 deploy VerifiedAirline "$@")
 fi

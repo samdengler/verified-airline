@@ -4,3 +4,4 @@ pages/
 infra/cdk.out/
 infra/.venv/
 __pycache__/
+chat/.venv/

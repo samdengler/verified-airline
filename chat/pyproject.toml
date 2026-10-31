@@ -1,0 +1,16 @@
+[project]
+name = "verified-airline-chat"
+version = "0.1.0"
+description = "Verified Airline's support chat: its scripts and its agent"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.40",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.uv]
+package = false
