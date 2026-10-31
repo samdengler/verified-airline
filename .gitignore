@@ -5,3 +5,6 @@ infra/cdk.out/
 infra/.venv/
 __pycache__/
 chat/.venv/
+target/
+node_modules/
+.pytest_cache/

@@ -8,7 +8,12 @@ from pathlib import Path
 import aws_cdk as cdk
 import pytest
 from aws_cdk.assertions import Template
-from verified_airline_infra.chat_stack import CONNECT_ALIAS, GUARDRAIL_PROFILE, VerifiedAirlineChatStack
+from verified_airline_infra.chat_stack import (
+    AGENT_TARGET_NAME,
+    CONNECT_ALIAS,
+    GUARDRAIL_PROFILE,
+    VerifiedAirlineChatStack,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -23,7 +28,9 @@ def export(tmp_path_factory):
 
 @pytest.fixture(scope="module")
 def template(export):
-    stack = VerifiedAirlineChatStack(cdk.App(), "VerifiedAirlineChat", chat_dir=export,
+    # No bundling: the chat start's Rust is built at deploy, not in tests.
+    app = cdk.App(context={"aws:cdk:bundling-stacks": []})
+    stack = VerifiedAirlineChatStack(app, "VerifiedAirlineChat", chat_dir=export,
                                      env=cdk.Environment(account="123456789012", region="us-east-1"))
     return Template.from_stack(stack)
 
@@ -68,10 +75,12 @@ def test_the_guardrail_names_a_numbered_policy_version_through_the_profile(templ
 
 
 def test_the_tools_gateway_authorizes_by_iam_and_offers_only_retrieve(template):
-    (gateway,) = template.find_resources("AWS::BedrockAgentCore::Gateway").values()
+    (gateway,) = [g for g in template.find_resources("AWS::BedrockAgentCore::Gateway").values()
+                  if g["Properties"].get("ProtocolType") == "MCP"]
     assert gateway["Properties"]["AuthorizerType"] == "AWS_IAM"
     assert gateway["Properties"]["ProtocolType"] == "MCP"
-    (target,) = template.find_resources("AWS::BedrockAgentCore::GatewayTarget").values()
+    (target,) = [t for t in template.find_resources("AWS::BedrockAgentCore::GatewayTarget").values()
+                 if "Mcp" in t["Properties"]["TargetConfiguration"]]
     connector = target["Properties"]["TargetConfiguration"]["Mcp"]["Connector"]
     assert connector["Source"]["ConnectorId"] == "bedrock-knowledge-bases"
     assert [c["Name"] for c in connector["Configurations"]] == ["Retrieve"]
@@ -105,3 +114,47 @@ def test_the_connect_instance_is_kept_and_uses_connect_users(template):
     assert instance["Properties"]["InstanceAlias"] == CONNECT_ALIAS
     assert instance["Properties"]["IdentityManagementType"] == "CONNECT_MANAGED"
     assert instance["Properties"]["Attributes"]["OutboundCalls"] is False
+
+
+def test_the_agents_gateway_takes_only_the_chat_starts_token_and_calls_the_agent_with_its_role(template):
+    (gateway,) = [g for g in template.find_resources("AWS::BedrockAgentCore::Gateway").values()
+                  if g["Properties"]["AuthorizerType"] == "CUSTOM_JWT"]
+    jwt = gateway["Properties"]["AuthorizerConfiguration"]["CustomJWTAuthorizer"]
+    assert "ChatIdentity" in json.dumps(jwt["DiscoveryUrl"])
+    assert "ChatIdentityChatStartClient" in json.dumps(jwt["AllowedClients"])
+    assert jwt["AllowedScopes"] == ["verified-airline/agents"]
+    (target,) = [t for t in template.find_resources("AWS::BedrockAgentCore::GatewayTarget").values()
+                 if "Http" in t["Properties"]["TargetConfiguration"]]
+    assert target["Properties"]["Name"] == AGENT_TARGET_NAME
+    assert [c["CredentialProviderType"] for c in target["Properties"]["CredentialProviderConfigurations"]] == [
+        "GATEWAY_IAM_ROLE"]
+
+
+def test_the_chat_start_token_is_client_credentials_only(template):
+    (client,) = template.find_resources("AWS::Cognito::UserPoolClient").values()
+    props = client["Properties"]
+    assert props["AllowedOAuthFlows"] == ["client_credentials"]
+    assert props["GenerateSecret"] is True
+    assert props.get("ExplicitAuthFlows", []) == []
+
+
+def test_the_chat_start_starts_chats_and_reads_nothing_else(template):
+    (function,) = [f for f in template.find_resources("AWS::Lambda::Function").values()
+                   if f["Properties"].get("FunctionName") == "verified-airline-chat-start"]
+    assert function["Properties"]["Runtime"] == "provided.al2023"
+    assert function["Properties"]["Architectures"] == ["arm64"]
+    role = function["Properties"]["Role"]["Fn::GetAtt"][0]
+    actions = sorted(a for p in template.find_resources("AWS::IAM::Policy").values()
+                     if {"Ref": role} in p["Properties"]["Roles"]
+                     for s in p["Properties"]["PolicyDocument"]["Statement"]
+                     for a in (s["Action"] if isinstance(s["Action"], list) else [s["Action"]]))
+    assert actions == ["cognito-idp:DescribeUserPoolClient", "connect:ListContactFlows", "connect:StartChatContact"]
+
+
+def test_turns_are_kept_thirty_days_and_the_agent_writes_them(template):
+    (table,) = template.find_resources("AWS::DynamoDB::Table").values()
+    assert table["Properties"]["TimeToLiveSpecification"] == {"AttributeName": "expires", "Enabled": True}
+    (runtime,) = template.find_resources("AWS::BedrockAgentCore::Runtime").values()
+    env = runtime["Properties"]["EnvironmentVariables"]
+    assert "TURNS_TABLE" in env
+    assert json.loads(env["RULE_STATEMENTS"])

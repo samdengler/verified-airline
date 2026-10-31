@@ -147,6 +147,13 @@ the model:
   that exposes its Retrieve as an MCP tool, and the airline agent on AgentCore
   Runtime, which answers from the knowledge base and, in verified mode, sends
   its answer through the guardrail.
+- A chat runs on the stack's Amazon Connect instance. The Rust chat start in
+  `chat/chat_start/` gets a Cognito client-credentials token and starts the
+  contact with the mode and the token as attributes. The contact flow hands
+  the chat to the Agentic CX designer canvas in `chat/canvas/`, which sends
+  each question to the agent through the agents gateway as an A2A
+  `message/send`. The agent records each turn in a DynamoDB table for 30
+  days and answers with the text the traveler is shown.
 
 ```sh
 python3 scripts/export_chat.py                   # the policy, its checks, the documents
@@ -156,7 +163,19 @@ python3 scripts/export_chat.py                   # the policy, its checks, the d
 (cd chat && uv run scripts/policy_tests.py)      # the same answers as the policy's own tests, run in Bedrock
 (cd chat && uv run scripts/ask.py --rounds 2)    # the question set, through the agent
 (cd chat && uv run python -m airline_agent.cli "What does a Main change cost?")
+(cd chat/canvas && npm ci && node deploy.js)    # the canvas, built and deployed in the designer
+(cd chat && uv run scripts/contact_flow.py)      # the contact flow that hands a chat to the canvas
+(cd chat && uv run scripts/chat.py --mode verified "My Main flight left without me. What can I get back if I cancel?")
 ```
+
+The canvas deploy reads the designer's API key from
+`~/.config/verified-airline/acxd_api_key`. The key, the designer's workspace
+and the Connect admin user were made by hand once.
+
+The withheld, verified and not-checked states follow the bar the design doc
+proposes for review. A draft the check contradicts is withheld, and the reply
+says what the fares say instead. A draft is shown as verified only when every
+finding is VALID with a rule and nothing in it went untranslated.
 
 ## Planned
 
@@ -221,4 +240,10 @@ shows is unproved and is labelled that way.
 10. **The chat stack depends on nothing outside this repository.** guppi-hr
     and guppi-gpt are reference only. The tools gateway authorizes the agent
     by IAM; the anonymous chat's identity comes from a Cognito user pool in
-    this stack when Connect arrives.
+    this stack.
+11. **The agents gateway calls the agent with its own role.** It checks the
+    chat start's Cognito token, by its client and scope, and then invokes the
+    runtime with GATEWAY_IAM_ROLE. guppi-hr passes the caller's token through
+    to its runtimes because its agents act for a signed-in employee. An
+    anonymous traveler has no identity for the agent to carry, and an IAM
+    runtime still serves `chat/scripts/ask.py`.

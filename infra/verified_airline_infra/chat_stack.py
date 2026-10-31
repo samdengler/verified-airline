@@ -14,7 +14,15 @@ Runtime, is the only caller its role allows.
 
 The Connect instance carries the chat in front of the agent.  It is kept if
 the stack is deleted, since the designer's workspace, its API user and the
-admin user are made on it by hand once.
+admin user are made on it by hand once.  A chat reaches the agent through the
+agents gateway: the canvas (chat/canvas) sends each question there as an A2A
+message/send with a Cognito client-credentials token, which the gateway
+checks; the gateway then calls the agent's runtime with its own role, so the
+runtime keeps IAM authorization and chat/scripts/ask.py still reaches it.  The
+chat start (chat/chat_start, Rust) gets that token and starts the contact on
+the contact flow chat/scripts/contact_flow.py writes; until the widget is
+published it has no public route and is invoked with IAM.  Each turn of a
+chat is recorded in a DynamoDB table for 30 days.
 
 guppi-hr's stacks are reference only; this stack depends on nothing of theirs.
 """
@@ -23,15 +31,22 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
+import subprocess
 from pathlib import Path
 
 import aws_cdk as cdk
-from aws_cdk import RemovalPolicy
+import jsii
+from aws_cdk import Duration, RemovalPolicy
 from aws_cdk import aws_bedrock as bedrock
 from aws_cdk import aws_bedrockagentcore as agentcore
+from aws_cdk import aws_cognito as cognito
 from aws_cdk import aws_connect as connect
+from aws_cdk import aws_dynamodb as dynamodb
 from aws_cdk import aws_ecr_assets as ecr_assets
 from aws_cdk import aws_iam as iam
+from aws_cdk import aws_lambda as lambda_
+from aws_cdk import aws_logs as logs
 from aws_cdk import aws_s3 as s3
 from constructs import Construct
 
@@ -50,8 +65,50 @@ CONNECT_ALIAS = "verified-airline"
 # (12 of 62 bait answers) and Claude Sonnet 4.6 never did, and the demo needs
 # a wrong answer for the guardrail to catch.
 MODEL_ID = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+AGENTS_GATEWAY_NAME = "verified-airline-agents"
+# The canvas posts to <gateway URL>/airline/invocations.
+AGENT_TARGET_NAME = "airline"
+SESSION_HEADER = "X-Amzn-Bedrock-AgentCore-Runtime-Session-Id"
+# The chat start's token: one resource server, one scope, for the agents gateway only.
+RESOURCE_SERVER = "verified-airline"
+AGENTS_SCOPE = "agents"
+CONTACT_FLOW_NAME = "verified-airline-chat"
+CHAT_START_DIR = AGENT_DIR / "chat_start"
+CHAT_START_NAME = "verified-airline-chat-start"
+# cargo-lambda from PyPI, with the Zig linker it cross-compiles with; no install needed.
+CARGO_LAMBDA = ["uvx", "--from", "cargo-lambda", "cargo-lambda", "lambda", "build", "--release", "--arm64"]
+CARGO_LAMBDA_IMAGE = "ghcr.io/cargo-lambda/cargo-lambda:latest"
 
 Policy = bedrock.CfnAutomatedReasoningPolicy
+
+
+@jsii.implements(cdk.ILocalBundling)
+class ChatStartBuild:
+    """Builds the chat start on this machine with cargo-lambda; CDK falls back
+    to cargo-lambda's image in Docker when this returns False."""
+
+    def try_bundle(self, output_dir: str, *, image=None, **_options) -> bool:
+        if not (shutil.which("uvx") and shutil.which("cargo")):
+            return False
+        subprocess.run(CARGO_LAMBDA, cwd=CHAT_START_DIR, check=True)
+        shutil.copy2(CHAT_START_DIR / "target" / "lambda" / "air-chat-start" / "bootstrap", Path(output_dir) / "bootstrap")
+        return True
+
+
+def chat_start_code() -> lambda_.Code:
+    """The function's binary.  The hash is of the source, so a deploy with no
+    change to the Rust leaves the function alone."""
+    return lambda_.Code.from_asset(
+        str(CHAT_START_DIR),
+        exclude=["target"],
+        asset_hash_type=cdk.AssetHashType.SOURCE,
+        bundling=cdk.BundlingOptions(
+            image=cdk.DockerImage.from_registry(CARGO_LAMBDA_IMAGE),
+            command=["bash", "-c",
+                     "cargo lambda build --release --arm64 && cp target/lambda/air-chat-start/bootstrap /asset-output/"],
+            local=ChatStartBuild(),
+        ),
+    )
 
 
 def load_definition(chat_dir: Path) -> dict:
@@ -125,10 +182,17 @@ class VerifiedAirlineChatStack(cdk.Stack):
             description=f"Fares policy definition {digest}",
         )
 
+        meaning = json.loads((chat_dir / "ar-rules.json").read_text())["rules"]
+        statements = {rule: m["statement"] for rule, m in meaning.items()}
+
         knowledge_base, data_source, kb_bucket = self.knowledge_base()
         tools_gateway = self.tools_gateway(knowledge_base, data_source)
-        runtime = self.agent_runtime(tools_gateway, guardrail, guardrail_version, policy)
+        turns = self.turns_table()
+        runtime = self.agent_runtime(tools_gateway, guardrail, guardrail_version, policy, turns, statements)
         instance = self.connect_instance()
+        pool, client, token_url = self.machine_identity()
+        agents_gateway = self.agents_gateway(runtime, pool, client)
+        chat_start = self.chat_start(instance, pool, client, token_url)
 
         cdk.CfnOutput(self, "PolicyArn", value=policy.attr_policy_arn)
         cdk.CfnOutput(self, "PolicyVersionArn", value=versioned_arn)
@@ -142,6 +206,148 @@ class VerifiedAirlineChatStack(cdk.Stack):
         cdk.CfnOutput(self, "ModelId", value=MODEL_ID)
         cdk.CfnOutput(self, "ConnectInstanceId", value=instance.attr_id)
         cdk.CfnOutput(self, "ConnectAccessUrl", value=f"https://{CONNECT_ALIAS}.my.connect.aws")
+        cdk.CfnOutput(self, "AgentsGatewayUrl", value=agents_gateway.attr_gateway_url)
+        cdk.CfnOutput(self, "TurnsTableName", value=turns.table_name)
+        cdk.CfnOutput(self, "ChatStartFunctionName", value=chat_start.function_name)
+        cdk.CfnOutput(self, "ContactFlowName", value=CONTACT_FLOW_NAME)
+
+    def turns_table(self):
+        """Each turn of a chat, kept 30 days: the contact, the turn's number,
+        and the whole turn as JSON (chat/airline_agent/turns.py)."""
+        return dynamodb.Table(
+            self,
+            "Turns",
+            partition_key=dynamodb.Attribute(name="contact", type=dynamodb.AttributeType.STRING),
+            sort_key=dynamodb.Attribute(name="turn", type=dynamodb.AttributeType.NUMBER),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            time_to_live_attribute="expires",
+            removal_policy=RemovalPolicy.DESTROY,
+        )
+
+    def machine_identity(self):
+        """The chat start's identity: a Cognito user pool with one
+        client-credentials app.  Its token names the chat start, so one token
+        serves every chat; a day is the longest Cognito allows."""
+        pool = cognito.UserPool(
+            self,
+            "ChatIdentity",
+            user_pool_name="verified-airline-chat",
+            self_sign_up_enabled=False,
+            removal_policy=RemovalPolicy.DESTROY,
+        )
+        scope = cognito.ResourceServerScope(scope_name=AGENTS_SCOPE, scope_description="Call the agents gateway")
+        server = pool.add_resource_server(
+            "AgentsServer", identifier=RESOURCE_SERVER, user_pool_resource_server_name=RESOURCE_SERVER, scopes=[scope])
+        domain = pool.add_domain("Domain", cognito_domain=cognito.CognitoDomainOptions(
+            domain_prefix=f"verified-airline-chat-{self.account}"))
+        client = pool.add_client(
+            "ChatStartClient",
+            user_pool_client_name="chat-start",
+            generate_secret=True,
+            o_auth=cognito.OAuthSettings(
+                flows=cognito.OAuthFlows(client_credentials=True),
+                scopes=[cognito.OAuthScope.resource_server(server, scope)],
+            ),
+            access_token_validity=Duration.days(1),
+            auth_flows=cognito.AuthFlow(),
+        )
+        return pool, client, f"{domain.base_url()}/oauth2/token"
+
+    def agents_gateway(self, runtime, pool, client):
+        """The canvas's way to the agent.  The gateway checks the chat start's
+        token by its client and scope, then calls the runtime with its own role
+        (GATEWAY_IAM_ROLE).  guppi-hr passes the caller's token through
+        instead, because its agents act for a signed-in employee; an anonymous
+        traveler has no identity for the agent to carry on."""
+        role = self.service_role("AgentsGatewayRole", "bedrock-agentcore.amazonaws.com",
+                                 "Lets the agents gateway invoke the airline agent")
+        arn = runtime.attr_agent_runtime_arn
+        role.add_to_policy(iam.PolicyStatement(actions=["bedrock-agentcore:InvokeAgentRuntime"],
+                                               resources=[arn, f"{arn}/runtime-endpoint/*"]))
+        gateway = agentcore.CfnGateway(
+            self,
+            "AgentsGateway",
+            name=AGENTS_GATEWAY_NAME,
+            description="The airline agent for the Connect canvas; callers hold the chat start's Cognito token",
+            role_arn=role.role_arn,
+            authorizer_type="CUSTOM_JWT",
+            authorizer_configuration=agentcore.CfnGateway.AuthorizerConfigurationProperty(
+                custom_jwt_authorizer=agentcore.CfnGateway.CustomJWTAuthorizerConfigurationProperty(
+                    discovery_url=(f"https://cognito-idp.{self.region}.amazonaws.com/{pool.user_pool_id}"
+                                   "/.well-known/openid-configuration"),
+                    allowed_clients=[client.user_pool_client_id],
+                    allowed_scopes=[f"{RESOURCE_SERVER}/{AGENTS_SCOPE}"],
+                )
+            ),
+            # protocol_type is left unset: runtime targets cannot join MCP gateways.
+        )
+        gateway.node.add_dependency(role)
+        target = agentcore.CfnGatewayTarget(
+            self,
+            "AgentTarget",
+            gateway_identifier=gateway.attr_gateway_identifier,
+            name=AGENT_TARGET_NAME,
+            description="The airline agent, called with the gateway's role",
+            target_configuration=agentcore.CfnGatewayTarget.TargetConfigurationProperty(
+                http=agentcore.CfnGatewayTarget.HttpTargetConfigurationProperty(
+                    agentcore_runtime=agentcore.CfnGatewayTarget.RuntimeTargetConfigurationProperty(
+                        arn=arn, qualifier="DEFAULT")
+                )
+            ),
+            credential_provider_configurations=[
+                agentcore.CfnGatewayTarget.CredentialProviderConfigurationProperty(
+                    credential_provider_type="GATEWAY_IAM_ROLE")
+            ],
+            # The canvas names the runtime session after the contact, so one
+            # chat's turns share a session.
+            metadata_configuration=agentcore.CfnGatewayTarget.MetadataConfigurationProperty(
+                allowed_request_headers=[SESSION_HEADER]),
+        )
+        target.node.add_dependency(role)
+        return gateway
+
+    def chat_start(self, instance, pool, client, token_url):
+        """The Rust chat start.  It has no public route until the widget is
+        published; then it gets one on the site's distribution, with a WAF
+        rate limit and a budget alarm."""
+        role = iam.Role(self, "ChatStartRole", assumed_by=iam.ServicePrincipal("lambda.amazonaws.com"),
+                        description="Starts Verified Airline support chats")
+        role.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name(
+            "service-role/AWSLambdaBasicExecutionRole"))
+        instance_arn = instance.attr_arn
+        role.add_to_policy(iam.PolicyStatement(
+            actions=["connect:StartChatContact"],
+            resources=[f"{instance_arn}/contact-flow/*", f"{instance_arn}/contact/*"]))
+        role.add_to_policy(iam.PolicyStatement(
+            actions=["connect:ListContactFlows"], resources=[instance_arn, f"{instance_arn}/contact-flow/*"]))
+        role.add_to_policy(iam.PolicyStatement(
+            actions=["cognito-idp:DescribeUserPoolClient"], resources=[pool.user_pool_arn]))
+        log_group = logs.LogGroup(self, "ChatStartLogs", log_group_name=f"/aws/lambda/{CHAT_START_NAME}",
+                                  retention=logs.RetentionDays.ONE_MONTH, removal_policy=RemovalPolicy.DESTROY)
+        return lambda_.Function(
+            self,
+            "ChatStart",
+            function_name=CHAT_START_NAME,
+            description="Starts a Verified Airline support chat on Amazon Connect",
+            runtime=lambda_.Runtime.PROVIDED_AL2023,
+            architecture=lambda_.Architecture.ARM_64,
+            handler="bootstrap",
+            code=chat_start_code(),
+            role=role,
+            memory_size=256,
+            timeout=Duration.seconds(20),
+            # A cap on chats started at once, which bounds what a burst can spend.
+            reserved_concurrent_executions=5,
+            log_group=log_group,
+            environment={
+                "CONNECT_INSTANCE_ID": instance.attr_id,
+                "CONTACT_FLOW_NAME": CONTACT_FLOW_NAME,
+                "USER_POOL_ID": pool.user_pool_id,
+                "CLIENT_ID": client.user_pool_client_id,
+                "TOKEN_URL": token_url,
+                "SCOPE": f"{RESOURCE_SERVER}/{AGENTS_SCOPE}",
+            },
+        )
 
     def connect_instance(self):
         """A chat-only instance with Connect's own user directory.  The
@@ -288,7 +494,7 @@ class VerifiedAirlineChatStack(cdk.Stack):
         target.node.add_dependency(source)
         return gateway
 
-    def agent_runtime(self, tools_gateway, guardrail, guardrail_version, policy):
+    def agent_runtime(self, tools_gateway, guardrail, guardrail_version, policy, turns, statements):
         image = ecr_assets.DockerImageAsset(self, "AgentImage", directory=str(AGENT_DIR),
                                             platform=ecr_assets.Platform.LINUX_ARM64)
         role = self.service_role("AgentRole", "bedrock-agentcore.amazonaws.com",
@@ -330,6 +536,8 @@ class VerifiedAirlineChatStack(cdk.Stack):
             resources=[policy.attr_policy_arn, cdk.Fn.join(":", [policy.attr_policy_arn, "*"])]))
         role.add_to_policy(iam.PolicyStatement(
             actions=["bedrock-agentcore:InvokeGateway"], resources=[tools_gateway.attr_gateway_arn]))
+        role.add_to_policy(iam.PolicyStatement(
+            actions=["dynamodb:PutItem", "dynamodb:Query"], resources=[turns.table_arn]))
         runtime = agentcore.CfnRuntime(
             self,
             "AgentRuntime",
@@ -349,6 +557,9 @@ class VerifiedAirlineChatStack(cdk.Stack):
                 "TOOLS_GATEWAY_URL": tools_gateway.attr_gateway_url,
                 "GUARDRAIL_ID": guardrail.attr_guardrail_id,
                 "GUARDRAIL_VERSION": guardrail_version.attr_version,
+                "TURNS_TABLE": turns.table_name,
+                # What a withheld answer's reply says the fares say.
+                "RULE_STATEMENTS": json.dumps(statements, separators=(",", ":")),
             },
         )
         # AgentCore checks the image pull grant when it creates the runtime, so

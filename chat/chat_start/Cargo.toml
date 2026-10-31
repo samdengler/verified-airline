@@ -1,0 +1,31 @@
+[package]
+name = "air-chat-start"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "Starts a Verified Airline support chat on Amazon Connect"
+
+[[bin]]
+name = "air-chat-start"
+path = "src/main.rs"
+
+[dependencies]
+async-trait = "0.1"
+aws-config = { version = "1", default-features = false, features = ["rt-tokio", "default-https-client", "credentials-process"] }
+aws-sdk-cognitoidentityprovider = { version = "1", default-features = false, features = ["rt-tokio", "default-https-client"] }
+aws-sdk-connect = { version = "1", default-features = false, features = ["rt-tokio", "default-https-client"] }
+base64 = "0.22"
+lambda_runtime = "1"
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+serde_json = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt"] }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

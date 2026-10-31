@@ -1,0 +1,14 @@
+{
+  "name": "verified-airline-canvas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The support chat's Agentic CX designer application, deployed through the designer's SDK",
+  "type": "commonjs",
+  "engines": { "node": ">=24" },
+  "dependencies": {
+    "amazon-connect-acxd-sdk": "0.2.0"
+  },
+  "scripts": {
+    "deploy": "node deploy.js"
+  }
+}
