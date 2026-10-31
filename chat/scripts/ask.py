@@ -61,6 +61,7 @@ def main():
     ap = argparse.ArgumentParser(description="Ask the support chat agent the question set.")
     ap.add_argument("--rounds", type=int, default=1)
     ap.add_argument("--only", help="ask only the question with this ID")
+    ap.add_argument("--kind", choices=["direct", "leading"], help="ask only questions of this kind")
     ap.add_argument("--mode", choices=["verified", "kb"], default="verified")
     ap.add_argument("--local", action="store_true", help="run the agent in this process")
     ap.add_argument("--report", type=Path, default=REPORT)
@@ -68,6 +69,8 @@ def main():
     questions = json.loads((CHAT / "questions.json").read_text())["questions"]
     if args.only:
         questions = [q for q in questions if q["id"] == args.only]
+    if args.kind:
+        questions = [q for q in questions if q.get("kind", "direct") == args.kind]
     out = outputs("VerifiedAirlineChat")
     ask = local(out) if args.local else remote(out)
     jobs = [q for q in questions for _ in range(args.rounds)]
