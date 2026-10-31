@@ -7,7 +7,7 @@ import json
 import aws_cdk as cdk
 import pytest
 from aws_cdk.assertions import Match, Template
-from verified_airline_infra.stack import HOST, REPOSITORY, VerifiedAirlineStack
+from verified_airline_infra.stack import GITHUB_SUBJECT, HOST, VerifiedAirlineStack
 
 ACCOUNT = "123456789012"
 SCRIPT = "document.documentElement.className = 'js';"
@@ -80,13 +80,14 @@ def test_the_path_function_serves_each_page_from_its_index_html(template):
 
 
 def test_only_pushes_to_main_may_publish(template):
+    assert GITHUB_SUBJECT.endswith(":ref:refs/heads/main")
     roles = template.find_resources("AWS::IAM::Role")
     (role,) = roles.values()
     (statement,) = role["Properties"]["AssumeRolePolicyDocument"]["Statement"]
     assert statement["Action"] == "sts:AssumeRoleWithWebIdentity"
     assert statement["Condition"]["StringEquals"] == {
         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-        "token.actions.githubusercontent.com:sub": f"repo:{REPOSITORY}:ref:refs/heads/main",
+        "token.actions.githubusercontent.com:sub": GITHUB_SUBJECT,
     }
 
 

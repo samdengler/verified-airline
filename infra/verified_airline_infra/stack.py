@@ -52,8 +52,11 @@ ZONE_NAME = "dengler.io"
 RECORD_NAME = "air"
 HOST = f"{RECORD_NAME}.{ZONE_NAME}"
 SITE_URL = f"https://{HOST}/"
-REPOSITORY = "samdengler/verified-airline"
 GITHUB_OIDC = "token.actions.githubusercontent.com"
+# The repository uses GitHub's immutable subject claims, which name the owner
+# and the repository by their IDs as well, so a renamed or re-created
+# repository cannot assume the role (gh api repos/<repo>/actions/oidc/customization/sub).
+GITHUB_SUBJECT = "repo:samdengler@133874/verified-airline@1440554836:ref:refs/heads/main"
 
 ROOT = Path(__file__).resolve().parents[2]
 SITE_DIR = ROOT / "web" / "dist" / "verified-airline" / "browser"
@@ -174,7 +177,7 @@ class VerifiedAirlineStack(cdk.Stack):
                 conditions={
                     "StringEquals": {
                         f"{GITHUB_OIDC}:aud": "sts.amazonaws.com",
-                        f"{GITHUB_OIDC}:sub": f"repo:{REPOSITORY}:ref:refs/heads/main",
+                        f"{GITHUB_OIDC}:sub": GITHUB_SUBJECT,
                     }
                 },
             ),
