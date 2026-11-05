@@ -1,7 +1,8 @@
 {
  "source": {
   "repository": null,
-  "commit": "af3dacca938859ed52b637cb5896d28e63e5d481",
+  "commit": "72b5759f510bfcb99bc3d7b2ba85b6d7d60664a6",
+  "dirty": false,
   "site": null
  },
  "identifiers": {
@@ -395,6 +396,11 @@
      "id": "OID-202.6",
      "status": "open",
      "ears": "IF a response holds a data element the request did not name THEN THE SYSTEM SHALL reject the response."
+    },
+    {
+     "id": "OID-202.7",
+     "status": "open",
+     "ears": "IF a response lacks a data element the request named THEN THE SYSTEM SHALL reject the response."
     }
    ]
   },
@@ -432,6 +438,16 @@
      "id": "OID-203.6",
      "status": "open",
      "ears": "IF a request carries no state value THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-203.7",
+     "status": "proven",
+     "ears": "IF two requests of a relying party carry the same nonce THEN THE SYSTEM SHALL reject them."
+    },
+    {
+     "id": "OID-203.8",
+     "status": "proven",
+     "ears": "IF two requests of a relying party carry the same encryption key THEN THE SYSTEM SHALL reject them."
     }
    ]
   },
@@ -447,12 +463,12 @@
     },
     {
      "id": "OID-204.2",
-     "status": "proven",
+     "status": "open",
      "ears": "IF a request is not signed with the key of the certificate its client identifier names THEN THE SYSTEM SHALL refuse it."
     },
     {
      "id": "OID-204.3",
-     "status": "proven",
+     "status": "open",
      "ears": "IF the certificate a request's client identifier names is not a trusted relying party's THEN THE SYSTEM SHALL refuse it."
     }
    ]
@@ -480,7 +496,7 @@
     {
      "id": "OID-205.4",
      "status": "proven",
-     "ears": "THE SYSTEM SHALL return each mdoc in a device response of its own."
+     "ears": "IF a device response in a token holds more than one mdoc THEN THE SYSTEM SHALL reject the token."
     }
    ]
   },
@@ -681,8 +697,8 @@
   "OID-202.4": [
    {
     "theorem": "Rules.OneId.accepted_answers_this_request",
-    "question": "The OpenID4VP profile requires the relying party to rebuild the session transcript and validate the nonce. …",
-    "example": "Rules.OneId.replayedResponse",
+    "question": "The OpenID4VP profile requires the relying party to rebuild the session transcript and validate the nonce, and the mdoc profile requires mdoc authentication with the session transcript to prevent replay. …",
+    "example": "Rules.OneId.replayedInProximity",
     "review": null
    }
   ],
@@ -697,8 +713,16 @@
   "OID-202.6": [
    {
     "theorem": "Rules.OneId.accepted_holds_only_requested",
-    "question": "OpenID4VP forbids a wallet to send a claim the query did not select (§6.4) and tells a verifier not to rely on the wallet for it (§14.9), without saying that a response with more is refused. …",
+    "question": "OpenID4VP forbids a wallet to send a claim the query did not select (§6.4), tells a verifier to check that what is returned satisfies the request as §6.4 describes and to discard a presentation that fails a check (§8.6), and not to rely on the wallet for it (§14.9). …",
     "example": "Rules.OneId.extraElementAccepted",
+    "review": null
+   }
+  ],
+  "OID-202.7": [
+   {
+    "theorem": "Rules.OneId.accepted_holds_every_requested",
+    "question": "OpenID4VP requires the verifier to check that the returned credentials meet the query and that what is returned satisfies the request (§8.6), which the guide makes a must for its profile. …",
+    "example": "Rules.OneId.partialResponse",
     "review": null
    }
   ],
@@ -707,6 +731,22 @@
     "theorem": "Rules.OneId.OpenId4Vp.accepted_request_has_state",
     "question": "The guide says the nonce and state must be set as OpenID4VP §5.2 says. …",
     "example": "Rules.OneId.requestWithoutState",
+    "review": null
+   }
+  ],
+  "OID-204.2": [
+   {
+    "theorem": "Rules.OneId.OpenId4Vp.answered_request_signed",
+    "question": "The guide introduces the wallet's checks with should and gives the signature check no requirement word. …",
+    "example": "Rules.OneId.wronglySignedRequestAnswered",
+    "review": null
+   }
+  ],
+  "OID-204.3": [
+   {
+    "theorem": "Rules.OneId.OpenId4Vp.answered_by_trusted_verifier",
+    "question": "The guide says the client identifier must be checked against trusted verifiers, in a list of checks it introduces with should, and §3.2 says wallets must have a list of trusted verifiers. …",
+    "example": "Rules.OneId.untrustedVerifierAnswered",
     "review": null
    }
   ],

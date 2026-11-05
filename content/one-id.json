@@ -3,13 +3,29 @@
  "traveler": {
   "specimen": "Specimen",
   "note": "Verified Airline is a fictional airline. The traveler, the flight and the credentials are specimens.",
-  "toggle": { "show": "Show the Lean model", "hide": "Hide the Lean model" },
+  "toggle": {
+   "show": "Show the Lean model",
+   "hide": "Hide the Lean model"
+  },
   "startAgain": "Start again",
-  "flight": { "number": "VA 118", "route": "Utopia City to Port Verity", "destination": "Port Verity" },
+  "flight": {
+   "number": "VA 118",
+   "route": "Utopia City to Port Verity",
+   "destination": "Port Verity"
+  },
   "request": [
-   { "element": "familyNameId", "label": "Family name" },
-   { "element": "givenNameId", "label": "Given name" },
-   { "element": "portraitId", "label": "Portrait" }
+   {
+    "element": "familyNameId",
+    "label": "Family name"
+   },
+   {
+    "element": "givenNameId",
+    "label": "Given name"
+   },
+   {
+    "element": "portraitId",
+    "label": "Portrait"
+   }
   ],
   "labels": {
    "flight": "Flight",
@@ -26,7 +42,10 @@
   },
   "checkIn": {
    "documentTitle": "Check in",
-   "crumbs": ["My trips", "Check in"],
+   "crumbs": [
+    "My trips",
+    "Check in"
+   ],
    "title": "Check in with One ID",
    "lede": "Share your photoid from your wallet. We ask for the items listed below, and your wallet asks you before it shares them.",
    "trip": "Your trip",
@@ -77,7 +96,10 @@
   },
   "gate": {
    "documentTitle": "Gate reader",
-   "crumbs": ["Airport", "Gate reader"],
+   "crumbs": [
+    "Airport",
+    "Gate reader"
+   ],
    "title": "Gate reader",
    "lede": "The reader takes what a traveler's wallet presents and tells the agent whether to board them.",
    "status": "{flight} · checked at {time}",
@@ -113,15 +135,33 @@
    "theorem": "Open theorem:",
    "example": "An example shows the case:",
    "noLink": "The review document has no public address yet, so this shows no link.",
-   "status": { "proven": "proven", "open": "open", "example": "example only", "not checked": "not checked" }
+   "status": {
+    "proven": "proven",
+    "open": "open",
+    "example": "example only",
+    "not checked": "not checked"
+   }
   },
   "grey": {
-   "request": { "title": "Not in the model yet", "text": "This request and its list run on ordinary code. The site does not hold them to the model yet, so nothing here is checked against it." },
-   "consent": { "title": "Not in the model yet", "text": "What this sheet says will be shared comes from ordinary code. The site does not hold it to the model yet, so nothing here is checked against it." },
-   "decision": { "title": "Not in the model yet", "text": "Each check below comes from the model. Combining them into one decision is ordinary code: board when no check fails, using the checks whose credentials this traveler holds." }
+   "request": {
+    "title": "Not in the model yet",
+    "text": "This request and its list run on ordinary code. The site does not hold them to the model yet, so nothing here is checked against it."
+   },
+   "consent": {
+    "title": "Not in the model yet",
+    "text": "What this sheet says will be shared comes from ordinary code. The site does not hold it to the model yet, so nothing here is checked against it."
+   },
+   "decision": {
+    "title": "Not in the model yet",
+    "text": "Each check below is held to the model's answers. Combining them into Board or Refer runs on ordinary code here. The model states the rule for a pair in the requirement beside this marker, and the site's tests do not cover that combination yet."
+   }
   },
   "checkIn": {
-   "itemsMarker": { "requirements": ["OID-106"] },
+   "itemsMarker": {
+    "requirements": [
+     "OID-106"
+    ]
+   },
    "fromDocType": "From a credential of type {docType}.",
    "advisories": "Recommendations not followed: {count}",
    "advisoriesNote": "A recommendation not followed does not stop check-in.",
@@ -140,29 +180,103 @@
    "noFindings": "no findings",
    "yes": "true",
    "no": "false",
-   "status": { "passed": "Passed", "failed": "Failed", "notChecked": "Not checked", "advisory": "Advisory" },
-   "when": { "gate": "At the gate", "issued": "When it was issued" }
+   "status": {
+    "passed": "Passed",
+    "failed": "Failed",
+    "notChecked": "Not checked",
+    "advisory": "Advisory",
+    "decide": "Needs a decision"
+   },
+   "when": {
+    "gate": "At the gate",
+    "issued": "When it was issued"
+   },
+   "pairMarker": {
+    "requirements": [
+     "OID-207"
+    ]
+   }
   },
   "checks": {
-   "photoid": { "title": "The photoid meets the guide's requirements", "when": "gate", "requirements": ["OID-101"] },
-   "source": { "title": "The photoid comes from a document the guide allows", "when": "issued", "requirements": ["OID-109"] },
-   "advisories": { "title": "The guide's recommendations for a photoid", "when": "issued", "requirements": ["OID-102"] },
-   "photoidValidity": { "title": "The photoid's validity fits the document it came from", "when": "issued", "requirements": ["OID-108"] },
-   "boardingPass": { "title": "The boarding pass meets the guide's requirements", "when": "gate", "requirements": ["OID-103"] },
-   "passValidity": { "title": "The boarding pass's validity fits the departure", "when": "issued", "requirements": ["OID-104"] },
-   "photoidExpired": { "title": "The photoid has not expired", "when": "gate", "requirements": ["OID-105"] },
-   "passExpired": { "title": "The boarding pass has not expired", "when": "gate", "requirements": ["OID-105"] },
-   "match": { "title": "Both credentials are about one traveler", "when": "gate", "requirements": ["OID-107"] }
+   "photoid": {
+    "title": "The photoid meets the guide's requirements",
+    "when": "gate",
+    "requirements": [
+     "OID-101"
+    ]
+   },
+   "source": {
+    "title": "The photoid comes from a document the guide allows",
+    "when": "issued",
+    "requirements": [
+     "OID-109"
+    ]
+   },
+   "advisories": {
+    "title": "The guide's recommendations for a photoid",
+    "when": "issued",
+    "requirements": [
+     "OID-102"
+    ]
+   },
+   "photoidValidity": {
+    "title": "The photoid's validity fits the document it came from",
+    "when": "issued",
+    "requirements": [
+     "OID-108"
+    ]
+   },
+   "boardingPass": {
+    "title": "The boarding pass meets the guide's requirements",
+    "when": "gate",
+    "requirements": [
+     "OID-103"
+    ]
+   },
+   "passValidity": {
+    "title": "The boarding pass's validity fits the departure",
+    "when": "issued",
+    "requirements": [
+     "OID-104"
+    ]
+   },
+   "photoidExpired": {
+    "title": "The photoid has not expired",
+    "when": "gate",
+    "requirements": [
+     "OID-105"
+    ]
+   },
+   "passExpired": {
+    "title": "The boarding pass has not expired",
+    "when": "gate",
+    "requirements": [
+     "OID-105"
+    ]
+   },
+   "match": {
+    "title": "Both credentials are about one traveler",
+    "when": "gate",
+    "requirements": [
+     "OID-107"
+    ]
+   }
   },
   "deciding": {
-   "validity": { "open": ["OID-104.4", "OID-104.5"], "text": "Still being decided: which departure the guide means, and how long \"soon after\" lasts." }
+   "validity": {
+    "open": [
+     "OID-104.4",
+     "OID-104.5"
+    ],
+    "text": "Still being decided: which departure the guide means, and how long \"soon after\" lasts."
+   }
   },
   "presenter": {
    "eyebrow": "Presenter panel",
    "title": "Readings of the guide",
    "traveler": "Traveler at the gate",
    "readings": "One switch for each point the guide leaves undecided",
-   "startNote": "Each switch starts on the guide as written, where one setting is marked so, and otherwise on the first setting the model lists. No setting is a recommendation.",
+   "startNote": "Every switch starts undecided, so the site chooses nothing for the business. A traveler whose trip rests on an undecided point stops at it.",
    "asWritten": "The guide as written",
    "affects": "Changes this traveler's outcome",
    "cannotSee": "What the reader cannot see",
@@ -173,7 +287,77 @@
    "single": "This traveler holds one credential, so there is no pair to compare.",
    "example": "An example in the model shows this case:",
    "noExample": "The default trip, which every reading accepts.",
-   "standIns": "Invented stand-ins: the tables of photoid data elements and the boarding pass format."
+   "standIns": "Invented stand-ins: the tables of photoid data elements and the boarding pass format.",
+   "undecided": "Undecided",
+   "trail": "Decisions so far",
+   "noTrail": "Nothing is decided yet.",
+   "undo": "Undo",
+   "clear": "Clear all decisions",
+   "dependsSame": "Both credentials are about the same traveler. The gate's answer depends on a point still undecided.",
+   "dependsDifferent": "The credentials are about two different travelers. The gate's answer depends on a point still undecided."
+  },
+  "decision": {
+   "needs": "Needs a decision",
+   "line": "This trip stops here until the point below is decided.",
+   "leftOpen": "You left this open, so the trip stays stopped here.",
+   "choose": "Choose a setting to see where it leads",
+   "none": "None of these",
+   "noneNote": "The model says its settings are not the only ones. Choosing this keeps the trip stopped.",
+   "chosen": "Chosen",
+   "preview": {
+    "board": "Board",
+    "refer": "Refer to agent",
+    "depends": "Depends on another decision",
+    "accepted": "Accepted",
+    "refused": "Refused"
+   },
+   "consequences": "What each setting does to the travelers it changes",
+   "consequencesNote": "These travelers are examples written by hand. They show kinds of error and say nothing about how often each happens.",
+   "travelerColumn": "Traveler",
+   "aboutColumn": "The credentials are about",
+   "oneTraveler": "One traveler",
+   "twoTravelers": "Two travelers",
+   "oneCredential": "One credential",
+   "wrong": "Wrong",
+   "wrongCount": "Wrong for {wrong} of {total} travelers holding both credentials",
+   "credentialCheck": "Credential check",
+   "credentialLine": "This traveler holds only a {credential}. The gate needs both, so this shows the result for that credential alone.",
+   "checkInTitle": "Check-in needs a decision",
+   "checkInLede": "The result for this traveler depends on a point still undecided. Decide it on the gate reader's panel.",
+   "walletDepends": "Whether this boarding pass is accepted depends on a point still undecided.",
+   "considerTitle": "Outside the model: what else this choice touches",
+   "considerations": {
+    "MatchReading": [
+     "When a refusal lands: a traveler learns at the gate today. The same check at check-in would warn them with time to fix it.",
+     "Who carries each error: a wrong refusal sends a traveler to an agent, and a wrong acceptance boards someone on another traveler's pass.",
+     "What the gate receives: this demo shows no consent sheet at the gate. Requiring both credentials sends the name and the portrait there too.",
+     "No face step: this demo has no camera, so the portrait goes unused here. A touchpoint would match a face against it."
+    ],
+    "ValidityReading.departure": [
+     "After a refusal: this demo cannot reissue a boarding pass, so a traveler on a delayed flight ends at an agent."
+    ],
+    "ValidityReading.soonAfter": [
+     "A long window leaves a boarding pass valid after the journey, and nothing in the guide ends it sooner."
+    ],
+    "ExpiryReading.validAtEnd": [
+     "Under one setting, a boarding pass set to end at departure is refused at the moment of departure."
+    ],
+    "PhotoidReading.portraitRequired": [
+     "A photoid with no face image gives a touchpoint nothing to match."
+    ],
+    "PhotoidReading.passportRequired": [
+     "Under the looser setting a photoid from another document is accepted, and nothing the reader must receive says so."
+    ],
+    "PhotoidValidityReading": [
+     "Under the looser setting a photoid stays valid after its passport expires."
+    ],
+    "BoardingPassReading.unlistedDataAllowed": [
+     "Under the looser setting a reader cannot tell what a boarding pass holds from the guide alone."
+    ],
+    "BoardingPassReading.repeatedNamesRefused": [
+     "Under the looser setting a boarding pass with two strings is accepted, and the reader receives one of them."
+    ]
+   }
   }
  }
 }

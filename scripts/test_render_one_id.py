@@ -83,6 +83,12 @@ class Wording(unittest.TestCase):
         (self.model / "scenarios.json").write_text(json.dumps(scenarios))
         self.fails("stand-in")
 
+    def test_settling_a_question_stops_the_build_until_its_wording_goes(self):
+        readings = json.loads((self.model / "readings.json").read_text())
+        readings["readings"] = [r for r in readings["readings"] if r["id"] != "MatchReading"]
+        (self.model / "readings.json").write_text(json.dumps(readings))
+        self.fails("MatchReading", "no longer an undecided point")
+
     def test_it_is_skipped_without_the_model_or_the_wording(self):
         self.assertIsNone(render_airline.load_one_id(self.dir / "no-such-directory"))
         (self.dir / "one-id.json").unlink(missing_ok=True)

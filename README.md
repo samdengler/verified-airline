@@ -222,8 +222,10 @@ finding is VALID with a rule and nothing in it went untranslated.
 The check-in, wallet and gate screens are built on a second model:
 verified-id, IATA's One ID Technical Implementation Guide in Lean. Its design is
 the Claude Doc "One ID on Verified Airline: implementation plan". This work stays
-on the local branch `one-id`. It is not pushed or published, because verified-id
-is private and the question of what may be published from the guide is open.
+on `main` and is published with the rest of the site, by Sam's decision of 5
+November 2026, although verified-id itself stays private. The files in
+`model/one-id/` hold wording of our own, section numbers, identifiers and five short
+quoted phrases of the guide, the longest eight words.
 
 `scripts/update-model.sh --one-id` copies four files from a local build,
 `../verified-id/build/one-id-data/`, into `model/one-id/`:
@@ -269,7 +271,7 @@ model, and wording that calls a point still being decided must cite criteria tha
 are still open. `scripts/test_render_one_id.py` shows each of these failing.
 
 The screens talk through a BroadcastChannel, so a laptop can show the three side by
-side in one browser. Only the step, the traveler and the switches travel. A new tab
+side in one browser. Only the step, the traveler and the decisions travel. A new tab
 says hello, and a tab further along answers with where the trip stands. The website
 opens the wallet and the wallet opens the gate reader, each in a tab of its own.
 
@@ -287,9 +289,38 @@ writes from `decisions.jsonl`. The app loads it only with the model shown.
 
 Three steps on these screens are ordinary code, each with a grey marker: the
 request, the consent sheet's list, and combining the checks into "Board" or "Refer
-to agent". The gate boards a traveler when no check fails, using the checks whose
-credentials the traveler holds, so a scenario with one credential can show one
-point of the guide alone. The model has no function for that decision.
+to agent". The model states the rule for a pair as OID-207 (`pairRefusals`): each
+credential accepted on its own, and both about one traveler. A contactless
+touchpoint needs both credentials. The data files hold no decisions for that rule
+yet, so the site's tests do not cover the combination. A traveler holding one
+credential is never boarded: the gate shows a "Credential check" with the result
+for that credential alone.
+
+### Where a trip stops
+
+With the model shown, a trip that rests on an undecided point stops at it. The gate
+says "Needs a decision" with the open question, and nothing goes on until someone
+decides. A point is undecided until someone chooses: every switch starts that way,
+so the site chooses nothing for the business.
+
+`one-id/decide.ts` works out where a trip stands, with nothing typed by hand. It
+tries each check under every setting of the undecided points it reads. A trip stops
+at a point that changes the result, and at a point whose open question names the
+traveler as a worked example, a link `scenarios.json` and `readings.json` make. The
+second case matters: two travelers named John Smith board under every setting, and
+the credentials are about two different people. The default trip links to no open
+question and every reading accepts it, so it never stops, and a test holds that
+under any decisions. With the model hidden, the trip is always the default trip.
+
+At a stop, each setting shows what it leads to for this traveler. A table shows what
+each setting does to the travelers it changes, marked wrong where the result
+contradicts who the credentials are about, which the scenarios record and a reader
+cannot see. These travelers are examples written by hand, so the table shows kinds
+of error and no rates. "None of these" keeps the trip stopped, since the model says
+its settings are not the only ones. Decisions so far appear on the panel, reach every
+tab, and can be undone. A list under the table names what the choice touches outside
+the model; `render_airline.py` stops the build when a list names a point the model no
+longer has.
 
 `web/scripts/browser-check.mjs` runs the trip from check-in to "Board" in three
 tabs under the site's content security policy, with the model hidden and with it
@@ -300,9 +331,8 @@ shown, and fails on any console error or on a banned word in the visible text.
 `/gate` has a panel for whoever presents the demo, shown only with the model. Its
 traveler picker comes from `scenarios.json`, so a scenario the model adds appears
 with no code. It has one switch per entry of `readings.json`, each with its settings
-and its open question. A switch starts on the guide as written where the model marks
-one, and otherwise on the first setting the model lists; no setting is a
-recommendation. A switch that would change the current traveler's outcome says so.
+and its open question. Every switch starts undecided, and the setting that is the
+guide as written is marked where the model names one. A switch that would change the current traveler's outcome says so.
 "What the reader cannot see" compares who each credential is about, which the issuer
 knows and a relying party does not, with what the gate decided.
 

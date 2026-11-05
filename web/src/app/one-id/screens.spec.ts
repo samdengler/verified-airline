@@ -78,6 +78,39 @@ describe('the One ID screens', () => {
     expect(checkIn.el.querySelector('[data-action="open-wallet"]')).not.toBeNull();
   });
 
+  it('stops at a decision, and goes on once one is chosen in the banner', async () => {
+    document.documentElement.classList.add('lean-on');
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({ providers: [provideRouter([])] }).compileComponents();
+    const trip = TestBed.inject(Trip);
+    const gate = await render(Gate);
+    trip.pick('accented-name');
+    await gate.fixture.whenStable();
+    expect(gate.el.querySelector('[data-state="gate-decide"]')).not.toBeNull();
+    expect(gate.el.querySelector('[data-state="gate-result"]')).toBeNull();
+    expect(gate.el.querySelector('[data-decision="MatchReading"]')).not.toBeNull();
+    gate.el.querySelector<HTMLButtonElement>('[data-decision="MatchReading"] [data-option="namesAgree"]')!.click();
+    await gate.fixture.whenStable();
+    expect(gate.el.querySelector('[data-state="gate-decide"]')).toBeNull();
+    expect(gate.el.querySelector('.oid-banner-word')?.textContent).toBe(wording.traveler.gate.refer);
+    expect(gate.el.querySelector('[data-trail="MatchReading"]')).not.toBeNull();
+    document.documentElement.classList.remove('lean-on');
+  });
+
+  it('shows one credential as a credential check, never as Board', async () => {
+    document.documentElement.classList.add('lean-on');
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({ providers: [provideRouter([])] }).compileComponents();
+    const trip = TestBed.inject(Trip);
+    const gate = await render(Gate);
+    trip.pick('end-of-validity');
+    trip.set('ExpiryReading.validAtEnd', true);
+    await gate.fixture.whenStable();
+    expect(gate.el.querySelector('.oid-banner.credential .oid-banner-word')?.textContent).toBe(wording.lean.decision.preview.accepted);
+    expect(gate.el.querySelector('.oid-banner.board')).toBeNull();
+    document.documentElement.classList.remove('lean-on');
+  });
+
   it("draws a marker's popover from model.json, with its tone from the statuses", async () => {
     const fixture = TestBed.createComponent(Marker);
     fixture.componentRef.setInput('key', 'test');

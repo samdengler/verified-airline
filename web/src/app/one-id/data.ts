@@ -72,8 +72,8 @@ export const dataElements = modelFile.identifiers.dataElements as unknown as Ide
 /** The scenario the build marks as the default trip.  Every reading gives it the same result, and verified-id's build checks that. */
 export const defaultScenario: Scenario = scenarios.filter((s) => s.default)[0];
 
-/** Where each switch starts: the guide as written where the model marks one, or else the first setting it lists. */
-export const startingSettings: Settings = Object.fromEntries(readings.map((r) => [r.id, r.asWritten ?? r.settings[0].value]));
+/** The first setting of every point.  It lets a check run; it is no choice, and decide.ts tries every setting of a point still undecided. */
+export const firstSettings: Settings = Object.fromEntries(readings.map((r) => [r.id, r.settings[0].value]));
 
 /** The items the airline asks for, with their identifiers from the model. */
 export const requestedItems = wording.traveler.request.map((item) => {

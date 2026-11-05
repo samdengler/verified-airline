@@ -326,6 +326,35 @@ try {
   };
   const bannerWord = () => gate.locator('.oid-banner-word').textContent();
 
+  // A trip that rests on an undecided point stops at it, and choosing goes on.
+  const decide = words.lean.decision;
+  const decideBanner = gate.locator('[data-state="gate-decide"]');
+  await pickTraveler('accented-name');
+  const stopped = { stopped: await decideBanner.isVisible(), result: await gate.locator('[data-state="gate-result"]').count(), word: await bannerWord(),
+    previews: await gate.locator('[data-decision="MatchReading"] [data-preview]').allTextContents(), counts: await gate.locator('[data-decision="MatchReading"] [data-wrong-count]').allTextContents(),
+    rows: await gate.locator('[data-decision="MatchReading"] [data-consequence]').count(), considerations: await gate.locator('[data-decision="MatchReading"] .oid-considerations li').count() };
+  check('a trip resting on an undecided point stops, with each setting and what it leads to', stopped.stopped && stopped.result === 0 && stopped.word === decide.needs
+    && stopped.previews.join() === [decide.preview.board, decide.preview.refer].join() && stopped.rows === 4 && stopped.counts.every((c) => c === 'Wrong for 2 of 4 travelers holding both credentials') && stopped.counts.length === 2 && stopped.considerations > 0, JSON.stringify(stopped));
+  await shot(gate, 'decision-accented-name');
+  await pickTraveler('two-john-smiths');
+  check('the two John Smiths stop too, though they board under every setting', await decideBanner.isVisible());
+  await shot(gate, 'decision-two-john-smiths');
+  await pickTraveler('default-trip');
+  check('the default trip does not stop', !(await decideBanner.isVisible()) && (await bannerWord()) === words.traveler.gate.board);
+  await pickTraveler('accented-name');
+  await gate.locator('[data-decision="MatchReading"] [data-option-none]').click();
+  await gate.locator('[data-state="left-open"]').waitFor();
+  check('"None of these" keeps the trip stopped', await decideBanner.isVisible());
+  await gate.locator('[data-decision="MatchReading"] [data-option="namesAgree"]').click();
+  await gate.locator('[data-trail="MatchReading"]').filter({ hasText: 'names agree' }).waitFor();
+  check('choosing a setting goes on to its result and joins the decisions so far', !(await decideBanner.isVisible()) && (await bannerWord()) === words.traveler.gate.refer);
+  await shot(gate, 'decision-accented-name-chosen');
+  await gate.locator('[data-trail="MatchReading"] button').click();
+  await decideBanner.waitFor();
+  check('undoing a decision stops the trip again', await decideBanner.isVisible());
+  const walletSeesIt = await wallet.locator('[data-credential="boardingPass"] .oid-name').filter({ hasText: 'GARCIA' }).waitFor({ timeout: 5000 }).then(() => true, () => false);
+  check('decisions and the traveler reach the other tabs', walletSeesIt);
+
   // For each traveler in turn, both settings of the matching rule: the result on
   // the screen against the model's table.
   const answers = Object.fromEntries(readFileSync(new URL('../../model/one-id/decisions.jsonl', import.meta.url), 'utf8').split('\n').filter(Boolean).map((line) => {
@@ -372,10 +401,21 @@ try {
   await setSwitch('ExpiryReading.validAtEnd', 'true');
   const atEnd = await bannerWord();
   const affected = await panel.locator('[data-reading="ExpiryReading.validAtEnd"] [data-affects]').count();
+  const credentialBanner = await gate.locator('.oid-banner.credential').count();
+  const boarded = await gate.locator('.oid-banner.board').count();
   await setSwitch('ExpiryReading.validAtEnd', 'false');
   const pastEnd = await bannerWord();
-  check('a switch other than the matching one turns a result, and says it does', atEnd === words.traveler.gate.board && pastEnd === words.traveler.gate.refer && affected === 1, JSON.stringify({ atEnd, pastEnd, affected }));
-  await shot(gate, 'panel-end-of-validity-validAtEnd-false');
+  check('one credential gets a credential check, and a switch turns its result', atEnd === decide.preview.accepted && pastEnd === decide.preview.refused && affected === 1 && credentialBanner === 1 && boarded === 0, JSON.stringify({ atEnd, pastEnd, affected, credentialBanner, boarded }));
+  await shot(gate, 'credential-end-of-validity');
+  const lone = oneIdScenarios.scenarios.filter((s) => s.credentials.length < 2);
+  const boardedAlone = [];
+  for (const scenario of lone) {
+    await pickTraveler(scenario.id);
+    if (await gate.locator('.oid-banner.board').count()) boardedAlone.push(scenario.id);
+  }
+  check('no traveler holding one credential is shown as boarding', boardedAlone.length === 0, boardedAlone.join());
+  await panel.locator('[data-action="clear-decisions"]').click();
+  await panel.locator('[data-trail]').first().waitFor({ state: 'detached' });
 
   // Hiding the model hides the panel and goes back to the default trip.
   await gate.locator('.lean-toggle').click();

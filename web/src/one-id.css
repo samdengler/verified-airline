@@ -3,7 +3,7 @@
    work as on the policy pages.  No inline styles: the content security policy
    allows none. */
 
-va-marker, va-one-id-band, va-credential, va-presenter { display: contents; }
+va-marker, va-one-id-band, va-credential, va-presenter, va-decision { display: contents; }
 .one-id h2 { margin: 0; font-size: 22px; font-weight: 700; }
 .one-id h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted); }
 .one-id p { margin: 0; }
@@ -64,6 +64,10 @@ va-marker, va-one-id-band, va-credential, va-presenter { display: contents; }
 .oid-banner > svg { width: 56px; height: 56px; flex: none; }
 .oid-banner.board { background: var(--indigo); color: var(--on-indigo); }
 .oid-banner.refer { background: var(--amber-bg); color: var(--amber-ink); border-color: var(--amber-edge); }
+.oid-banner.decide { background: var(--amber-soft); color: var(--amber-ink); border: 2px dashed var(--amber-edge); }
+.oid-banner.credential { background: var(--proven-bg); color: var(--indigo); border-color: var(--pop-line); }
+.oid-banner.credential.refused { background: var(--amber-bg); color: var(--amber-ink); border-color: var(--amber-edge); }
+.oid-banner.credential .oid-eyebrow { color: inherit; }
 .oid-banner-word { font-size: 44px; line-height: 1.05; font-weight: 700; }
 .oid-banner-line { font-size: 18px; }
 .oid-names { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 16px; }
@@ -89,6 +93,24 @@ va-marker, va-one-id-band, va-credential, va-presenter { display: contents; }
 .oid-question { font-size: 14px; color: var(--body); line-height: 1.45; }
 .oid-question + .oid-question { margin-top: 6px; }
 .oid-question-row { align-items: center; }
+
+/* A point the trip stops at. */
+.oid-decision { position: relative; padding: 18px 20px; border: 1px solid var(--amber-line); border-radius: 12px; background: var(--surface); display: flex; flex-direction: column; gap: 12px; }
+.one-id .oid-decision-label { font-size: 16px; font-weight: 700; color: var(--ink); }
+.oid-decision-question { font-size: 15px; color: var(--body); line-height: 1.45; margin-top: 4px; }
+.oid-decision h4 { margin: 8px 0 0; font-size: 15px; font-weight: 700; }
+.oid-preview { display: block; margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--indigo); }
+.oid-consequences { width: 100%; min-width: 520px; border-collapse: collapse; font-size: 13.500px; line-height: 1.4; }
+.oid-consequences th, .oid-consequences td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.oid-consequences thead th { font-weight: 600; background: var(--foot); }
+.oid-consequences tbody th { font-weight: 500; }
+.oid-consequences tfoot td { border-bottom: 0; }
+.oid-consequences td.oid-wrong { background: var(--amber-bg); color: var(--amber-ink); font-weight: 600; }
+.oid-consequences td.oid-wrong .oid-tag { color: inherit; }
+.oid-considerations { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--body); }
+.oid-trail { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.oid-trail li { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font-size: 14px; }
+.oid-trail .oid-link { padding: 0; font-size: 14px; }
 
 /* Band and legend */
 .oid-legend { display: flex; flex-direction: column; gap: 8px; }

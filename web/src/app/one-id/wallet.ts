@@ -2,11 +2,9 @@ import { Component, computed, inject } from '@angular/core';
 import { site } from '../content';
 import { CredentialCard, passNameLine, photoidNames } from './credential-card';
 import { credentialOf, dataElements, fill, formatInstant, requestedItems, wording } from './data';
+import { viewChecks } from './decide';
 import { Marker } from './marker';
-import { boardingPassViolations } from './rules/boarding-pass-violations';
 import { consent } from './rules/consent';
-import { boardingPassReading } from './rules/support/readings';
-import { exampleResolution792 } from './rules/support/stand-ins';
 import { Trip } from './trip';
 import { LeanModel } from '../lean-model';
 
@@ -14,6 +12,8 @@ import { LeanModel } from '../lean-model';
 @Component({
   selector: 'va-wallet',
   imports: [CredentialCard, Marker],
+  // The same events as the policy pages, so Angular writes the same inline script and the live policy's hash allows it.
+  host: { '(submit)': '$event.preventDefault()' },
   template: `
     <div class="one-id">
       <main class="oid-wallet" id="content">
@@ -83,7 +83,7 @@ import { LeanModel } from '../lean-model';
               <p class="oid-small">{{ t.labels.validUntil }} {{ validUntil() }}</p>
             </va-credential>
             <div class="oid-card oid-row marked" data-check="pass-on-arrival">
-              <div class="oid-grow"><p class="oid-strong">{{ w.passChecked }}</p><p class="oid-small" data-state="pass-check">{{ passOk() ? w.passOk : w.passFailed }}</p></div>
+              <div class="oid-grow"><p class="oid-strong">{{ w.passChecked }}</p><p class="oid-small" data-state="pass-check">{{ passLine() }}</p></div>
               <va-marker key="pass-on-arrival" [requirements]="checks.boardingPass.requirements" />
             </div>
           }
@@ -126,7 +126,10 @@ export class Wallet {
     return j ? formatInstant(j.scheduledDeparture).split(', ')[1] : null;
   });
   protected readonly source = computed(() => (this.trip.scenario().sourceDocument?.kind === 'passport' ? this.w.derivedFromPassport : this.w.derivedFromOther));
-  protected readonly passOk = computed(() => boardingPassViolations(boardingPassReading(this.trip.settings()), exampleResolution792, this.pass()!).length === 0);
+  protected readonly passLine = computed(() => {
+    const state = viewChecks(this.trip.scenario(), this.trip.decisions()).find((c) => c.result.key === 'boardingPass')?.state;
+    return state === 'depends' ? wording.lean.decision.walletDepends : state === 'passed' ? this.w.passOk : this.w.passFailed;
+  });
 
   protected readonly sheet = computed(() => consent(requestedItems, this.photoid()!));
   protected readonly asksLine = computed(() => fill(this.w.asks, { airline: this.airline, count: this.sheet().shared.length }));

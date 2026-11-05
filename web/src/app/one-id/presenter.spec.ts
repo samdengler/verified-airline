@@ -82,6 +82,11 @@ describe('the presenter panel', () => {
     expect(travelers).toEqual(fileScenarios.map((s) => [s.id, s.title]));
   });
 
+  it('starts every switch undecided, with no setting pressed', () => {
+    expect(el.querySelectorAll('[data-setting][aria-pressed="true"]').length).toBe(0);
+    expect(el.querySelectorAll('[data-undecided][aria-pressed="true"]').length).toBe(fileReadings.length);
+  });
+
   it('is shown only with the model, through data-lean', () => {
     expect(el.querySelector('[data-panel="presenter"]')?.hasAttribute('data-lean')).toBe(true);
   });

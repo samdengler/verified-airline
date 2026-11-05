@@ -1,7 +1,7 @@
 import fc from 'fast-check';
 import { readFileSync } from 'node:fs';
 import { decisionName, describeFinding, firstFailure, runChecks, sameAnswer } from './checks';
-import { defaultScenario, readings, scenarios, startingSettings, wording } from './data';
+import { defaultScenario, readings, scenarios, firstSettings, wording } from './data';
 import type { Settings } from './rules/support/readings';
 
 const table: Record<string, unknown> = Object.fromEntries(
@@ -30,7 +30,7 @@ describe('the checks for one traveler', () => {
 
   it('compares an answer with the model whatever order the keys are in', () => {
     const noPortrait = scenarios.find((s) => s.id === 'no-portrait')!;
-    const violations = runChecks(noPortrait, startingSettings).find((r) => r.key === 'photoid')!;
+    const violations = runChecks(noPortrait, firstSettings).find((r) => r.key === 'photoid')!;
     const model = table[decisionName(noPortrait, violations)] as object[];
     expect(model.length).toBeGreaterThan(0);
     expect(sameAnswer(model, violations.answer)).toBe(true);
@@ -44,20 +44,16 @@ describe('the checks for one traveler', () => {
     fc.assert(fc.property(anySettings, (settings) => firstFailure(runChecks(defaultScenario, settings)) === undefined), { numRuns: 1000 });
   });
 
-  it('starts each switch on a setting readings.json lists', () => {
-    for (const r of readings) expect(r.settings.map((s) => s.value)).toContain(startingSettings[r.id]);
-  });
-
   it('refers a traveler when a check fails, and not for a recommendation', () => {
     const accented = scenarios.find((s) => s.id === 'accented-name')!;
-    expect(firstFailure(runChecks(accented, { ...startingSettings, MatchReading: 'namesAgree' }))?.key).toBe('match');
-    expect(firstFailure(runChecks(accented, { ...startingSettings, MatchReading: 'notChecked' }))).toBeUndefined();
-    expect(runChecks(defaultScenario, startingSettings).find((r) => r.key === 'advisories')?.passed).toBe(false);
+    expect(firstFailure(runChecks(accented, { ...firstSettings, MatchReading: 'namesAgree' }))?.key).toBe('match');
+    expect(firstFailure(runChecks(accented, { ...firstSettings, MatchReading: 'notChecked' }))).toBeUndefined();
+    expect(runChecks(defaultScenario, firstSettings).find((r) => r.key === 'advisories')?.passed).toBe(false);
   });
 
   it('has wording for every check it runs', () => {
     for (const scenario of scenarios) {
-      for (const r of runChecks(scenario, startingSettings)) {
+      for (const r of runChecks(scenario, firstSettings)) {
         expect(wording.lean.checks).toHaveProperty(r.key);
         if (r.blocks) expect(wording.traveler.reasons).toHaveProperty(r.key);
       }

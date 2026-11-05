@@ -1,8 +1,8 @@
 import { Component, computed, inject } from '@angular/core';
 import { Band } from './band';
-import { firstFailure, runChecks } from './checks';
 import { CredentialCard, passNameLine, photoidNames } from './credential-card';
 import { credentialOf, fill, formatInstant, requestedItems, titleCase, wording } from './data';
+import { viewChecks } from './decide';
 import { Marker } from './marker';
 import { Trip } from './trip';
 
@@ -10,6 +10,8 @@ import { Trip } from './trip';
 @Component({
   selector: 'va-check-in',
   imports: [Band, CredentialCard, Marker],
+  // The same events as the policy pages, so Angular writes the same inline script and the live policy's hash allows it.
+  host: { '(submit)': '$event.preventDefault()' },
   template: `
     <div class="one-id">
       <va-one-id-band [title]="title()" [lede]="lede()" [crumbs]="w.crumbs" [crumbLabel]="flight.number" />
@@ -44,7 +46,7 @@ import { Trip } from './trip';
               <h2>{{ w.checked }}</h2>
               <div class="oid-card oid-list">
                 <div class="oid-row marked" data-check="photoid">
-                  <span class="oid-strong oid-grow">{{ photoidPassed() ? w.photoidOk : w.photoidFailed }}</span>
+                  <span class="oid-strong oid-grow">{{ photoidLine() }}</span>
                   <code class="oid-id" data-lean>{{ checks.photoid.requirements[0] }}</code>
                   <va-marker key="photoid" [requirements]="checks.photoid.requirements" />
                 </div>
@@ -126,26 +128,33 @@ export class CheckIn {
 
   protected readonly photoid = computed(() => credentialOf(this.trip.scenario(), 'photoid'));
   protected readonly pass = computed(() => credentialOf(this.trip.scenario(), 'boardingPass'));
-  protected readonly results = computed(() => runChecks(this.trip.scenario(), this.trip.settings()));
-  private readonly result = (key: string) => this.results().find((r) => r.key === key);
+  protected readonly checksFor = computed(() => viewChecks(this.trip.scenario(), this.trip.decisions()));
+  private readonly check = (key: string) => this.checksFor().find((c) => c.result.key === key);
 
   /** The website has the wallet's answer once the holder has shared, and stays past that. */
   protected readonly done = computed(() => ['shared', 'passAdded', 'presented'].includes(this.trip.step()) && !!this.photoid());
   protected readonly added = computed(() => ['passAdded', 'presented'].includes(this.trip.step()));
-  protected readonly photoidPassed = computed(() => this.result('photoid')?.passed ?? false);
+  protected readonly photoidLine = computed(() => {
+    const state = this.check('photoid')?.state;
+    return state === 'depends' ? this.lean.decision.needs : state === 'passed' ? this.w.photoidOk : this.w.photoidFailed;
+  });
   protected readonly fromPassport = computed(() => this.trip.scenario().sourceDocument?.kind === 'passport');
-  private readonly issueFailure = computed(() => firstFailure(this.results().filter((r) => ['photoid', 'source', 'passValidity'].includes(r.key))));
-  protected readonly accepted = computed(() => !this.issueFailure());
+  private readonly issueChecks = computed(() => this.checksFor().filter((c) => ['photoid', 'source', 'passValidity'].includes(c.result.key)));
+  private readonly issueFailure = computed(() => this.issueChecks().find((c) => c.state === 'failed'));
+  private readonly issueDepends = computed(() => this.issueChecks().some((c) => c.state === 'depends'));
+  protected readonly accepted = computed(() => !this.issueFailure() && !this.issueDepends());
 
   protected readonly title = computed(() => {
     if (!this.done()) return this.w.title;
-    if (!this.accepted()) return this.w.refusedTitle;
+    if (this.issueFailure()) return this.w.refusedTitle;
+    if (this.issueDepends()) return this.lean.decision.checkInTitle;
     return fill(this.w.doneTitle, { name: titleCase(photoidNames(this.photoid()!).given ?? '') });
   });
   protected readonly lede = computed(() => {
     if (!this.done()) return this.w.lede;
     const failure = this.issueFailure();
-    return failure ? fill(this.w.refusedLede, { reason: (this.t.reasons as Record<string, string>)[failure.key] }) : this.w.doneLede;
+    if (failure) return fill(this.w.refusedLede, { reason: (this.t.reasons as Record<string, string>)[failure.result.key] });
+    return this.issueDepends() ? this.lean.decision.checkInLede : this.w.doneLede;
   });
 
   protected readonly departure = computed(() => {
@@ -169,7 +178,7 @@ export class CheckIn {
   protected readonly validUntil = computed(() => formatInstant(this.pass()!.validUntil));
   protected readonly fromDocType = computed(() => fill(this.lean.checkIn.fromDocType, { docType: this.photoid()?.docType ?? '' }));
   protected readonly advisoriesLine = computed(() => {
-    const answer = this.result('advisories')?.answer;
+    const answer = this.check('advisories')?.result.answer;
     return fill(this.lean.checkIn.advisories, { count: Array.isArray(answer) ? answer.length : 0 });
   });
 
