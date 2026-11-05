@@ -1,0 +1,347 @@
+{"standIns":
+ {"tables":
+  {"value":
+   {"photoid":
+    {"entries":
+     [{"presence": "mandatory",
+       "identifier": "example_document_number",
+       "encoding": "text"},
+      {"presence": "optional",
+       "identifier": "enrolment_portrait_image",
+       "encoding": "bytes"}]},
+    "dataGroups":
+    {"entries":
+     [{"presence": "optional", "identifier": "dg1", "encoding": "bytes"},
+      {"presence": "optional", "identifier": "dg2", "encoding": "bytes"},
+      {"presence": "mandatory", "identifier": "sod", "encoding": "bytes"}]},
+    "base":
+    {"entries":
+     [{"presence": "mandatory",
+       "identifier": "family_name",
+       "encoding": "text"},
+      {"presence": "mandatory", "identifier": "given_name", "encoding": "text"},
+      {"presence": "optional", "identifier": "portrait", "encoding": "bytes"},
+      {"presence": "optional",
+       "identifier": "age_over_18",
+       "encoding": "flag"}]}},
+   "lean": "Rules.OneId.exampleTables"},
+  "resolution792":
+  {"lean": "Rules.OneId.exampleResolution792",
+   "format": "exampleResolution792"},
+  "invented": true},
+ "scenarios":
+ [{"title":
+   "Alice Martin checks in with her photoid and her own boarding pass before a 10:00 UTC departure",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1924992000},
+   "journey":
+   {"scheduledDeparture": 1803895200,
+    "completed": 1803902400,
+    "actualDeparture": 1803895200},
+   "id": "default-trip",
+   "example": null,
+   "default": true,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "MARTIN"}, "identifier": "family_name"},
+         {"value": {"text": "ALICE"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"},
+    {"role": "boardingPass",
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:MARTIN/ALICE"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803889800},
+  {"title":
+   "José María García's passport name has accents and his boarding pass name does not",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1924992000},
+   "journey":
+   {"scheduledDeparture": 1803895200,
+    "completed": 1803902400,
+    "actualDeparture": 1803895200},
+   "id": "accented-name",
+   "example": "Rules.OneId.ownBoardingPassRefused",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "GARCÍA"}, "identifier": "family_name"},
+         {"value": {"text": "JOSÉ MARÍA"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"},
+    {"role": "boardingPass",
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:GARCIA/JOSEMARIA"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803889800},
+  {"title":
+   "One John Smith's photoid is presented with another John Smith's boarding pass",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1924992000},
+   "journey":
+   {"scheduledDeparture": 1803895200,
+    "completed": 1803902400,
+    "actualDeparture": 1803895200},
+   "id": "two-john-smiths",
+   "example": "Rules.OneId.twoTravelersWithOneName",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"},
+    {"role": "boardingPass",
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "about": "traveler 2"}],
+   "checkedAt": 1803889800},
+  {"title":
+   "Alice Martin's photoid is presented with Bruno Keller's boarding pass",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1924992000},
+   "journey":
+   {"scheduledDeparture": 1803895200,
+    "completed": 1803902400,
+    "actualDeparture": 1803895200},
+   "id": "another-travelers-pass",
+   "example": "Rules.OneId.anotherTravelersBoardingPass",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "MARTIN"}, "identifier": "family_name"},
+         {"value": {"text": "ALICE"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"},
+    {"role": "boardingPass",
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:KELLER/BRUNO"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "about": "traveler 2"}],
+   "checkedAt": 1803889800},
+  {"title":
+   "The flight leaves three hours late and the boarding pass ends an hour after the scheduled departure",
+   "standIns": true,
+   "sourceDocument": null,
+   "journey":
+   {"scheduledDeparture": 1803895200,
+    "completed": 1803913200,
+    "actualDeparture": 1803906000},
+   "id": "delayed-flight",
+   "example": "Rules.OneId.expiredBeforeADelayedDeparture",
+   "default": false,
+   "credentials":
+   [{"role": "boardingPass",
+     "mdoc":
+     {"validUntil": 1803898800,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803904200},
+  {"title":
+   "The boarding pass is read at the exact instant its validity ends, the scheduled departure",
+   "standIns": true,
+   "sourceDocument": null,
+   "journey":
+   {"scheduledDeparture": 1803895200,
+    "completed": 1803902400,
+    "actualDeparture": 1803895200},
+   "id": "end-of-validity",
+   "example": "Rules.OneId.atTheEndOfValidity",
+   "default": false,
+   "credentials":
+   [{"role": "boardingPass",
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803895200},
+  {"title":
+   "The boarding pass is still valid two hours after the flight has landed",
+   "standIns": true,
+   "sourceDocument": null,
+   "journey":
+   {"scheduledDeparture": 1803895200,
+    "completed": 1803902400,
+    "actualDeparture": 1803895200},
+   "id": "valid-after-journey",
+   "example": "Rules.OneId.validAfterTheJourney",
+   "default": false,
+   "credentials":
+   [{"role": "boardingPass",
+     "mdoc":
+     {"validUntil": 1803981600,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803909600},
+  {"title": "The photoid has a family name and a given name and no face image",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1924992000},
+   "journey": null,
+   "id": "no-portrait",
+   "example": "Rules.OneId.photoidWithoutPortrait",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803889800},
+  {"title": "The photoid was derived from a national identity card",
+   "standIns": true,
+   "sourceDocument": {"kind": "other", "expires": 1924992000},
+   "journey": null,
+   "id": "identity-card",
+   "example": "Rules.OneId.photoidFromAnIdentityCard",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803889800},
+  {"title":
+   "The photoid is checked two weeks after the passport it came from has expired",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1814313600},
+   "journey": null,
+   "id": "outlives-passport",
+   "example": "Rules.OneId.photoidOutlivesItsPassport",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1815642000},
+  {"title":
+   "The boarding pass carries the seat in a second namespace the guide does not list",
+   "standIns": true,
+   "sourceDocument": null,
+   "journey":
+   {"scheduledDeparture": 1803895200,
+    "completed": 1803902400,
+    "actualDeparture": 1803895200},
+   "id": "extra-namespace",
+   "example": "Rules.OneId.boardingPassWithExtraNameSpace",
+   "default": false,
+   "credentials":
+   [{"role": "boardingPass",
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]},
+       {"name": "org.example.boardingpass.fields.1",
+        "elements": [{"value": {"text": "12A"}, "identifier": "seat"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803889800},
+  {"title":
+   "The boarding pass holds two boarding pass strings, for John Smith and for Mary Jones",
+   "standIns": true,
+   "sourceDocument": null,
+   "journey":
+   {"scheduledDeparture": 1803895200,
+    "completed": 1803902400,
+    "actualDeparture": 1803895200},
+   "id": "two-strings",
+   "example": "Rules.OneId.twoBoardingPassStrings",
+   "default": false,
+   "credentials":
+   [{"role": "boardingPass",
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"}, "identifier": "bcbp_string"},
+         {"value": {"text": "EXAMPLE:JONES/MARY"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803889800}],
+ "generatedBy": "lake exe oneid-facts"}

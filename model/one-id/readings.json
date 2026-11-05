@@ -1,0 +1,273 @@
+{"readings":
+ [{"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.photoid_has_portrait",
+     "question":
+     "Is the portrait mandatory in a One ID photoid, whatever Table C.1 says?",
+     "examples": ["Rules.OneId.photoidWithoutPortrait"],
+     "criteria": ["OID-101.5"]}],
+   "lean": "Rules.OneId.PhotoidReading.portraitRequired",
+   "label": "Whether the guide itself makes the portrait mandatory.",
+   "id": "PhotoidReading.portraitRequired",
+   "description":
+   "Whether the guide itself makes the portrait mandatory. It says the portrait MUST hold the passport's image and that the business requirements need it, and it also refers the presence of every base element to Table C.1.",
+   "criteria": ["OID-101.5"],
+   "checks": ["Photoid.violations"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.photoid_only_listed",
+     "question":
+     "May a One ID photoid carry a namespace or a data element the guide and its tables do not list?",
+     "examples": ["Rules.OneId.photoidWithUnlistedData"],
+     "criteria": ["OID-101.6"]}],
+   "lean": "Rules.OneId.PhotoidReading.unlistedDataAllowed",
+   "label":
+   "Whether a photoid may carry a namespace other than the three the guide lists, or a data element its table does not list.",
+   "id": "PhotoidReading.unlistedDataAllowed",
+   "description":
+   "Whether a photoid may carry a namespace other than the three the guide lists, or a data element its table does not list. The guide lists three namespaces and does not say the lists are closed.",
+   "criteria": ["OID-101.6"],
+   "checks": ["Photoid.violations"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.portrait_is_dg2",
+     "question":
+     "When a photoid carries data group 2, must the portrait be that image, and must a relying party check it?",
+     "examples": ["Rules.OneId.portraitDiffersFromDataGroup"],
+     "criteria": ["OID-101.7"]}],
+   "lean": "Rules.OneId.PhotoidReading.portraitIsDg2",
+   "label":
+   "Whether the portrait must be the same bytes as data group 2 when the photoid carries both.",
+   "id": "PhotoidReading.portraitIsDg2",
+   "description":
+   "Whether the portrait must be the same bytes as data group 2 when the photoid carries both. The guide says the portrait MUST hold \"the dg2 or equivalent image data\" and does not say what equivalent means. A reading in which the portrait is the image inside the data group cannot be stated without ICAO Doc 9303, so it is not among the readings here.",
+   "criteria": ["OID-101.7"],
+   "checks": ["Photoid.violations"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.photoid_nameSpace_complete",
+     "question":
+     "Once the photoid namespace is present, are the data elements Table C.2 marks mandatory required?",
+     "examples": ["Rules.OneId.photoidNameSpaceIncomplete"],
+     "criteria": ["OID-101.8"]}],
+   "lean": "Rules.OneId.PhotoidReading.photoidTableBinds",
+   "label":
+   "Whether the photoid namespace, once present, must hold every data element Table C.2 marks mandatory.",
+   "id": "PhotoidReading.photoidTableBinds",
+   "description":
+   "Whether the photoid namespace, once present, must hold every data element Table C.2 marks mandatory. The guide recommends \"this namespace and data elements presence\" in one sentence, which can be read either way.",
+   "criteria": ["OID-101.8"],
+   "checks": ["Photoid.violations"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.dataGroups_nameSpace_complete",
+     "question":
+     "Once the data groups namespace is present, are the data elements Table C.3 marks mandatory required?",
+     "examples": ["Rules.OneId.dataGroupsNameSpaceIncomplete"],
+     "criteria": ["OID-101.9"]}],
+   "lean": "Rules.OneId.PhotoidReading.dataGroupsTableBinds",
+   "label":
+   "Whether the data groups namespace, once present, must hold every data element Table C.3 marks mandatory.",
+   "id": "PhotoidReading.dataGroupsTableBinds",
+   "description":
+   "Whether the data groups namespace, once present, must hold every data element Table C.3 marks mandatory. The guide's sentence has the same form.",
+   "criteria": ["OID-101.9"],
+   "checks": ["Photoid.violations"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.photoid_names_unique",
+     "question": "Is a credential in which a name repeats rejected?",
+     "examples": ["Rules.OneId.repeatedIdentifier"],
+     "criteria": ["OID-106.3"]}],
+   "lean": "Rules.OneId.PhotoidReading.repeatedNamesRefused",
+   "label":
+   "Whether a photoid in which a namespace name or a data element identifier repeats is rejected.",
+   "id": "PhotoidReading.repeatedNamesRefused",
+   "description":
+   "Whether a photoid in which a namespace name or a data element identifier repeats is rejected. The guide does not say names are unique. Where a repeat is allowed, every copy of a name is checked, and a data element counts as present when a request for it returns a value.",
+   "criteria": ["OID-106.3"],
+   "checks": ["Photoid.violations"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.photoid_from_passport",
+     "question":
+     "May a One ID photoid be derived from a document other than a passport?",
+     "examples": ["Rules.OneId.photoidFromAnIdentityCard"],
+     "criteria": ["OID-109.1"]}],
+   "lean": "Rules.OneId.PhotoidReading.passportRequired",
+   "label": "Whether a photoid must be derived from a passport.",
+   "id": "PhotoidReading.passportRequired",
+   "description":
+   "Whether a photoid must be derived from a passport. The terminology allows an equivalent identity document (§2); §4.1.1 says the values should always come from the passport and that the portrait MUST hold image data sourced from the passport.",
+   "criteria": ["OID-109.1"],
+   "checks": ["Photoid.sourceFindings"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.boardingPass_only_listed",
+     "question":
+     "May a boarding pass credential carry a namespace or a data element the guide does not list?",
+     "examples": ["Rules.OneId.boardingPassWithExtraNameSpace"],
+     "criteria": ["OID-103.6"]}],
+   "lean": "Rules.OneId.BoardingPassReading.unlistedDataAllowed",
+   "label":
+   "Whether a boarding pass may carry a namespace or a data element the guide does not list.",
+   "id": "BoardingPassReading.unlistedDataAllowed",
+   "description":
+   "Whether a boarding pass may carry a namespace or a data element the guide does not list. The guide lists one namespace with one data element, and says a later version may add a namespace (§4.1.2, implementation consideration 3). It does not say whether one is allowed today.",
+   "criteria": ["OID-103.6"],
+   "checks": ["BoardingPass.violations"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.boardingPass_names_unique",
+     "question": "Is a credential in which a name repeats rejected?",
+     "examples": ["Rules.OneId.twoBoardingPassStrings"],
+     "criteria": ["OID-106.3"]}],
+   "lean": "Rules.OneId.BoardingPassReading.repeatedNamesRefused",
+   "label":
+   "Whether a boarding pass in which a namespace name or a data element identifier repeats is rejected.",
+   "id": "BoardingPassReading.repeatedNamesRefused",
+   "description":
+   "Whether a boarding pass in which a namespace name or a data element identifier repeats is rejected. The guide does not say names are unique. Where a repeat is allowed, every copy of a name is checked.",
+   "criteria": ["OID-106.3"],
+   "checks": ["BoardingPass.violations"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.valid_at_validUntil",
+     "question":
+     "Is a credential still valid at the exact instant its validity ends?",
+     "examples": ["Rules.OneId.atTheEndOfValidity"],
+     "criteria": ["OID-105.4"]}],
+   "lean": "Rules.OneId.ExpiryReading.validAtEnd",
+   "label":
+   "Whether a credential is still valid at the exact instant its validity ends.",
+   "id": "ExpiryReading.validAtEnd",
+   "description":
+   "Whether a credential is still valid at the exact instant its validity ends.",
+   "criteria": ["OID-105.4"],
+   "checks": ["expired"],
+   "asWritten": null},
+  {"settings":
+   [{"value": "scheduled",
+     "lean": "Rules.OneId.DepartureReading.scheduled",
+     "label": "The scheduled departure, the one an issuer knows when it signs.",
+     "description":
+     "The scheduled departure, the one an issuer knows when it signs."},
+    {"value": "actual",
+     "lean": "Rules.OneId.DepartureReading.actual",
+     "label":
+     "The actual departure, which an issuer can follow only by signing the boarding pass again when the time changes.",
+     "description":
+     "The actual departure, which an issuer can follow only by signing the boarding pass again when the time changes."}],
+   "questions":
+   [{"theorem": "Rules.OneId.valid_until_actual_departure",
+     "question":
+     "Which departure is meant, and what happens to a boarding pass credential when its flight is delayed past the end of its validity?",
+     "examples": ["Rules.OneId.expiredBeforeADelayedDeparture"],
+     "criteria": ["OID-104.5"]}],
+   "lean": "Rules.OneId.ValidityReading.departure",
+   "label": "Which departure the end of validity is measured from.",
+   "id": "ValidityReading.departure",
+   "description":
+   "Which departure the end of validity is measured from. Which departure the guide means by the departure of the last leg. It does not say, and the two differ when a flight is delayed or leaves early.",
+   "criteria": ["OID-104.5"],
+   "checks": ["BoardingPass.validityFindings"],
+   "asWritten": null},
+  {"settings":
+   [{"value": 0, "label": "0 seconds"},
+    {"value": 3600, "label": "1 hour"},
+    {"value": 86400, "label": "1 day"}],
+   "questions":
+   [{"theorem": "Rules.OneId.expired_once_journey_completed",
+     "question":
+     "How long after the last departure may the validity of a boarding pass run?",
+     "examples": ["Rules.OneId.validAfterTheJourney"],
+     "criteria": ["OID-104.4"]}],
+   "lean": "Rules.OneId.ValidityReading.soonAfter",
+   "label":
+   "How many seconds after that departure still count as \"soon after\".",
+   "id": "ValidityReading.soonAfter",
+   "description":
+   "How many seconds after that departure still count as \"soon after\". The guide gives no limit.",
+   "criteria": ["OID-104.4"],
+   "checks": ["BoardingPass.validityFindings"],
+   "asWritten": null},
+  {"settings":
+   [{"value": "notChecked",
+     "lean": "Rules.OneId.MatchReading.notChecked",
+     "label": "Nothing is checked: any photoid goes with any boarding pass.",
+     "description":
+     "Nothing is checked: any photoid goes with any boarding pass. This is the guide as written."},
+    {"value": "namesAgree",
+     "lean": "Rules.OneId.MatchReading.namesAgree",
+     "label":
+     "The names agree: the family name and given name of the photoid equal the passenger name the boarding pass string carries.",
+     "description":
+     "The names agree: the family name and given name of the photoid equal the passenger name the boarding pass string carries."}],
+   "questions":
+   [{"theorem": "Rules.OneId.matched_pair_same_traveler",
+     "question":
+     "What ties a photoid and a boarding pass to one traveler: a rule for issuers, the device key, or something else, and what must a relying party check?",
+     "examples":
+     ["Rules.OneId.anotherTravelersBoardingPass",
+      "Rules.OneId.twoTravelersWithOneName"],
+     "criteria": ["OID-107.1"]},
+    {"theorem": "Rules.OneId.same_traveler_matches",
+     "question":
+     "If names are compared, how are a passport name and a boarding pass name brought to the same form?",
+     "examples": ["Rules.OneId.ownBoardingPassRefused"],
+     "criteria": ["OID-107.2"]}],
+   "lean": "Rules.OneId.MatchReading",
+   "label":
+   "What a relying party checks before it treats a photoid and a boarding pass as being about the same traveler.",
+   "id": "MatchReading",
+   "description":
+   "What a relying party checks before it treats a photoid and a boarding pass as being about the same traveler. The guide states no rule, so the model keeps readings. The two here use only the content of the two credentials, and they are not the only ones: a check of the device key, a link the issuer asserts, names brought to a common form, or a name with a date of birth are others, to be added as the rules they need are modelled.",
+   "criteria": ["OID-107.1", "OID-107.2"],
+   "checks": ["travelerMatch"],
+   "asWritten": "notChecked"},
+  {"settings":
+   [{"value": "unbounded",
+     "lean": "Rules.OneId.PhotoidValidityReading.unbounded",
+     "label": "The issuer may set any end of validity.",
+     "description": "The issuer may set any end of validity."},
+    {"value": "endsWithDocument",
+     "lean": "Rules.OneId.PhotoidValidityReading.endsWithDocument",
+     "label":
+     "The validity of the photoid ends no later than the document expires.",
+     "description":
+     "The validity of the photoid ends no later than the document expires."}],
+   "questions":
+   [{"theorem": "Rules.OneId.photoid_expires_with_document",
+     "question":
+     "Must the validity of a photoid end no later than the expiry of the passport it was derived from?",
+     "examples": ["Rules.OneId.photoidOutlivesItsPassport"],
+     "criteria": ["OID-108.1"]}],
+   "lean": "Rules.OneId.PhotoidValidityReading",
+   "label":
+   "How the validity of a photoid relates to the expiry of the document it was derived from.",
+   "id": "PhotoidValidityReading",
+   "description":
+   "How the validity of a photoid relates to the expiry of the document it was derived from. The guide gives no rule. These two readings are not the only ones: a fixed longest period is a third, which the model cannot state because the guide names no start of validity.",
+   "criteria": ["OID-108.1"],
+   "checks": ["Photoid.validityFindings"],
+   "asWritten": null}],
+ "generatedBy": "lake exe oneid-facts"}

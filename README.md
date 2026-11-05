@@ -89,11 +89,12 @@ site's content security policy and fails on any console error.
 | --- | --- |
 | `content/*.md` | The wording of each page; the docstring of `scripts/render_airline.py` describes the format |
 | `assets/` | The stylesheet, shared by the static pages and the app, and the static pages' script |
-| `model/` | `facts.json` and `model.json` from verified-air, committed |
+| `model/` | `facts.json` and `model.json` from verified-air, committed; `model/one-id/` from verified-id |
 | `web/` | The Angular app: the header and footer, the page component that shows the renderer's pages, the browser check |
 | `infra/` | The `VerifiedAirline` CDK stack (Python): the site at air.dengler.io and its publish role |
 | `scripts/render_airline.py` | The pages and their checks, written to `build/`, and with `--content` for the app |
-| `scripts/update-model.sh` | Copies new model files into `model/` |
+| `scripts/update-model.sh` | Copies new model files into `model/`, and with `--one-id` into `model/one-id/` |
+| `scripts/check_one_id.py` | Checks the One ID screens against a build of the One ID model |
 | `scripts/preview.sh` | Renders the static pages and serves them at <http://localhost:8001> |
 | `scripts/deploy.sh` | Builds the app, deploys the stack and publishes the site |
 | `scripts/publish-site.sh` | Uploads the app's build and invalidates CloudFront; CI runs it on a push to `main` |
@@ -115,6 +116,8 @@ npm --prefix web run build && npm --prefix web run check    # the build, checked
 (cd infra && uv run --dev pytest -q)                        # the stack's tests
 scripts/update-model.sh                                     # the newest model from verified-air's site
 scripts/update-model.sh ../verified-air/build/airline-data  # or from a local build of verified-air
+scripts/update-model.sh --one-id                            # the One ID model, from ../verified-id/build/one-id-data
+python3 scripts/check_one_id.py                             # the One ID checks, with the vectors
 ```
 
 ## Hosting
@@ -211,6 +214,59 @@ The withheld, verified and not-checked states follow the bar the design doc
 proposes for review. A draft the check contradicts is withheld, and the reply
 says what the fares say instead. A draft is shown as verified only when every
 finding is VALID with a rule and nothing in it went untranslated.
+
+## One ID
+
+The check-in, wallet and gate screens are built on a second model:
+verified-id, IATA's One ID Technical Implementation Guide in Lean. Its design is
+the Claude Doc "One ID on Verified Airline: implementation plan". This work stays
+on the local branch `one-id`. It is not pushed or published, because verified-id
+is private and the question of what may be published from the guide is open.
+
+`scripts/update-model.sh --one-id` copies four files from a local build,
+`../verified-id/build/one-id-data/`, into `model/one-id/`:
+
+- `model.json`: every requirement with its criteria and their statuses, the open
+  questions, and the identifiers of document types, namespaces and data elements.
+- `scenarios.json`: the specimen travelers, one of them the default trip.
+- `readings.json`: every point the guide leaves undecided, with its settings.
+- `decisions.jsonl`: the model's answer for each scenario, check and setting.
+
+### The checks in TypeScript
+
+`web/src/app/one-id/rules/` holds one file per check, in the order of the plan's
+table. Each mirrors a Lean function, takes its reading as a parameter, and names
+its requirement and Lean function in a comment. `support/answer.ts` puts them
+behind the oracle's request format, so a line of `decisions.jsonl` runs through
+them as it stands.
+
+| Check | Runs in | Fails when |
+| --- | --- | --- |
+| `rules/conformance.spec.ts` | `npm test` | Any line of `decisions.jsonl` gets a different answer from the TypeScript |
+| `rules/properties.spec.ts` | `npm test` | A proven theorem, restated with fast-check and tagged with its criterion, fails on a generated input, or a proven criterion of OID-101 to OID-109 has no property |
+| `rules/traceability.spec.ts` | `npm test` | A check names no requirement, one the model lacks, or another Lean name for it; or the reading points differ from `readings.json` |
+| `scripts/check_one_id.py` | `npm run content`, `scripts/update-model.sh --one-id`, verified-id's `scripts/check-airline.sh` | The same comments and reading points, and with `--model` the vectors of any build through `web/scripts/one-id-vectors.mjs` |
+
+A pass of the vectors means the TypeScript is right on those cases. A pass of the
+properties means it held on every input tried. Neither is a proof; the proofs are
+about the Lean model.
+
+The consent sheet's `consent` is the one function outside the model. It is
+ordinary code tagged with the candidate guarantee G-01, which `model.json` does not
+have, and `check_one_id.py` allows no other.
+
+### The seeded error
+
+To confirm the vectors catch a wrong check, on 5 November 2026 the comparison in
+`rules/expired.ts` was changed from "after" to "at or after" under the reading that
+a credential is valid at the end of its validity. `npm test` then failed 3 of 682
+tests, and passed all 682 once the change was reverted:
+
+- The vector `end-of-validity expired boardingPass ExpiryReading.validAtEnd=true`:
+  the model answers false, and the seeded code answered true.
+- The vector `boundary expired boardingPass at the end of validity
+  ExpiryReading.validAtEnd=true`: the same.
+- The property `valid_at_validUntil_of_validAtEnd`.
 
 ## Planned
 

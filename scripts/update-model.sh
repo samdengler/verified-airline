@@ -9,6 +9,13 @@
 #
 #   scripts/update-model.sh                                      # the published site
 #   scripts/update-model.sh ../verified-air/build/airline-data   # a local build
+#   scripts/update-model.sh --one-id                             # the One ID model, from ../verified-id/build/one-id-data
+#   scripts/update-model.sh --one-id DIR                         # the One ID model, from another build
+#
+# The One ID files, model.json, scenarios.json, readings.json and decisions.jsonl,
+# go to model/one-id/.  They come only from a local build: verified-id is
+# private and has no published site.  scripts/check_one_id.py checks the screens
+# against the new files before model/one-id/ changes.
 #
 # The pages are rendered from the new files before model/ changes, so if the
 # wording no longer matches the model, model/ keeps the old files and the
@@ -16,6 +23,18 @@
 # are the version of the model the site shows.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+if [ "${1:-}" = "--one-id" ]; then
+  src="${2:-../verified-id/build/one-id-data}"
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+  for f in model.json scenarios.json readings.json decisions.jsonl; do cp "$src/$f" "$tmp/$f"; done
+  python3 scripts/check_one_id.py --model "$tmp"
+  mkdir -p model/one-id
+  cp "$tmp"/* model/one-id/
+  git status --short -- model/one-id/
+  git diff --stat -- model/one-id/
+  exit 0
+fi
 src="${1:-https://samdengler.github.io/verified-air/airline-data}"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT

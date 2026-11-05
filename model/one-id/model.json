@@ -1,0 +1,730 @@
+{
+ "source": {
+  "repository": null,
+  "commit": "af3dacca938859ed52b637cb5896d28e63e5d481",
+  "site": null
+ },
+ "identifiers": {
+  "nameSpaces": [
+   {
+    "value": "org.iso.23220.1",
+    "name": "baseNameSpace",
+    "lean": "Rules.OneId.baseNameSpace",
+    "description": "The base identity namespace, which holds the attributes of a natural person whatever the document (§4.1.1)."
+   },
+   {
+    "value": "org.iso.23220.photoid.1",
+    "name": "photoidNameSpace",
+    "lean": "Rules.OneId.photoidNameSpace",
+    "description": "The photoid namespace, which holds data of the travel document the photoid was derived from (§4.1.1). Its name is the same string as the document type."
+   },
+   {
+    "value": "org.iso.23220.datagroups.1",
+    "name": "dataGroupsNameSpace",
+    "lean": "Rules.OneId.dataGroupsNameSpace",
+    "description": "The data groups namespace, which holds the raw chip data of the passport (§4.1.1)."
+   },
+   {
+    "value": "org.iata.bcbp.1",
+    "name": "bcbpNameSpace",
+    "lean": "Rules.OneId.bcbpNameSpace",
+    "description": "The namespace that holds the boarding pass string (§4.1.2)."
+   }
+  ],
+  "docTypes": [
+   {
+    "value": "org.iso.23220.photoid.1",
+    "name": "photoidDocType",
+    "lean": "Rules.OneId.photoidDocType",
+    "description": "The document type of a photoid (§4.1.1)."
+   },
+   {
+    "value": "org.iata.boardingpass.1",
+    "name": "boardingPassDocType",
+    "lean": "Rules.OneId.boardingPassDocType",
+    "description": "The document type of a boarding pass (§4.1.2)."
+   }
+  ],
+  "dataElements": [
+   {
+    "value": "family_name",
+    "nameSpace": "org.iso.23220.1",
+    "name": "familyNameId",
+    "lean": "Rules.OneId.familyNameId",
+    "description": "The identifier of the family name in the base identity namespace, as the guide's example requests write it (§4.2.1.3)."
+   },
+   {
+    "value": "given_name",
+    "nameSpace": "org.iso.23220.1",
+    "name": "givenNameId",
+    "lean": "Rules.OneId.givenNameId",
+    "description": "The identifier of the given name in the base identity namespace, as the guide's example requests write it (§4.2.1.3)."
+   },
+   {
+    "value": "portrait",
+    "nameSpace": "org.iso.23220.1",
+    "name": "portraitId",
+    "lean": "Rules.OneId.portraitId",
+    "description": "The identifier of the face image in the base identity namespace."
+   },
+   {
+    "value": "enrolment_portrait_image",
+    "nameSpace": "org.iso.23220.photoid.1",
+    "name": "enrolmentPortraitId",
+    "lean": "Rules.OneId.enrolmentPortraitId",
+    "description": "The identifier of the live face image captured at enrolment, in the photoid namespace."
+   },
+   {
+    "value": "dg2",
+    "nameSpace": "org.iso.23220.datagroups.1",
+    "name": "dg2Id",
+    "lean": "Rules.OneId.dg2Id",
+    "description": "The identifier of data group 2 in the data groups namespace, as the guide writes it."
+   },
+   {
+    "value": "bcbp_string",
+    "nameSpace": "org.iata.bcbp.1",
+    "name": "bcbpStringId",
+    "lean": "Rules.OneId.bcbpStringId",
+    "description": "The identifier of the boarding pass string, the one data element the guide lists for the namespace (§4.1.2)."
+   }
+  ]
+ },
+ "requirements": {
+  "OID-101": {
+   "name": "Rules.OneId.Photoid.violations",
+   "ears": "THE SYSTEM SHALL accept a credential as a photoid only when it meets every requirement the guide places on one.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-101.1",
+     "status": "proven",
+     "ears": "IF the document type of a credential is not the photoid document type THEN THE SYSTEM SHALL reject it as a photoid."
+    },
+    {
+     "id": "OID-101.2",
+     "status": "proven",
+     "ears": "IF a photoid lacks the base identity namespace THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-101.3",
+     "status": "proven",
+     "ears": "IF a photoid lacks a data element that Table C.1 marks mandatory in the base identity namespace THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-101.4",
+     "status": "proven",
+     "ears": "IF a data element of the base identity namespace does not have the encoding Table C.1 gives it THEN THE SYSTEM SHALL reject the photoid."
+    },
+    {
+     "id": "OID-101.5",
+     "status": "open",
+     "ears": "IF a photoid has no portrait THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-101.6",
+     "status": "open",
+     "ears": "IF a photoid carries a namespace other than the three the guide lists, or a data element its table does not list THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-101.7",
+     "status": "open",
+     "ears": "IF a photoid carries a portrait and a data group 2 that differ THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-101.8",
+     "status": "open",
+     "ears": "IF a photoid carries the photoid namespace without a data element that Table C.2 marks mandatory THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-101.9",
+     "status": "open",
+     "ears": "IF a photoid carries the data groups namespace without a data element that Table C.3 marks mandatory THEN THE SYSTEM SHALL reject it."
+    }
+   ]
+  },
+  "OID-102": {
+   "name": "Rules.OneId.Photoid.advisories",
+   "ears": "WHERE a photoid does not follow a recommendation of the guide THE SYSTEM SHALL report the recommendation.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-102.1",
+     "status": "proven",
+     "ears": "WHEN a photoid lacks the photoid namespace or the data groups namespace THE SYSTEM SHALL report each missing namespace as a recommendation it does not follow."
+    },
+    {
+     "id": "OID-102.2",
+     "status": "proven",
+     "ears": "WHEN a photoid carries the photoid namespace without the image captured at enrolment THE SYSTEM SHALL report the missing image as a recommendation it does not follow."
+    },
+    {
+     "id": "OID-102.3",
+     "status": "proven",
+     "ears": "WHEN a photoid was derived from a document other than a passport THE SYSTEM SHALL report that as a recommendation it does not follow."
+    },
+    {
+     "id": "OID-102.4",
+     "status": "proven",
+     "ears": "WHEN a photoid lacks the photoid namespace or the data groups namespace THE SYSTEM SHALL report no broken requirement for the missing namespace."
+    }
+   ]
+  },
+  "OID-103": {
+   "name": "Rules.OneId.BoardingPass.violations",
+   "ears": "THE SYSTEM SHALL accept a credential as a boarding pass only when it meets every requirement the guide places on one.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-103.1",
+     "status": "proven",
+     "ears": "IF the document type of a credential is not the boarding pass document type THEN THE SYSTEM SHALL reject it as a boarding pass."
+    },
+    {
+     "id": "OID-103.2",
+     "status": "proven",
+     "ears": "IF a boarding pass lacks the boarding pass namespace THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-103.3",
+     "status": "proven",
+     "ears": "IF a boarding pass lacks the boarding pass string THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-103.4",
+     "status": "proven",
+     "ears": "IF the boarding pass string is not a text string THEN THE SYSTEM SHALL reject the boarding pass."
+    },
+    {
+     "id": "OID-103.5",
+     "status": "proven",
+     "ears": "IF the boarding pass string does not follow IATA Resolution 792 THEN THE SYSTEM SHALL reject the boarding pass."
+    },
+    {
+     "id": "OID-103.6",
+     "status": "open",
+     "ears": "IF a boarding pass carries a namespace or a data element the guide does not list THEN THE SYSTEM SHALL reject it."
+    }
+   ]
+  },
+  "OID-104": {
+   "name": "Rules.OneId.BoardingPass.validityFindings",
+   "ears": "WHEN an issuer signs a boarding pass THE SYSTEM SHALL accept its validity only if it ends on or soon after the departure of the last leg of the journey.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-104.1",
+     "status": "proven",
+     "ears": "IF the validity of a boarding pass ends before the departure of the last leg of its journey THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-104.2",
+     "status": "proven",
+     "ears": "IF the validity of a boarding pass ends later than soon after the departure of the last leg of its journey THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-104.3",
+     "status": "proven",
+     "ears": "WHILE the current time is before the departure of the last leg of the journey THE SYSTEM SHALL treat the boarding pass as not expired."
+    },
+    {
+     "id": "OID-104.4",
+     "status": "open",
+     "ears": "WHEN the journey is completed THE SYSTEM SHALL treat the boarding pass as expired."
+    },
+    {
+     "id": "OID-104.5",
+     "status": "open",
+     "ears": "WHILE the last leg of the journey has not actually departed THE SYSTEM SHALL treat the boarding pass as not expired."
+    }
+   ]
+  },
+  "OID-105": {
+   "name": "Rules.OneId.expired",
+   "ears": "WHEN the current time is after the end of a credential's validity THE SYSTEM SHALL treat the credential as expired.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-105.1",
+     "status": "proven",
+     "ears": "WHEN the current time is after the end of a credential's validity THE SYSTEM SHALL treat the credential as expired."
+    },
+    {
+     "id": "OID-105.2",
+     "status": "proven",
+     "ears": "WHILE the current time is before the end of a credential's validity THE SYSTEM SHALL treat the credential as not expired."
+    },
+    {
+     "id": "OID-105.3",
+     "status": "proven",
+     "ears": "WHEN a credential has expired THE SYSTEM SHALL treat it as expired at every later time."
+    },
+    {
+     "id": "OID-105.4",
+     "status": "open",
+     "ears": "WHILE the current time is no later than the end of a credential's validity THE SYSTEM SHALL treat the credential as not expired."
+    }
+   ]
+  },
+  "OID-106": {
+   "name": "Rules.OneId.Mdoc.element?",
+   "ears": "THE SYSTEM SHALL identify each data element of a credential by the name of its namespace and its identifier.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-106.1",
+     "status": "proven",
+     "ears": "WHEN the namespace names of a credential and the identifiers within each namespace are unique THE SYSTEM SHALL return the value of each data element for the name of its namespace and its identifier."
+    },
+    {
+     "id": "OID-106.2",
+     "status": "proven",
+     "ears": "IF a credential has no data element with a given namespace name and identifier THEN THE SYSTEM SHALL return no value for them."
+    },
+    {
+     "id": "OID-106.3",
+     "status": "open",
+     "ears": "IF two namespaces of a credential have the same name, or two data elements of one namespace have the same identifier THEN THE SYSTEM SHALL reject the credential."
+    }
+   ]
+  },
+  "OID-107": {
+   "name": "Rules.OneId.travelerMatch",
+   "ears": "WHEN a photoid and a boarding pass are presented together THE SYSTEM SHALL accept the pair only if both are about the same traveler.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-107.1",
+     "status": "open",
+     "ears": "IF a photoid and a boarding pass presented together are about different travelers THEN THE SYSTEM SHALL reject the pair."
+    },
+    {
+     "id": "OID-107.2",
+     "status": "open",
+     "ears": "WHEN a photoid and a boarding pass presented together are about the same traveler THE SYSTEM SHALL accept the pair."
+    }
+   ]
+  },
+  "OID-108": {
+   "name": "Rules.OneId.Photoid.validityFindings",
+   "ears": "WHEN an issuer signs a photoid THE SYSTEM SHALL accept its validity only if it ends no later than the allowed limit for the document it was derived from.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-108.1",
+     "status": "open",
+     "ears": "WHEN the document a photoid was derived from has expired THE SYSTEM SHALL treat the photoid as expired."
+    }
+   ]
+  },
+  "OID-109": {
+   "name": "Rules.OneId.Photoid.sourceFindings",
+   "ears": "WHEN an issuer derives a photoid from an identity document THE SYSTEM SHALL accept the photoid only if the guide allows that kind of document.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-109.1",
+     "status": "open",
+     "ears": "IF a photoid was derived from a document other than a passport THEN THE SYSTEM SHALL reject it."
+    }
+   ]
+  },
+  "OID-201": {
+   "name": "Rules.OneId.Wallet.respond",
+   "ears": "WHEN a wallet answers a request THE SYSTEM SHALL disclose only data elements that the request names and that the holder approved.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-201.1",
+     "status": "proven",
+     "ears": "THE SYSTEM SHALL disclose no data element that the request did not name."
+    },
+    {
+     "id": "OID-201.2",
+     "status": "proven",
+     "ears": "THE SYSTEM SHALL disclose no data element that the holder did not approve."
+    },
+    {
+     "id": "OID-201.3",
+     "status": "proven",
+     "ears": "IF the holder approves nothing THEN THE SYSTEM SHALL present no credential."
+    },
+    {
+     "id": "OID-201.4",
+     "status": "proven",
+     "ears": "THE SYSTEM SHALL sign each credential it presents with that credential's device key, over the session transcript of the request as the wallet received it."
+    },
+    {
+     "id": "OID-201.5",
+     "status": "open",
+     "ears": "IF the holder approves only some of the data elements requested from a credential THEN THE SYSTEM SHALL not present that credential."
+    }
+   ]
+  },
+  "OID-202": {
+   "name": "Rules.OneId.refusals",
+   "ears": "WHEN a relying party receives a response to its request THE SYSTEM SHALL accept the response only if every credential in it comes from a trusted issuer, is authentic, is presented by the device it was issued to, and answers that request.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-202.1",
+     "status": "proven",
+     "ears": "IF the issuer of a presented credential is not on the relying party's list of trusted issuers THEN THE SYSTEM SHALL reject the response."
+    },
+    {
+     "id": "OID-202.2",
+     "status": "proven",
+     "ears": "IF the issuer's signature on a presented credential does not verify THEN THE SYSTEM SHALL reject the response."
+    },
+    {
+     "id": "OID-202.3",
+     "status": "proven",
+     "ears": "IF a presented credential has no device signature made with the device key its issuer signed THEN THE SYSTEM SHALL reject the response."
+    },
+    {
+     "id": "OID-202.4",
+     "status": "open",
+     "ears": "IF a presented credential's device signature was made for another request THEN THE SYSTEM SHALL reject the response."
+    },
+    {
+     "id": "OID-202.5",
+     "status": "open",
+     "ears": "IF the validity of a presented credential has ended THEN THE SYSTEM SHALL reject the response."
+    },
+    {
+     "id": "OID-202.6",
+     "status": "open",
+     "ears": "IF a response holds a data element the request did not name THEN THE SYSTEM SHALL reject the response."
+    }
+   ]
+  },
+  "OID-203": {
+   "name": "Rules.OneId.OpenId4Vp.requestFindings",
+   "ears": "WHEN a relying party makes an OpenID4VP request THE SYSTEM SHALL accept the request only if it carries what the guide requires of one.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-203.1",
+     "status": "proven",
+     "ears": "IF a request's protocol value, response type, response mode or client identifier prefix is not the one the guide names THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-203.2",
+     "status": "proven",
+     "ears": "IF a request is not signed with the key of the certificate its client identifier names THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-203.3",
+     "status": "proven",
+     "ears": "IF a request names no expected origin THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-203.4",
+     "status": "proven",
+     "ears": "IF a request carries no encryption key or no nonce THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-203.5",
+     "status": "proven",
+     "ears": "IF a credential query asks for a format other than mdoc THEN THE SYSTEM SHALL reject the request."
+    },
+    {
+     "id": "OID-203.6",
+     "status": "open",
+     "ears": "IF a request carries no state value THEN THE SYSTEM SHALL reject it."
+    }
+   ]
+  },
+  "OID-204": {
+   "name": "Rules.OneId.OpenId4Vp.walletFindings",
+   "ears": "WHEN a wallet receives an OpenID4VP request THE SYSTEM SHALL answer it only if the request is well formed, comes from an origin it names, and is signed by a trusted relying party.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-204.1",
+     "status": "proven",
+     "ears": "IF a request comes from an origin that is not among its expected origins THEN THE SYSTEM SHALL refuse it."
+    },
+    {
+     "id": "OID-204.2",
+     "status": "proven",
+     "ears": "IF a request is not signed with the key of the certificate its client identifier names THEN THE SYSTEM SHALL refuse it."
+    },
+    {
+     "id": "OID-204.3",
+     "status": "proven",
+     "ears": "IF the certificate a request's client identifier names is not a trusted relying party's THEN THE SYSTEM SHALL refuse it."
+    }
+   ]
+  },
+  "OID-205": {
+   "name": "Rules.OneId.OpenId4Vp.transcript",
+   "ears": "WHEN a wallet answers an OpenID4VP request over the Digital Credentials API THE SYSTEM SHALL sign its response over the origin of the request, the nonce and the relying party's encryption key.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-205.1",
+     "status": "proven",
+     "ears": "IF a response was signed for a nonce other than the one of this request THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-205.2",
+     "status": "proven",
+     "ears": "IF a response was signed for an origin other than the relying party's THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-205.3",
+     "status": "proven",
+     "ears": "IF a response was signed for an encryption key other than the one of this request THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-205.4",
+     "status": "proven",
+     "ears": "THE SYSTEM SHALL return each mdoc in a device response of its own."
+    }
+   ]
+  },
+  "OID-206": {
+   "name": "Rules.OneId.MdocProfile.requestFindings",
+   "ears": "WHEN a relying party makes a request in the mdoc profile THE SYSTEM SHALL accept the request only if it names the protocol and carries a nonce of at least 16 bytes of entropy and the recipient's public key.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-206.1",
+     "status": "proven",
+     "ears": "IF a request's protocol value or the protocol its encryption information names is not the one the guide requires THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-206.2",
+     "status": "proven",
+     "ears": "IF a request carries no nonce, or a nonce of less than 16 bytes of entropy THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-206.3",
+     "status": "proven",
+     "ears": "IF a request carries no recipient public key THEN THE SYSTEM SHALL reject it."
+    }
+   ]
+  },
+  "OID-207": {
+   "name": "Rules.OneId.pairRefusals",
+   "ears": "WHEN a photoid and a boarding pass are presented together THE SYSTEM SHALL accept the pair only if each is accepted on its own and both are about the same traveler.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-207.1",
+     "status": "open",
+     "ears": "IF a photoid and a boarding pass presented together are about different travelers THEN THE SYSTEM SHALL reject the pair."
+    },
+    {
+     "id": "OID-207.2",
+     "status": "proven",
+     "ears": "IF either credential is refused on its own THEN THE SYSTEM SHALL reject the pair."
+    },
+    {
+     "id": "OID-207.3",
+     "status": "open",
+     "ears": "WHEN a photoid and a boarding pass presented together are about the same traveler and each is accepted on its own THE SYSTEM SHALL accept the pair."
+    }
+   ]
+  },
+  "OID-301": {
+   "name": "Rules.OneId.Proximity.sessionFindings",
+   "ears": "WHILE a reader and a device are in a proximity session THE SYSTEM SHALL use keys made for that session and shall retrieve data from the device only.",
+   "review": null,
+   "criteria": [
+    {
+     "id": "OID-301.1",
+     "status": "proven",
+     "ears": "IF a session retrieves data from a server THEN THE SYSTEM SHALL reject it."
+    },
+    {
+     "id": "OID-301.2",
+     "status": "proven",
+     "ears": "IF a reader's key is used in more than one session THEN THE SYSTEM SHALL reject the sessions."
+    },
+    {
+     "id": "OID-301.3",
+     "status": "proven",
+     "ears": "IF a device's engagement key is used in more than one session THEN THE SYSTEM SHALL reject the sessions."
+    }
+   ]
+  }
+ },
+ "openQuestions": {
+  "OID-101.5": [
+   {
+    "theorem": "Rules.OneId.photoid_has_portrait",
+    "question": "The guide says the portrait MUST hold the image from the passport and that the business requirements need it, and it also refers the presence of every base element to Table C.1 of ISO/IEC TS 23220-4, which this project has not read. …",
+    "example": "Rules.OneId.photoidWithoutPortrait",
+    "review": null
+   }
+  ],
+  "OID-101.6": [
+   {
+    "theorem": "Rules.OneId.photoid_only_listed",
+    "question": "The guide lists three namespaces for a photoid and refers to a table for each, and does not say the lists are closed. …",
+    "example": "Rules.OneId.photoidWithUnlistedData",
+    "review": null
+   }
+  ],
+  "OID-101.7": [
+   {
+    "theorem": "Rules.OneId.portrait_is_dg2",
+    "question": "The guide says the portrait MUST hold \"the dg2 or equivalent image data\" from the passport and does not say what equivalent means or who checks it. …",
+    "example": "Rules.OneId.portraitDiffersFromDataGroup",
+    "review": null
+   }
+  ],
+  "OID-101.8": [
+   {
+    "theorem": "Rules.OneId.photoid_nameSpace_complete",
+    "question": "The guide recommends \"this namespace and data elements presence\" as in Table C.2 in one sentence. …",
+    "example": "Rules.OneId.photoidNameSpaceIncomplete",
+    "review": null
+   }
+  ],
+  "OID-101.9": [
+   {
+    "theorem": "Rules.OneId.dataGroups_nameSpace_complete",
+    "question": "The guide recommends the data groups namespace and \"presence of the data elements\" as in Table C.3 in one sentence, as it does for the photoid namespace. …",
+    "example": "Rules.OneId.dataGroupsNameSpaceIncomplete",
+    "review": null
+   }
+  ],
+  "OID-103.6": [
+   {
+    "theorem": "Rules.OneId.boardingPass_only_listed",
+    "question": "The guide lists one namespace with one data element and says a later version may add a namespace for separate data elements. It does not say whether a boarding pass may carry one today. …",
+    "example": "Rules.OneId.boardingPassWithExtraNameSpace",
+    "review": null
+   }
+  ],
+  "OID-104.4": [
+   {
+    "theorem": "Rules.OneId.expired_once_journey_completed",
+    "question": "The guide says the end of validity MUST be \"on or soon after last leg journey departure\" and that this makes the boarding pass expire once the journey is completed. …",
+    "example": "Rules.OneId.validAfterTheJourney",
+    "review": null
+   }
+  ],
+  "OID-104.5": [
+   {
+    "theorem": "Rules.OneId.valid_until_actual_departure",
+    "question": "An issuer knows only the scheduled departure when it signs the boarding pass. …",
+    "example": "Rules.OneId.expiredBeforeADelayedDeparture",
+    "review": null
+   }
+  ],
+  "OID-105.4": [
+   {
+    "theorem": "Rules.OneId.valid_at_validUntil",
+    "question": "The guide says a verifier checks time validity and leaves the check to ISO/IEC 18013-5, which this project has not read. …",
+    "example": "Rules.OneId.atTheEndOfValidity",
+    "review": null
+   }
+  ],
+  "OID-106.3": [
+   {
+    "theorem": "Rules.OneId.boardingPass_names_unique",
+    "question": "The guide does not say that namespace names and data element identifiers are unique. If they may repeat, a boarding pass with two boarding pass strings is accepted, and a relying party receives one of them. …",
+    "example": "Rules.OneId.twoBoardingPassStrings",
+    "review": null
+   },
+   {
+    "theorem": "Rules.OneId.photoid_names_unique",
+    "question": "The guide leaves the structure of an mdoc to ISO/IEC 18013-5 and does not say that namespace names and data element identifiers are unique. …",
+    "example": "Rules.OneId.repeatedIdentifier",
+    "review": null
+   }
+  ],
+  "OID-107.1": [
+   {
+    "theorem": "Rules.OneId.matched_pair_same_traveler",
+    "question": "The guide requires a boarding pass together with the face image of a photoid at a contactless touchpoint and assumes the holder of the wallet is a passenger. …",
+    "example": "Rules.OneId.anotherTravelersBoardingPass",
+    "review": null
+   }
+  ],
+  "OID-107.2": [
+   {
+    "theorem": "Rules.OneId.same_traveler_matches",
+    "question": "If names are compared, the name in a photoid comes from the passport and the name in a boarding pass string follows Resolution 792, and the guide does not say how to compare the two. …",
+    "example": "Rules.OneId.ownBoardingPassRefused",
+    "review": null
+   }
+  ],
+  "OID-108.1": [
+   {
+    "theorem": "Rules.OneId.photoid_expires_with_document",
+    "question": "The guide sets the validity of a boarding pass and says nothing about the validity of a photoid, and it puts revocation out of scope. …",
+    "example": "Rules.OneId.photoidOutlivesItsPassport",
+    "review": null
+   }
+  ],
+  "OID-109.1": [
+   {
+    "theorem": "Rules.OneId.photoid_from_passport",
+    "question": "The terminology says a photoid can be derived from a passport or an equivalent identity document. §4.1.1 says the values should always come from the passport, and that the portrait MUST hold image data sourced from the passport. …",
+    "example": "Rules.OneId.photoidFromAnIdentityCard",
+    "review": null
+   }
+  ],
+  "OID-201.5": [
+   {
+    "theorem": "Rules.OneId.partial_consent_withholds_credential",
+    "question": "The guide requires informed consent and says the wallet must show what is shared with whom. It does not say what happens when a holder agrees to a part. …",
+    "example": "Rules.OneId.partialConsent",
+    "review": null
+   }
+  ],
+  "OID-202.4": [
+   {
+    "theorem": "Rules.OneId.accepted_answers_this_request",
+    "question": "The OpenID4VP profile requires the relying party to rebuild the session transcript and validate the nonce. …",
+    "example": "Rules.OneId.replayedResponse",
+    "review": null
+   }
+  ],
+  "OID-202.5": [
+   {
+    "theorem": "Rules.OneId.accepted_not_expired",
+    "question": "The mdoc profile cites ISO/IEC 18013-5 §9.3.1 for issuer data authentication and says it covers time validity. …",
+    "example": "Rules.OneId.expiredBoardingPassAccepted",
+    "review": null
+   }
+  ],
+  "OID-202.6": [
+   {
+    "theorem": "Rules.OneId.accepted_holds_only_requested",
+    "question": "OpenID4VP forbids a wallet to send a claim the query did not select (§6.4) and tells a verifier not to rely on the wallet for it (§14.9), without saying that a response with more is refused. …",
+    "example": "Rules.OneId.extraElementAccepted",
+    "review": null
+   }
+  ],
+  "OID-203.6": [
+   {
+    "theorem": "Rules.OneId.OpenId4Vp.accepted_request_has_state",
+    "question": "The guide says the nonce and state must be set as OpenID4VP §5.2 says. …",
+    "example": "Rules.OneId.requestWithoutState",
+    "review": null
+   }
+  ],
+  "OID-207.1": [
+   {
+    "theorem": "Rules.OneId.accepted_pair_same_traveler",
+    "question": "A presentation gives a relying party one more thing to compare than the content of the two credentials: the device key each was issued to. …",
+    "example": "Rules.OneId.twoTravelersOneDevice",
+    "review": null
+   }
+  ],
+  "OID-207.3": [
+   {
+    "theorem": "Rules.OneId.same_traveler_pair_accepted",
+    "question": "If the device key is what ties the two credentials together, a traveler must hold both in one wallet on one device, and both issuers must issue to the same key. …",
+    "example": "Rules.OneId.twoDevicesOneTraveler",
+    "review": null
+   }
+  ]
+ }
+}

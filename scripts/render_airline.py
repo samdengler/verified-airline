@@ -42,6 +42,12 @@ each page's band and body, with links from the site's root, checked like the
 pages.  verified-air's CI runs this script with --model pointing at a fresh
 build of the model, so a proof that settles a question these pages call still
 being decided stops that build too.  It needs only Python's standard library.
+
+The check-in, wallet and gate screens are Angular components with their wording
+in content/one-id.json, which this script checks against the One ID model's
+files in --one-id (model/one-id by default).  It skips them when either is
+missing, so verified-air's model alone is enough to run it.  check_one_id.py
+runs the same check with the screens' other checks.
 """
 
 import argparse
@@ -58,6 +64,7 @@ CONTENT = ROOT / "content"
 ASSETS = ROOT / "assets"
 MODEL = ROOT / "model"
 OUT = ROOT / "build"
+ONE_ID = MODEL / "one-id"
 
 AIRLINE = "Verified Airline"
 FOOTER = ("Verified Airline is a fictional airline. Fares and fees are invented and computed from the Lean model. "
@@ -89,7 +96,7 @@ SUN_SVG = ('<svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><g fill="non
 
 # The words a traveler never reads, and requirement IDs.  Both may appear only
 # in the parts of a page shown with the Lean model.
-BANNED = re.compile(r"\b(rules?|theorems?|criterion|criteria)\b|\b(?:ONE|OO)-\d{3}(?:\.\d+)?\b", re.I)
+BANNED = re.compile(r"\b(rules?|theorems?|criterion|criteria)\b|\b(?:ONE|OO|OID)-\d{3}(?:\.\d+)?\b|\bG-\d{2}\b", re.I)
 TYPED_AMOUNT = re.compile(r"[$€£]\s*\d|\b\d+(?:[.,]\d+)?\s*(?:dollars?|cents?|USD|EUR|GBP|euros?)\b", re.I)
 PLACEHOLDER = re.compile(r"\{\{\s*([\w.]+)\s*\}\}")
 MARK = re.compile(r"\s*\{(model|open):\s*([^}]*)\}\s*$")
@@ -101,6 +108,39 @@ STATUS_WORD = {"proven": "proven", "open": "open", "example": "example only", "n
 esc = html.escape
 
 
+def strings(value, key=""):
+    """Every string in a JSON value, with where it is."""
+    if isinstance(value, str):
+        yield key, value
+    elif isinstance(value, list):
+        for i, v in enumerate(value):
+            yield from strings(v, f"{key}[{i}]")
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            yield from strings(v, f"{key}.{k}" if key else k)
+
+
+def fields(value, key=""):
+    """Every key in a JSON value with its value and where it is."""
+    if isinstance(value, list):
+        for i, v in enumerate(value):
+            yield from fields(v, f"{key}[{i}]")
+    elif isinstance(value, dict):
+        for k, v in value.items():
+            where = f"{key}.{k}" if key else k
+            yield k, v, where
+            yield from fields(v, where)
+
+
+def check_traveler_wording(words, where):
+    """Wording a traveler reads: no word a traveler never reads, no requirement ID, no typed amount."""
+    for key, text in strings(words):
+        if BANNED.search(text):
+            fail(where, f"traveler.{key} uses a word or ID a traveler never reads: {text!r}")
+        if TYPED_AMOUNT.search(text):
+            fail(where, f"traveler.{key} types an amount: {text!r}")
+
+
 def load_chat():
     """The support chat's wording from content/chat.json, if there is one.
     Every string under traveler is checked as the pages are: no word a
@@ -109,22 +149,51 @@ def load_chat():
     if not path.exists():
         return None
     chat = json.loads(path.read_text())
-
-    def strings(value, key):
-        if isinstance(value, str):
-            yield key, value
-        elif isinstance(value, list):
-            for i, v in enumerate(value):
-                yield from strings(v, f"{key}[{i}]")
-        else:
-            for k, v in value.items():
-                yield from strings(v, f"{key}.{k}" if key else k)
-    for key, text in strings(chat["traveler"], ""):
-        if BANNED.search(text):
-            fail("content/chat.json", f"traveler.{key} uses a word or ID a traveler never reads: {text!r}")
-        if TYPED_AMOUNT.search(text):
-            fail("content/chat.json", f"traveler.{key} types an amount: {text!r}")
+    check_traveler_wording(chat["traveler"], "content/chat.json")
     return {"traveler": chat["traveler"], "lean": chat["lean"]}
+
+
+def load_one_id(directory):
+    """The One ID screens' wording from content/one-id.json, checked against
+    the One ID model's files in directory, or None when either is missing.
+
+    Every string under traveler is checked as the pages are.  Under lean, a
+    `requirements` key must name requirements the model has, and an `open` key
+    must name criteria that are still open: wording that calls a point still
+    being decided stops the build once the point is proven.  `element` names an
+    identifier constant of the model.  Wording that calls something a stand-in
+    stops the build once the scenarios no longer use invented stand-ins."""
+    path = CONTENT / "one-id.json"
+    if not path.exists() or not (directory / "model.json").exists():
+        return None
+    where = "content/one-id.json"
+    words = json.loads(path.read_text())
+    model = json.loads((directory / "model.json").read_text())
+    scenarios = json.loads((directory / "scenarios.json").read_text())
+    requirements = model["requirements"]
+    criteria = {c["id"]: c for r in requirements.values() for c in r["criteria"]}
+    elements = {e["name"] for e in model["identifiers"]["dataElements"]}
+    check_traveler_wording(words["traveler"], where)
+    for key, value, at in fields({"traveler": words["traveler"], "lean": words["lean"]}):
+        if key == "requirements":
+            for r in value:
+                if r not in requirements:
+                    fail(where, f"{at} cites {r}, which the model does not have")
+        elif key == "open":
+            for c in value:
+                if c not in criteria:
+                    fail(where, f"{at} cites {c}, which the model does not have")
+                st = criteria[c]["status"]
+                if st != "open":
+                    fail(where, f"{c} is now {STATUS_WORD.get(st, st)}, so {at} no longer holds a point still being "
+                                f"decided; rewrite that wording")
+        elif key == "element" and value not in elements:
+            fail(where, f"{at} names the data element {value}, which the model does not have")
+    if not scenarios["standIns"]["invented"]:
+        for key, text in strings(words["lean"], "lean"):
+            if "stand-in" in text.lower():
+                fail(where, f"{key} calls something a stand-in, and the scenarios no longer use invented stand-ins: {text!r}")
+    return {"traveler": words["traveler"], "lean": words["lean"]}
 
 
 class BuildError(Exception):
@@ -772,6 +841,7 @@ def main():
     ap.add_argument("--model", type=Path, default=MODEL, help="the directory with model.json and facts.json")
     ap.add_argument("--out", type=Path, default=OUT, help="where to write the pages")
     ap.add_argument("--content", type=Path, help="also write the pages for the Angular app to this JSON file")
+    ap.add_argument("--one-id", type=Path, default=ONE_ID, help="the directory with the One ID model's files")
     args = ap.parse_args()
     for f in ("model.json", "facts.json"):
         if not (args.model / f).exists():
@@ -794,6 +864,7 @@ def main():
         for slug, text in out.items():
             check_hidden(text, f"the {slug} page")
         chat = load_chat()
+        one_id = load_one_id(args.one_id)
         if args.content:
             a = Renderer(pages, facts, model, m["source"], app=True)
             app = {"index": a.home(), "policies": a.hub()}
@@ -823,7 +894,7 @@ def main():
     if args.content:
         args.content.parent.mkdir(parents=True, exist_ok=True)
         args.content.write_text(json.dumps({
-            "airline": AIRLINE, "footer": FOOTER, "source": m["source"], "pages": app, "chat": chat},
+            "airline": AIRLINE, "footer": FOOTER, "source": m["source"], "pages": app, "chat": chat, "oneId": one_id},
             indent=1) + "\n")
         print(f"wrote {args.content}: the same pages for the app")
 
