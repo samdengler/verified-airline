@@ -26,6 +26,7 @@ const shots = opt('--shots');
 if (shots) mkdirSync(shots, { recursive: true });
 const oneIdModel = JSON.parse(readFileSync(new URL('../../model/one-id/model.json', import.meta.url)));
 const oneIdScenarios = JSON.parse(readFileSync(new URL('../../model/one-id/scenarios.json', import.meta.url)));
+const oneIdReadings = JSON.parse(readFileSync(new URL('../../model/one-id/readings.json', import.meta.url)));
 const results = [];
 const check = (name, ok, detail = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? `  (${detail})` : ''}`);
 
@@ -261,6 +262,8 @@ try {
 
   let gate = await opensTab(ctx, wallet, '[data-action="present"]');
   await gate.locator('[data-state="gate-result"]').waitFor();
+  const noPanel = !(await gate.locator('[data-panel="presenter"]').isVisible());
+  check('the presenter panel does not show with the model hidden', noPanel);
   const result = { word: await gate.locator('.oid-banner-word').textContent(), words: await hiddenWords(gate), checks: await gate.locator('[data-check]').first().isVisible().catch(() => false), url: new URL(gate.url()).pathname };
   check('the trip from check-in reaches "Board" under the content security policy', result.word === words.traveler.gate.board && result.words === null && !result.checks && result.url === '/gate', JSON.stringify(result));
   await shot(gate, 'gate-hidden');
@@ -305,6 +308,80 @@ try {
   const shownGate = { word: await gate.locator('.oid-banner-word').textContent(), rows: await rows.count(), same, visible: await rows.first().isVisible() };
   check('with the model shown the gate lists the checks that ran, each agreeing with the model', shownGate.word === words.traveler.gate.board && shownGate.rows === 9 && shownGate.same === 9 && shownGate.visible, JSON.stringify(shownGate));
   await shot(gate, 'gate-shown');
+
+  // The presenter's panel: its travelers and switches, from the model's files.
+  const panel = gate.locator('[data-panel="presenter"]');
+  const onPanel = { visible: await panel.isVisible(), travelers: await panel.locator('[data-scenario]').count(), switches: await panel.locator('[data-reading]').count(), first: await panel.locator('[data-scenario]').first().textContent() };
+  check('the panel shows a traveler for each scenario and a switch for each reading', onPanel.visible && onPanel.travelers === oneIdScenarios.scenarios.length
+    && onPanel.switches === oneIdReadings.readings.length && onPanel.first === oneIdScenarios.scenarios[0].title, JSON.stringify(onPanel));
+
+  // What the panel changes draws in one pass, so its pressed state says the reader has redrawn too.
+  const pickTraveler = async (id) => {
+    await panel.locator(`[data-scenario="${id}"]`).click();
+    await panel.locator(`[data-scenario="${id}"][aria-pressed="true"]`).waitFor();
+  };
+  const setSwitch = async (reading, setting) => {
+    await panel.locator(`[data-reading="${reading}"] [data-setting="${setting}"]`).click();
+    await panel.locator(`[data-reading="${reading}"] [data-setting="${setting}"][aria-pressed="true"]`).waitFor();
+  };
+  const bannerWord = () => gate.locator('.oid-banner-word').textContent();
+
+  // For each traveler in turn, both settings of the matching rule: the result on
+  // the screen against the model's table.
+  const answers = Object.fromEntries(readFileSync(new URL('../../model/one-id/decisions.jsonl', import.meta.url), 'utf8').split('\n').filter(Boolean).map((line) => {
+    const d = JSON.parse(line);
+    return [d.name, d.response.result];
+  }));
+  const pair = oneIdScenarios.scenarios.filter((s) => s.credentials.length === 2);
+  const matchSettings = oneIdReadings.readings.find((r) => r.id === 'MatchReading').settings.map((s) => s.value);
+  const seen = [];
+  for (const scenario of pair) {
+    await pickTraveler(scenario.id);
+    for (const setting of matchSettings) {
+      await setSwitch('MatchReading', setting);
+      await gate.locator('[data-check="match"] [data-model-answer]').waitFor();
+      const word = await bannerWord();
+      const model = answers[`${scenario.id} travelerMatch MatchReading=${setting}`];
+      const differ = await gate.locator('[data-model-answer][data-same="false"]').count();
+      seen.push({ scenario: scenario.id, setting, word, right: word === (model ? words.traveler.gate.board : words.traveler.gate.refer) && differ === 0 });
+      await shot(gate, `panel-${scenario.id}-${setting}`);
+    }
+  }
+  check('each traveler under both matching settings shows what the model answers', seen.length === pair.length * matchSettings.length && seen.every((s) => s.right)
+    && seen.some((s) => s.word === words.traveler.gate.refer) && seen.some((s) => s.word === words.traveler.gate.board),
+    seen.map((s) => `${s.scenario}/${s.setting}=${s.word}${s.right ? '' : ' WRONG'}`).join(', '));
+
+  // A traveler picked on the panel reaches a surface in another tab.
+  await pickTraveler('another-travelers-pass');
+  const reached = await wallet.locator('[data-credential="boardingPass"] .oid-name').filter({ hasText: 'KELLER' }).waitFor({ timeout: 5000 }).then(() => true, () => false);
+  check('a traveler picked on the panel reaches the other tabs', reached);
+
+  // Every scenario with its checks on the panel: each agrees with the model.
+  const differing = [];
+  for (const scenario of oneIdScenarios.scenarios) {
+    await pickTraveler(scenario.id);
+    await gate.locator('[data-model-answer]').first().waitFor();
+    const differ = await gate.locator('[data-model-answer][data-same="false"]').count();
+    if (differ) differing.push(`${scenario.id}: ${differ}`);
+    if (!pair.some((s) => s.id === scenario.id)) await shot(gate, `panel-${scenario.id}`);
+  }
+  check('every traveler can be shown, and every check agrees with the model', differing.length === 0 && gate.problems.length === 0, [...differing, ...gate.problems].join(' | '));
+
+  // The exact instant a validity ends: one switch turns one traveler's result.
+  await pickTraveler('end-of-validity');
+  await setSwitch('ExpiryReading.validAtEnd', 'true');
+  const atEnd = await bannerWord();
+  const affected = await panel.locator('[data-reading="ExpiryReading.validAtEnd"] [data-affects]').count();
+  await setSwitch('ExpiryReading.validAtEnd', 'false');
+  const pastEnd = await bannerWord();
+  check('a switch other than the matching one turns a result, and says it does', atEnd === words.traveler.gate.board && pastEnd === words.traveler.gate.refer && affected === 1, JSON.stringify({ atEnd, pastEnd, affected }));
+  await shot(gate, 'panel-end-of-validity-validAtEnd-false');
+
+  // Hiding the model hides the panel and goes back to the default trip.
+  await gate.locator('.lean-toggle').click();
+  const returned = await gate.locator('.oid-names').filter({ hasText: 'MARTIN' }).waitFor({ timeout: 5000 }).then(() => true, () => false);
+  const hiddenAgain = { returned, panel: await panel.isVisible(), words: await hiddenWords(gate), word: await bannerWord() };
+  check('hiding the model hides the panel and returns to the default trip', returned && !hiddenAgain.panel && hiddenAgain.words === null && hiddenAgain.word === words.traveler.gate.board, JSON.stringify(hiddenAgain));
   const shownProblems = [page, wallet, gate].flatMap((p) => p.problems);
   check('the trip with the model shown logs no console error', shownProblems.length === 0, shownProblems.join(' | '));
   await ctx.close();
@@ -331,6 +408,11 @@ try {
   }));
   check('with scripts off the page reads and follows the system theme', off.h1 === 'Refunds' && off.sections > 2 && off.theme === 'none'
     && off.lean === 'none' && off.bg === 'rgb(14, 19, 32)', JSON.stringify(off));
+  for (const [path, want] of [['/check-in', words.traveler.checkIn.title], ['/wallet', words.traveler.wallet.title], ['/gate', words.traveler.gate.title]]) {
+    await page.goto(BASE + path, { waitUntil: 'networkidle' });
+    const offPage = await page.evaluate(() => ({ h1: document.querySelector('h1')?.textContent, panel: document.querySelector('[data-panel="presenter"]') ? getComputedStyle(document.querySelector('[data-panel="presenter"]')).display : null }));
+    check(`with scripts off ${path} reads, and shows no presenter panel`, offPage.h1 === want && (offPage.panel === null || offPage.panel === 'none'), JSON.stringify(offPage));
+  }
   await ctx.close();
 } finally {
   await browser.close();

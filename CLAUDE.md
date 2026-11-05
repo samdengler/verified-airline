@@ -25,6 +25,7 @@ Verified Airline, a fictional airline's site written from the Verified Air Lean 
 - No outcome, status, count or requirement text is typed by hand. Outcomes come from the checks in `web/src/app/one-id/rules/`; everything about the model comes from `model/one-id/`. Each check names its requirement and Lean function in a comment, and takes its reading as a parameter. `consent` alone is outside the model, with a grey marker.
 - With the model hidden the site is an ordinary airline: the trip is the scenario `scenarios.json` marks as the default, and nothing outside `data-lean` shows a requirement ID or the words rule, theorem or criterion. The wallet is titled "Demo wallet", and every credential is marked as a specimen.
 - verified-id has no cryptography in its model, and its stand-in tables and boarding pass format are invented. Say so where they are shown, and never claim a signature or protocol is checked.
+- The presenter panel on `/gate` shows only with the model. Its travelers come from `scenarios.json` and its switches from `readings.json`; `one-id/presenter.spec.ts` fails if they disagree. When an expert settles a question, remove the point from `rules/support/readings.ts` and from the check that reads it.
 - `render_airline.py` must keep working when given only verified-air's model: One ID's checks are skipped when `model/one-id/` or `content/one-id.json` is missing.
 
 ## Wording

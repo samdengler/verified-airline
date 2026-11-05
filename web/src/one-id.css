@@ -3,7 +3,7 @@
    work as on the policy pages.  No inline styles: the content security policy
    allows none. */
 
-va-marker, va-one-id-band, va-credential { display: contents; }
+va-marker, va-one-id-band, va-credential, va-presenter { display: contents; }
 .one-id h2 { margin: 0; font-size: 22px; font-weight: 700; }
 .one-id h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted); }
 .one-id p { margin: 0; }
@@ -68,6 +68,27 @@ va-marker, va-one-id-band, va-credential { display: contents; }
 .oid-banner-line { font-size: 18px; }
 .oid-names { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 16px; }
 .oid-names .oid-card { padding: 14px 18px; }
+
+/* The presenter's panel, beside the reader on a wide screen and under it on a narrow one. */
+.oid-gate .oid-main { flex: 999 1 560px; }
+.oid-presenter { flex: 1 1 400px; min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--band); display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px; }
+.oid-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.oid-choice { min-height: 44px; padding: 8px 14px; border: 2px solid var(--field); border-radius: 10px; background: var(--surface); color: var(--ink); font: inherit; font-weight: 600; font-size: 15px; line-height: 1.35; text-align: left; cursor: pointer; }
+.oid-choice:hover { border-color: var(--indigo); }
+.oid-choice[aria-pressed="true"] { border-color: var(--indigo); background: var(--proven-bg); }
+.oid-choice.small { font-size: 14px; font-weight: 500; flex: 1 1 auto; }
+.oid-tag { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+.oid-truth { padding: 14px 16px; border: 1px solid var(--pop-line); border-radius: 12px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; }
+.oid-truth-line { font-size: 17px; font-weight: 600; line-height: 1.35; }
+.oid-truth code { font-size: 12px; overflow-wrap: anywhere; }
+.oid-switch { position: relative; margin: 0; padding: 12px 14px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.oid-switch.affects { border-color: var(--amber-edge); }
+.oid-switch legend { padding: 0 6px; font-size: 14px; font-weight: 600; line-height: 1.4; }
+.oid-affects { font-size: 13px; font-weight: 600; color: var(--amber-ink); }
+.oid-settings { display: flex; flex-wrap: wrap; gap: 8px; }
+.oid-question { font-size: 14px; color: var(--body); line-height: 1.45; }
+.oid-question + .oid-question { margin-top: 6px; }
+.oid-question-row { align-items: center; }
 
 /* Band and legend */
 .oid-legend { display: flex; flex-direction: column; gap: 8px; }

@@ -295,6 +295,24 @@ point of the guide alone. The model has no function for that decision.
 tabs under the site's content security policy, with the model hidden and with it
 shown, and fails on any console error or on a banned word in the visible text.
 
+### The presenter panel
+
+`/gate` has a panel for whoever presents the demo, shown only with the model. Its
+traveler picker comes from `scenarios.json`, so a scenario the model adds appears
+with no code. It has one switch per entry of `readings.json`, each with its settings
+and its open question. A switch starts on the guide as written where the model marks
+one, and otherwise on the first setting the model lists; no setting is a
+recommendation. A switch that would change the current traveler's outcome says so.
+"What the reader cannot see" compares who each credential is about, which the issuer
+knows and a relying party does not, with what the gate decided.
+
+`rules/support/readings.ts` lists the points the TypeScript reads, and
+`one-id/presenter.spec.ts` fails if the panel and `readings.json` disagree on a
+switch, a setting or a question. The same spec shows that test failing on a reading
+added, a reading removed and a setting changed. The browser check runs each traveler
+that holds both credentials under both matching settings, and every scenario under
+the panel's settings, against the model's answers.
+
 ### The seeded error
 
 To confirm the vectors catch a wrong check, on 5 November 2026 the comparison in

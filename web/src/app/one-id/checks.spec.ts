@@ -1,6 +1,6 @@
 import fc from 'fast-check';
 import { readFileSync } from 'node:fs';
-import { decisionName, firstFailure, runChecks } from './checks';
+import { decisionName, describeFinding, firstFailure, runChecks, sameAnswer } from './checks';
 import { defaultScenario, readings, scenarios, startingSettings, wording } from './data';
 import type { Settings } from './rules/support/readings';
 
@@ -26,6 +26,18 @@ describe('the checks for one traveler', () => {
       }),
       { numRuns: 500 },
     );
+  });
+
+  it('compares an answer with the model whatever order the keys are in', () => {
+    const noPortrait = scenarios.find((s) => s.id === 'no-portrait')!;
+    const violations = runChecks(noPortrait, startingSettings).find((r) => r.key === 'photoid')!;
+    const model = table[decisionName(noPortrait, violations)] as object[];
+    expect(model.length).toBeGreaterThan(0);
+    expect(sameAnswer(model, violations.answer)).toBe(true);
+    expect(sameAnswer(model, [])).toBe(false);
+    expect(sameAnswer(true, false)).toBe(false);
+    expect(sameAnswer([{ code: 'a', x: '1' }], [{ x: '2', code: 'a' }])).toBe(false);
+    expect(describeFinding(model[0])).toBe(describeFinding((violations.answer as object[])[0]));
   });
 
   it('boards the default trip under any settings', () => {

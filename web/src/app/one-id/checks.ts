@@ -77,6 +77,24 @@ export function runChecks(scenario: Scenario, s: Settings): CheckResult[] {
 /** The first check that refers the traveler to an agent, or undefined to board them. */
 export const firstFailure = (results: CheckResult[]): CheckResult | undefined => results.find((r) => r.blocks && !r.passed);
 
+/** Whether two answers are equal, whatever order their keys are in: the model's files sort theirs. */
+export function sameAnswer(a: unknown, b: unknown): boolean {
+  if (Array.isArray(a) && Array.isArray(b)) return a.length === b.length && a.every((x, i) => sameAnswer(x, b[i]));
+  if (a && b && typeof a === 'object' && typeof b === 'object') {
+    const keys = Object.keys(a).sort();
+    const others = Object.keys(b).sort();
+    return keys.length === others.length && keys.every((k, i) => k === others[i] && sameAnswer((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+  }
+  return a === b;
+}
+
+/** A finding or an advisory as a line of text, with its fields in the order the model's files have them. */
+export const describeFinding = (f: object): string =>
+  Object.keys(f)
+    .sort()
+    .map((k) => (f as Record<string, unknown>)[k])
+    .join(' ');
+
 /** The name of a check's line in decisions.jsonl, whose points are sorted by key. */
 export function decisionName(scenario: Scenario, r: CheckResult): string {
   const settings = Object.keys(r.points)

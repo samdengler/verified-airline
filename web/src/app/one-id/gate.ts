@@ -2,10 +2,11 @@ import { isPlatformBrowser } from '@angular/common';
 import { Component, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
 import { LeanModel } from '../lean-model';
 import { Band } from './band';
-import { type CheckKey, type CheckResult, decisionName, firstFailure, runChecks } from './checks';
+import { type CheckKey, type CheckResult, decisionName, describeFinding, firstFailure, runChecks, sameAnswer } from './checks';
 import { passNameLine, photoidNameLine } from './credential-card';
 import { credentialOf, fill, formatTime, wording } from './data';
 import { Marker } from './marker';
+import { Presenter } from './presenter';
 import { Trip } from './trip';
 
 interface Row {
@@ -21,10 +22,10 @@ interface Row {
   model: { text: string; same: boolean } | null;
 }
 
-/** /gate: the gate reader.  The agent sees "Board" or "Refer to agent" with one plain reason; with the Lean model, the checks that ran. */
+/** /gate: the gate reader.  The agent sees "Board" or "Refer to agent" with one plain reason; with the Lean model, the checks that ran and the presenter's panel. */
 @Component({
   selector: 'va-gate',
-  imports: [Band, Marker],
+  imports: [Band, Marker, Presenter],
   template: `
     <div class="one-id">
       <va-one-id-band [title]="w.title" [lede]="w.lede" [crumbs]="w.crumbs" [crumbLabel]="w.title" />
@@ -77,6 +78,7 @@ interface Row {
           }
           <p class="oid-note">{{ t.note }}</p>
         </main>
+        <va-presenter />
       </div>
     </div>
   `,
@@ -143,7 +145,7 @@ export class Gate {
       requirements: c.requirements,
       status,
       statusWord: this.lean.gate.status[status],
-      found: Array.isArray(r.answer) ? r.answer.map((f) => this.describe(f)).join(', ') : '',
+      found: Array.isArray(r.answer) ? r.answer.map(describeFinding).join(', ') : '',
       model: this.modelAnswer(r),
     };
   }
@@ -154,10 +156,6 @@ export class Gate {
     return r.passed ? 'passed' : 'failed';
   }
 
-  private describe(f: object): string {
-    return Object.values(f).join(' ');
-  }
-
   private modelAnswer(r: CheckResult): Row['model'] {
     const table = this.decisions();
     if (!table) return null;
@@ -165,8 +163,8 @@ export class Gate {
     if (answer === undefined) return null;
     const words = this.lean.gate;
     const text = Array.isArray(answer)
-      ? answer.length ? answer.map((f) => this.describe(f)).join(', ') : words.noFindings
+      ? answer.length ? answer.map(describeFinding).join(', ') : words.noFindings
       : answer ? words.yes : words.no;
-    return { text, same: JSON.stringify(answer) === JSON.stringify(r.answer) };
+    return { text, same: sameAnswer(answer, r.answer) };
   }
 }
