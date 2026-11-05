@@ -1,0 +1,179 @@
+{
+ "about": "The check-in, wallet and gate screens' wording. render_airline.py checks every string under traveler as it checks the pages: no rule, theorem or criterion, no requirement ID, no typed amount. Strings under lean show only with the Lean model. Under lean, requirements must name requirements the model has, open must name criteria that are still open, and element must name an identifier of the model. Results are computed; this file holds only the words for each result.",
+ "traveler": {
+  "specimen": "Specimen",
+  "note": "Verified Airline is a fictional airline. The traveler, the flight and the credentials are specimens.",
+  "toggle": { "show": "Show the Lean model", "hide": "Hide the Lean model" },
+  "startAgain": "Start again",
+  "flight": { "number": "VA 118", "route": "Utopia City to Port Verity", "destination": "Port Verity" },
+  "request": [
+   { "element": "familyNameId", "label": "Family name" },
+   { "element": "givenNameId", "label": "Given name" },
+   { "element": "portraitId", "label": "Portrait" }
+  ],
+  "labels": {
+   "flight": "Flight",
+   "departs": "Departs",
+   "scheduledDeparture": "Scheduled departure",
+   "passenger": "Passenger",
+   "passengerOnPass": "Passenger, as the pass carries it",
+   "validUntil": "Valid until",
+   "photoid": "Photoid",
+   "boardingPass": "Boarding pass",
+   "portraitPlaceholder": "Portrait placeholder",
+   "nameInPhotoid": "Name in the photoid",
+   "nameInPass": "Name in the boarding pass"
+  },
+  "checkIn": {
+   "documentTitle": "Check in",
+   "crumbs": ["My trips", "Check in"],
+   "title": "Check in with One ID",
+   "lede": "Share your photoid from your wallet. We ask for the items listed below, and your wallet asks you before it shares them.",
+   "trip": "Your trip",
+   "asks": "What we ask your wallet for",
+   "present": "Present from your wallet",
+   "open": "Open the demo wallet",
+   "openNote": "The wallet opens in its own tab and asks you before it shares anything.",
+   "noWallet": "No wallet yet? You can still check in with your passport at the airport.",
+   "waiting": "Waiting for your wallet",
+   "waitingNote": "Choose Share or Decline in the tab the wallet opened in.",
+   "declined": "You declined in your wallet, so nothing was shared.",
+   "noPhotoid": "This traveler's wallet holds no photoid, so there is nothing to share.",
+   "doneTitle": "You're checked in, {name}",
+   "doneLede": "We checked the photoid your wallet shared. Your boarding pass is ready to add to the same wallet.",
+   "refusedTitle": "We could not check you in",
+   "refusedLede": "Please see an agent at the airport. {reason}",
+   "checked": "What we checked",
+   "photoidOk": "Your photoid meets the requirements",
+   "photoidFailed": "Your photoid does not meet the requirements",
+   "sourcePassport": "It was derived from a passport",
+   "sourceOther": "It was derived from another identity document",
+   "received": "We received the items you shared and nothing else.",
+   "add": "Add boarding pass to wallet",
+   "added": "Your boarding pass is in your wallet.",
+   "openWallet": "Open the demo wallet",
+   "noPass": "This traveler has no boarding pass to add."
+  },
+  "wallet": {
+   "documentTitle": "Demo wallet",
+   "title": "Demo wallet",
+   "lede": "This screen stands in for a wallet app from another company, and the credentials in it are specimens.",
+   "empty": "Nothing is asked of your wallet right now.",
+   "asks": "{airline} asks for {count} items",
+   "forCheckIn": "For check-in on flight {flight}.",
+   "willShare": "Will be shared",
+   "stays": "Stays in your wallet",
+   "share": "Share {count} items",
+   "decline": "Decline",
+   "shared": "You shared {count} items with {airline}.",
+   "credentials": "Your credentials",
+   "passChecked": "Checked when it arrived",
+   "passOk": "Nothing is wrong with this boarding pass.",
+   "passFailed": "Something is wrong with this boarding pass. See an agent.",
+   "present": "Present at the gate",
+   "presented": "Presented at the gate.",
+   "derivedFromPassport": "Derived from a passport",
+   "derivedFromOther": "Derived from another identity document"
+  },
+  "gate": {
+   "documentTitle": "Gate reader",
+   "crumbs": ["Airport", "Gate reader"],
+   "title": "Gate reader",
+   "lede": "The reader takes what a traveler's wallet presents and tells the agent whether to board them.",
+   "status": "{flight} · checked at {time}",
+   "waiting": "Waiting for a traveler to present at the gate.",
+   "board": "Board",
+   "refer": "Refer to agent",
+   "boardLine": "{flight} to {destination}"
+  },
+  "reasons": {
+   "photoid": "The photoid does not meet the requirements.",
+   "source": "The photoid was not derived from a passport.",
+   "photoidValidity": "The photoid stays valid after the document it came from expires.",
+   "boardingPass": "The boarding pass does not meet the requirements.",
+   "passValidity": "The boarding pass's end of validity does not fit the flight's departure.",
+   "photoidExpired": "The photoid has expired.",
+   "passExpired": "The boarding pass has expired.",
+   "match": "The names on the two credentials do not agree."
+  }
+ },
+ "lean": {
+  "legend": {
+   "proven": "Every criterion proven",
+   "open": "A criterion is an open question",
+   "grey": "Not in the model yet",
+   "text": "Each check runs as TypeScript in this browser. The tests compare it with the model's answer on every row of the model's table. That is a test of those cases; the proofs are about the Lean model. No signature or protocol is checked, because the model holds no cryptography."
+  },
+  "popover": {
+   "requirement": "Lean requirement",
+   "criterion": "criterion",
+   "criteria": "criteria",
+   "openQuestion": "Open question",
+   "name": "Lean:",
+   "theorem": "Open theorem:",
+   "example": "An example shows the case:",
+   "noLink": "The review document has no public address yet, so this shows no link.",
+   "status": { "proven": "proven", "open": "open", "example": "example only", "not checked": "not checked" }
+  },
+  "grey": {
+   "request": { "title": "Not in the model yet", "text": "This request and its list run on ordinary code. The site does not hold them to the model yet, so nothing here is checked against it." },
+   "consent": { "title": "Not in the model yet", "text": "What this sheet says will be shared comes from ordinary code. The site does not hold it to the model yet, so nothing here is checked against it." },
+   "decision": { "title": "Not in the model yet", "text": "Each check below comes from the model. Combining them into one decision is ordinary code: board when no check fails, using the checks whose credentials this traveler holds." }
+  },
+  "checkIn": {
+   "itemsMarker": { "requirements": ["OID-106"] },
+   "fromDocType": "From a credential of type {docType}.",
+   "advisories": "Recommendations not followed: {count}",
+   "advisoriesNote": "A recommendation not followed does not stop check-in.",
+   "standIns": "The lists of mandatory elements and the boarding pass format in this demo are invented stand-ins for an ISO document and IATA Resolution 792."
+  },
+  "wallet": {
+   "docType": "Document type",
+   "nameSpaces": "Namespaces"
+  },
+  "gate": {
+   "checks": "The checks that ran",
+   "noCredential": "This traveler holds no {credential}, so the checks of one did not run.",
+   "modelAnswer": "The model's answer for this traveler:",
+   "sameAnswer": "the same as the TypeScript",
+   "otherAnswer": "different from the TypeScript",
+   "noFindings": "no findings",
+   "yes": "true",
+   "no": "false",
+   "status": { "passed": "Passed", "failed": "Failed", "notChecked": "Not checked", "advisory": "Advisory" },
+   "when": { "gate": "At the gate", "issued": "When it was issued" }
+  },
+  "checks": {
+   "photoid": { "title": "The photoid meets the guide's requirements", "when": "gate", "requirements": ["OID-101"] },
+   "source": { "title": "The photoid comes from a document the guide allows", "when": "issued", "requirements": ["OID-109"] },
+   "advisories": { "title": "The guide's recommendations for a photoid", "when": "issued", "requirements": ["OID-102"] },
+   "photoidValidity": { "title": "The photoid's validity fits the document it came from", "when": "issued", "requirements": ["OID-108"] },
+   "boardingPass": { "title": "The boarding pass meets the guide's requirements", "when": "gate", "requirements": ["OID-103"] },
+   "passValidity": { "title": "The boarding pass's validity fits the departure", "when": "issued", "requirements": ["OID-104"] },
+   "photoidExpired": { "title": "The photoid has not expired", "when": "gate", "requirements": ["OID-105"] },
+   "passExpired": { "title": "The boarding pass has not expired", "when": "gate", "requirements": ["OID-105"] },
+   "match": { "title": "Both credentials are about one traveler", "when": "gate", "requirements": ["OID-107"] }
+  },
+  "deciding": {
+   "validity": { "open": ["OID-104.4", "OID-104.5"], "text": "Still being decided: which departure the guide means, and how long \"soon after\" lasts." }
+  },
+  "presenter": {
+   "eyebrow": "Presenter panel",
+   "title": "Readings of the guide",
+   "traveler": "Traveler at the gate",
+   "readings": "One switch for each point the guide leaves undecided",
+   "startNote": "Each switch starts on the guide as written, where one setting is marked so, and otherwise on the first setting the model lists. No setting is a recommendation.",
+   "asWritten": "The guide as written",
+   "affects": "Changes this traveler's outcome",
+   "cannotSee": "What the reader cannot see",
+   "acceptedSame": "Accepted. Both credentials are about the same traveler.",
+   "acceptedDifferent": "Accepted, though the credentials are about two different travelers.",
+   "refusedSame": "Refused, though both credentials are about the same traveler.",
+   "refusedDifferent": "Refused. The credentials are about two different travelers.",
+   "single": "This traveler holds one credential, so there is no pair to compare.",
+   "example": "An example in the model shows this case:",
+   "noExample": "The default trip, which every reading accepts.",
+   "standIns": "Invented stand-ins: the tables of photoid data elements and the boarding pass format."
+  }
+ }
+}

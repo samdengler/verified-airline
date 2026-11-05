@@ -25,6 +25,9 @@ export const pages: Readonly<Record<string, PageContent>> = content.pages;
 /** The support chat's wording, from content/chat.json, which the renderer checks as it checks the pages. */
 export const chatWording = content.chat;
 
+/** The check-in, wallet and gate screens' wording, from content/one-id.json, which the renderer checks against the One ID model. */
+export const oneIdWording = content.oneId;
+
 /** The six policy pages, under /policies/. */
 export const policySlugs = Object.keys(pages).filter((slug) => slug !== 'index' && slug !== 'policies');
 

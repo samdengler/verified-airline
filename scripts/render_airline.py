@@ -158,7 +158,7 @@ def load_one_id(directory):
     the One ID model's files in directory, or None when either is missing.
 
     Every string under traveler is checked as the pages are.  Under lean, a
-    `requirements` key must name requirements the model has, and an `open` key
+    `requirements` list must name requirements the model has, and an `open` list
     must name criteria that are still open: wording that calls a point still
     being decided stops the build once the point is proven.  `element` names an
     identifier constant of the model.  Wording that calls something a stand-in
@@ -175,11 +175,11 @@ def load_one_id(directory):
     elements = {e["name"] for e in model["identifiers"]["dataElements"]}
     check_traveler_wording(words["traveler"], where)
     for key, value, at in fields({"traveler": words["traveler"], "lean": words["lean"]}):
-        if key == "requirements":
+        if key == "requirements" and isinstance(value, list):
             for r in value:
                 if r not in requirements:
                     fail(where, f"{at} cites {r}, which the model does not have")
-        elif key == "open":
+        elif key == "open" and isinstance(value, list):
             for c in value:
                 if c not in criteria:
                     fail(where, f"{at} cites {c}, which the model does not have")

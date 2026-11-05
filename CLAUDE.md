@@ -17,11 +17,21 @@ Verified Airline, a fictional airline's site written from the Verified Air Lean 
 - The fares must not depend on a reading of the guide: no expiration dates, no refund both full and fixed. `lake exe airline-facts` in verified-air fails if two readings disagree.
 - verified-air's CI runs `scripts/render_airline.py --model <its fresh build> --out <a scratch directory>` through its `scripts/check-airline.sh`. Keep the renderer on Python's standard library, and keep both options working.
 
+## One ID
+
+- The check-in, wallet and gate screens read a second model, verified-id, IATA's One ID guide in Lean (usually at `../verified-id`, a private repository). The Claude Doc "One ID on Verified Airline: implementation plan" is the design.
+- All of this stays on the local branch `one-id`. Never push it, deploy it, or run `scripts/deploy.sh` or `scripts/publish-site.sh` from it. `main` publishes to air.dengler.io, and what may be published from the guide is undecided.
+- `model/one-id/` comes from verified-id's build; never edit it by hand. `scripts/update-model.sh --one-id` copies it from `../verified-id/build/one-id-data/` after `scripts/check_one_id.py` passes against the new files. verified-id's `scripts/check-airline.sh` runs that script too, so keep its `--model` option working.
+- No outcome, status, count or requirement text is typed by hand. Outcomes come from the checks in `web/src/app/one-id/rules/`; everything about the model comes from `model/one-id/`. Each check names its requirement and Lean function in a comment, and takes its reading as a parameter. `consent` alone is outside the model, with a grey marker.
+- With the model hidden the site is an ordinary airline: the trip is the scenario `scenarios.json` marks as the default, and nothing outside `data-lean` shows a requirement ID or the words rule, theorem or criterion. The wallet is titled "Demo wallet", and every credential is marked as a specimen.
+- verified-id has no cryptography in its model, and its stand-in tables and boarding pass format are invented. Say so where they are shown, and never claim a signature or protocol is checked.
+- `render_airline.py` must keep working when given only verified-air's model: One ID's checks are skipped when `model/one-id/` or `content/one-id.json` is missing.
+
 ## Wording
 
 - Each `##` section of a policy page ends with `{model: ID, ...}` and each item under "Still being decided" with `{open: criterion}`. When a cited criterion is proven, the build stops: rewrite that item's wording. Since verified-air's CI checks this repository's `main`, rewrite it here before the proof is pushed there.
 - Traveler-facing wording never says rule, theorem or criterion, and shows no requirement ID; the build checks the pages with the Lean model hidden. Those words belong in the popovers.
-- Traveler-facing wording lives in `content/`, where the renderer checks it; the app shows the renderer's HTML. Angular templates hold only the header, the footer and the not-found page.
+- Traveler-facing wording lives in `content/`, where the renderer checks it. The policy pages are the renderer's HTML as it stands. Angular templates hold the header, the footer, the not-found page, the chat, and the One ID flows in `web/src/app/one-id/`, which need state; their words still come from `content/chat.json` and `content/one-id.json`.
 
 ## What the site may claim
 

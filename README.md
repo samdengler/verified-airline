@@ -88,13 +88,15 @@ site's content security policy and fails on any console error.
 | Path | Holds |
 | --- | --- |
 | `content/*.md` | The wording of each page; the docstring of `scripts/render_airline.py` describes the format |
+| `content/chat.json`, `content/one-id.json` | The wording of the chat and of the One ID screens |
 | `assets/` | The stylesheet, shared by the static pages and the app, and the static pages' script |
 | `model/` | `facts.json` and `model.json` from verified-air, committed; `model/one-id/` from verified-id |
-| `web/` | The Angular app: the header and footer, the page component that shows the renderer's pages, the browser check |
+| `web/` | The Angular app: the header and footer, the page component that shows the renderer's pages, the One ID screens in `src/app/one-id/`, the browser check |
 | `infra/` | The `VerifiedAirline` CDK stack (Python): the site at air.dengler.io and its publish role |
 | `scripts/render_airline.py` | The pages and their checks, written to `build/`, and with `--content` for the app |
 | `scripts/update-model.sh` | Copies new model files into `model/`, and with `--one-id` into `model/one-id/` |
 | `scripts/check_one_id.py` | Checks the One ID screens against a build of the One ID model |
+| `scripts/test_render_one_id.py` | Shows each of the renderer's checks of `content/one-id.json` failing |
 | `scripts/preview.sh` | Renders the static pages and serves them at <http://localhost:8001> |
 | `scripts/deploy.sh` | Builds the app, deploys the stack and publishes the site |
 | `scripts/publish-site.sh` | Uploads the app's build and invalidates CloudFront; CI runs it on a push to `main` |
@@ -254,6 +256,44 @@ about the Lean model.
 The consent sheet's `consent` is the one function outside the model. It is
 ordinary code tagged with the candidate guarantee G-01, which `model.json` does not
 have, and `check_one_id.py` allows no other.
+
+### The three screens
+
+`/check-in` is the airline's website, `/wallet` the traveler's wallet and `/gate`
+the gate agent's reader. They are Angular components in `web/src/app/one-id/`,
+since the flows need state, and every page is still prerendered. The words are in
+`content/one-id.json`. `render_airline.py` checks them as it checks
+`content/chat.json`: no rule, theorem or criterion and no requirement ID under
+`traveler`; under `lean`, each cited requirement and criterion must be in the
+model, and wording that calls a point still being decided must cite criteria that
+are still open. `scripts/test_render_one_id.py` shows each of these failing.
+
+The screens talk through a BroadcastChannel, so a laptop can show the three side by
+side in one browser. Only the step, the traveler and the switches travel. A new tab
+says hello, and a tab further along answers with where the trip stands. The website
+opens the wallet and the wallet opens the gate reader, each in a tab of its own.
+
+With the model hidden, the trip is the scenario `scenarios.json` marks as the
+default, whose result the build checks is the same under every reading. With it
+shown, the existing Lean model button adds ∀ markers fed from `model.json`, the
+identifiers, and at the gate the checks that ran. A marker is blue when every
+criterion behind it is proven, amber when one is open, and grey for a step the
+model does not cover. Popovers show no link, because verified-id's review document
+has no public address yet.
+
+Beside each computed result at the gate is the model's answer for that traveler and
+those settings, read from `public/one-id-decisions.json`, which `npm run content`
+writes from `decisions.jsonl`. The app loads it only with the model shown.
+
+Three steps on these screens are ordinary code, each with a grey marker: the
+request, the consent sheet's list, and combining the checks into "Board" or "Refer
+to agent". The gate boards a traveler when no check fails, using the checks whose
+credentials the traveler holds, so a scenario with one credential can show one
+point of the guide alone. The model has no function for that decision.
+
+`web/scripts/browser-check.mjs` runs the trip from check-in to "Board" in three
+tabs under the site's content security policy, with the model hidden and with it
+shown, and fails on any console error or on a banned word in the visible text.
 
 ### The seeded error
 

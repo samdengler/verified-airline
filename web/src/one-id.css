@@ -1,0 +1,88 @@
+/* The check-in, wallet and gate screens (src/app/one-id).  They use the
+   airline's stylesheet and its colors, so the dark mode and the Lean model button
+   work as on the policy pages.  No inline styles: the content security policy
+   allows none. */
+
+va-marker, va-one-id-band, va-credential { display: contents; }
+.one-id h2 { margin: 0; font-size: 22px; font-weight: 700; }
+.one-id h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted); }
+.one-id p { margin: 0; }
+.one-id code { font: 13px var(--mono); }
+.oid-columns { padding-top: 40px; padding-bottom: 24px; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+.oid-main { flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+.oid-side { flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.oid-section, .oid-stack { display: flex; flex-direction: column; gap: 12px; }
+.oid-card { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.oid-card.oid-stack { padding: 24px; gap: 16px; }
+.oid-list { overflow: visible; }
+.oid-row { position: relative; padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.oid-row + .oid-row { border-top: 1px solid var(--line); }
+.oid-grow { flex: 1 1 0; min-width: 0; }
+.oid-strong { font-weight: 600; }
+.oid-big { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.oid-small { font-size: 14px; color: var(--muted); }
+.oid-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.oid-name { font: 500 16px var(--mono); }
+.oid-id { font: 13px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.oid-right { text-align: right; }
+.oid-between { display: flex; justify-content: space-between; gap: 16px; }
+.oid-note { font-size: 14px; color: var(--muted); padding-top: 8px; padding-bottom: 40px; }
+.oid-waiting { padding: 28px; font-size: 18px; color: var(--body); }
+
+.oid-facts { margin: 0; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 16px; }
+.oid-facts dt { font-size: 13px; font-weight: 600; color: var(--muted); }
+.oid-facts dd { margin: 0; color: var(--body); }
+.oid-facts dd.oid-strong { font-size: 17px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.oid-button { min-height: 48px; padding: 0 16px; border: 0; border-radius: 8px; background: var(--indigo); color: var(--on-indigo); font: inherit; font-weight: 600;
+  text-decoration: none; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; }
+.oid-button:hover { color: var(--on-indigo); opacity: 0.92; }
+.oid-button.secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--field); }
+.oid-link { align-self: flex-start; padding: 8px 0; border: 0; background: none; color: var(--indigo); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+/* A credential: always marked as a specimen. */
+.oid-credential { position: relative; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; }
+.oid-credential-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.oid-credential-title { font-size: 18px; font-weight: 700; }
+.oid-specimen { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--amber-ink); border: 1px solid var(--amber-line); border-radius: 6px; padding: 2px 8px; }
+.oid-person { display: flex; gap: 14px; align-items: center; }
+.oid-portrait { flex: none; width: 72px; height: 88px; padding: 16px 12px; border: 1px dashed var(--muted); border-radius: 8px; color: var(--muted); }
+.oid-portrait.small { width: 40px; height: 48px; padding: 8px 6px; }
+.oid-lean-ids { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 13px; color: var(--muted); }
+.oid-lean-ids dd { margin: 0; display: flex; flex-wrap: wrap; gap: 2px 10px; }
+
+/* The wallet: one phone-sized column. */
+.oid-wallet { max-width: 460px; margin: 0 auto; padding: 28px 20px 0; display: flex; flex-direction: column; gap: 20px; }
+.oid-wallet-head { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+.oid-wallet-head .oid-grow { flex: 1 1 260px; }
+.oid-wallet-head h1 { font-size: 30px; margin-bottom: 6px; }
+.oid-sheet { padding: 20px; border: 1px solid var(--pop-line); border-radius: 16px; background: var(--band); box-shadow: 0 8px 24px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+
+/* The gate reader. */
+.oid-gate { padding-top: 28px; padding-bottom: 0; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+.oid-banner { position: relative; border-radius: 16px; padding: 24px 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 20px; min-height: 132px; border: 2px solid transparent; }
+.oid-banner > svg { width: 56px; height: 56px; flex: none; }
+.oid-banner.board { background: var(--indigo); color: var(--on-indigo); }
+.oid-banner.refer { background: var(--amber-bg); color: var(--amber-ink); border-color: var(--amber-edge); }
+.oid-banner-word { font-size: 44px; line-height: 1.05; font-weight: 700; }
+.oid-banner-line { font-size: 18px; }
+.oid-names { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr)); gap: 16px; }
+.oid-names .oid-card { padding: 14px 18px; }
+
+/* Band and legend */
+.oid-legend { display: flex; flex-direction: column; gap: 8px; }
+.oid-legend-keys { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+
+/* Popovers, sized as on the policy pages. */
+.one-id .lean-pop { max-height: 70vh; overflow: auto; }
+.one-id .lean-pop p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
+.one-id .lean-pop .lean-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+.one-id .lean-pop .lean-ears { font: 13px/1.6 var(--mono); }
+.one-id .lean-pop .lean-question { color: var(--body); margin-top: 6px; }
+.one-id .lean-pop .lean-name { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.lean-criteria { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 13px; line-height: 1.5; }
+.lean-criteria code { font: 12.5px var(--mono); }
+
+@media (max-width: 720px) {
+  .oid-banner-word { font-size: 36px; }
+}

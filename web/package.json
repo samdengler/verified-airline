@@ -8,7 +8,7 @@
     "start": "ng serve",
     "prebuild": "npm run content",
     "build": "ng build",
-    "pretest": "npm run content",
+    "pretest": "npm run content && python3 ../scripts/test_render_one_id.py",
     "test": "ng test --watch=false",
     "check": "node scripts/browser-check.mjs"
   },

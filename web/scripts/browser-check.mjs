@@ -1,7 +1,8 @@
 // Checks the built site in Chrome: every page, the not-found page, links
 // through the router, the Lean model and its popovers, the dark mode button,
-// and the pages with scripts off.  Any console error fails a check, so a
-// script or style the content security policy blocks fails too.
+// the pages with scripts off, and the One ID trip from check-in to "Board".
+// Any console error fails a check, so a script or style the content security
+// policy blocks fails too.
 //
 //   node scripts/browser-check.mjs                  the build in dist/, served as CloudFront serves it
 //   node scripts/browser-check.mjs --url https://air.dengler.io
@@ -12,7 +13,7 @@
 // response carries the policy in ../infra/csp.txt with the hashes of the
 // build's inline scripts, as infra/ sets them.
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join } from 'node:path';
 import { chromium } from 'playwright-core';
@@ -22,6 +23,9 @@ const opt = (name) => (args.includes(name) ? args[args.indexOf(name) + 1] : unde
 const DIST = new URL('../dist/verified-airline/browser/', import.meta.url).pathname;
 const content = JSON.parse(readFileSync(new URL('../src/generated/content.json', import.meta.url)));
 const shots = opt('--shots');
+if (shots) mkdirSync(shots, { recursive: true });
+const oneIdModel = JSON.parse(readFileSync(new URL('../../model/one-id/model.json', import.meta.url)));
+const oneIdScenarios = JSON.parse(readFileSync(new URL('../../model/one-id/scenarios.json', import.meta.url)));
 const results = [];
 const check = (name, ok, detail = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? `  (${detail})` : ''}`);
 
@@ -60,13 +64,28 @@ function serve() {
   return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server)));
 }
 
-/** A page that records console errors, failed requests and page errors. */
-async function watched(context) {
-  const page = await context.newPage();
+function watch(page) {
   page.problems = [];
   page.on('console', (m) => { if (m.type() === 'error') page.problems.push(m.text()); });
   page.on('pageerror', (e) => page.problems.push(String(e)));
   return page;
+}
+
+/** A page that records console errors, failed requests and page errors. */
+async function watched(context) {
+  return watch(await context.newPage());
+}
+
+/** What a traveler must not read with the Lean model hidden. */
+const BANNED = /\b(rules?|theorems?|criterion|criteria)\b|\b(?:ONE|OO|OID)-\d{3}(?:\.\d+)?\b|\bG-\d{2}\b/i;
+const hiddenWords = async (page) => (await page.locator('body').innerText()).match(BANNED)?.[0] ?? null;
+
+/** Clicks a link that opens a tab of its own and returns the tab, watched. */
+async function opensTab(context, page, selector) {
+  const [tab] = await Promise.all([context.waitForEvent('page'), page.locator(selector).click()]);
+  watch(tab);
+  await tab.waitForLoadState('networkidle');
+  return tab;
 }
 
 const server = opt('--url') ? null : await serve();
@@ -201,6 +220,102 @@ try {
   const unexpected = page.problems.filter((m) => !/status of (404|405)/.test(m));
   check('the chat opens under the policy', chatButtons === 1 && opened && unexpected.length === 0,
     JSON.stringify({ chatButtons, opened, unexpected }));
+  await ctx.close();
+
+  // The One ID trip, in three tabs that talk through a BroadcastChannel, with
+  // the Lean model hidden: the default scenario from check-in to "Board".
+  const words = content.oneId;
+  const defaultScenario = oneIdScenarios.scenarios.find((s) => s.default);
+  ctx = await browser.newContext({ colorScheme: 'light', viewport: { width: 1280, height: 900 } });
+  page = await watched(ctx);
+  await page.goto(BASE + '/check-in', { waitUntil: 'networkidle' });
+  const shot = async (p, name) => { if (shots) await p.screenshot({ path: join(shots, `${name}.png`), fullPage: true }); };
+  const pageH1 = (p) => p.locator('h1').first().textContent();
+  const start = { h1: await pageH1(page), words: await hiddenWords(page), current: await page.locator('header.site nav a[aria-current]').textContent(), title: await page.title() };
+  check('/check-in starts the trip with the model hidden', start.h1 === words.traveler.checkIn.title && start.words === null
+    && start.current === 'Check in' && start.title === `${words.traveler.checkIn.documentTitle}: ${content.airline}`, JSON.stringify(start));
+  await shot(page, 'check-in-hidden');
+
+  let wallet = await opensTab(ctx, page, '[data-action="open-wallet"]');
+  await wallet.locator('[data-sheet="consent"]').waitFor();
+  const consentText = await wallet.locator('[data-sheet="consent"]').innerText();
+  const family = defaultScenario.credentials[0].mdoc.nameSpaces[0].elements[0].value.text;
+  const sheet = { h1: await pageH1(wallet), words: await hiddenWords(wallet), hasName: consentText.includes(family), share: await wallet.locator('[data-action="share"]').textContent(),
+    credentials: await wallet.locator('[data-credential]').count(), specimens: await wallet.locator('.oid-specimen').count() };
+  check('the wallet is titled Demo wallet and asks for the items, each credential a specimen', sheet.h1 === 'Demo wallet' && sheet.words === null && sheet.hasName
+    && /3/.test(sheet.share) && sheet.credentials > 0 && sheet.credentials === sheet.specimens, JSON.stringify(sheet));
+  await shot(wallet, 'wallet-consent-hidden');
+  await shot(page, 'check-in-waiting-hidden');
+
+  await wallet.locator('[data-action="share"]').click();
+  await page.locator('[data-action="add-pass"]').waitFor();
+  const done = { h1: await pageH1(page), words: await hiddenWords(page), credentials: await page.locator('[data-credential]').count(), specimens: await page.locator('.oid-specimen').count() };
+  check('sharing in the wallet checks the traveler in on the website', /checked in/.test(done.h1) && done.words === null && done.credentials === 1 && done.specimens === 1, JSON.stringify(done));
+  await shot(page, 'checked-in-hidden');
+
+  await page.locator('[data-action="add-pass"]').click();
+  await wallet.locator('[data-credential="boardingPass"]').waitFor();
+  const held = { words: await hiddenWords(wallet), credentials: await wallet.locator('[data-credential]').count(), specimens: await wallet.locator('.oid-specimen').count(), check: await wallet.locator('[data-state="pass-check"]').textContent() };
+  check('the boarding pass reaches the wallet and is checked there', held.words === null && held.credentials === 2 && held.specimens === 2 && held.check === words.traveler.wallet.passOk, JSON.stringify(held));
+  await shot(wallet, 'wallet-home-hidden');
+
+  let gate = await opensTab(ctx, wallet, '[data-action="present"]');
+  await gate.locator('[data-state="gate-result"]').waitFor();
+  const result = { word: await gate.locator('.oid-banner-word').textContent(), words: await hiddenWords(gate), checks: await gate.locator('[data-check]').first().isVisible().catch(() => false), url: new URL(gate.url()).pathname };
+  check('the trip from check-in reaches "Board" under the content security policy', result.word === words.traveler.gate.board && result.words === null && !result.checks && result.url === '/gate', JSON.stringify(result));
+  await shot(gate, 'gate-hidden');
+  const tripProblems = [page, wallet, gate].flatMap((p) => p.problems);
+  check('the trip logs no console error', tripProblems.length === 0, tripProblems.join(' | '));
+  await ctx.close();
+
+  // The same trip with the model shown: markers on each check, their popovers
+  // from model.json, and the model's own answer beside each computed one.
+  ctx = await browser.newContext({ colorScheme: 'light', viewport: { width: 1280, height: 900 } });
+  page = await watched(ctx);
+  await page.goto(BASE + '/check-in?lean=1', { waitUntil: 'networkidle' });
+  const grey = page.locator('.heading-row button.lean-marker.partial').first();
+  await shot(page, 'check-in-shown');
+  await grey.click();
+  await shot(page, 'check-in-grey-popover-shown');
+  await page.keyboard.press('Escape');
+  check('with the model shown the request carries a grey marker, and the items their identifiers',
+    (await page.locator('.oid-row code.oid-id').first().isVisible()) && (await page.locator('.lean-legend').isVisible()), '');
+  wallet = await opensTab(ctx, page, '[data-action="open-wallet"]');
+  await wallet.locator('[data-sheet="consent"]').waitFor();
+  await shot(wallet, 'wallet-consent-shown');
+  await wallet.locator('[data-action="share"]').click();
+  await page.locator('[data-action="add-pass"]').waitFor();
+  const photoidMarker = page.locator('[data-check="photoid"] button.lean-marker');
+  await photoidMarker.click();
+  const popText = await page.locator(`#${await photoidMarker.getAttribute('aria-controls')}`).innerText();
+  const req = oneIdModel.requirements['OID-101'];
+  check('a marker opens the requirement, its criteria and their statuses, from model.json',
+    popText.includes(req.ears) && req.criteria.every((c) => popText.includes(c.id)) && (await photoidMarker.evaluate((b) => b.classList.contains('open'))), '');
+  await shot(page, 'checked-in-popover-shown');
+  await page.keyboard.press('Escape');
+  await shot(page, 'checked-in-shown');
+  await page.locator('[data-action="add-pass"]').click();
+  await wallet.locator('[data-credential="boardingPass"]').waitFor();
+  await shot(wallet, 'wallet-home-shown');
+  gate = await opensTab(ctx, wallet, '[data-action="present"]');
+  await gate.locator('[data-state="gate-result"]').waitFor();
+  await gate.locator('[data-model-answer]').first().waitFor();
+  const rows = gate.locator('[data-check]');
+  const same = await gate.locator('[data-model-answer][data-same="true"]').count();
+  const shownGate = { word: await gate.locator('.oid-banner-word').textContent(), rows: await rows.count(), same, visible: await rows.first().isVisible() };
+  check('with the model shown the gate lists the checks that ran, each agreeing with the model', shownGate.word === words.traveler.gate.board && shownGate.rows === 9 && shownGate.same === 9 && shownGate.visible, JSON.stringify(shownGate));
+  await shot(gate, 'gate-shown');
+  const shownProblems = [page, wallet, gate].flatMap((p) => p.problems);
+  check('the trip with the model shown logs no console error', shownProblems.length === 0, shownProblems.join(' | '));
+  await ctx.close();
+
+  // The wallet on a phone, in dark mode.
+  ctx = await browser.newContext({ colorScheme: 'dark', viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  page = await watched(ctx);
+  await page.goto(BASE + '/wallet', { waitUntil: 'networkidle' });
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  check('the wallet fits a phone', overflow <= 0 && page.problems.length === 0, `overflow ${overflow}`);
+  await shot(page, 'wallet-phone-dark-hidden');
   await ctx.close();
 
   // Scripts off: the prerendered page reads, and the buttons that need scripts are hidden.
