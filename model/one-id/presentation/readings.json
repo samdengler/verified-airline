@@ -1,0 +1,297 @@
+{"readings":
+ [{"settings":
+   [{"value": "perElement",
+     "lean": "Rules.OneId.ConsentReading.perElement",
+     "label": "The wallet sends the data elements the holder approved.",
+     "description": "The wallet sends the data elements the holder approved."},
+    {"value": "wholeCredential",
+     "lean": "Rules.OneId.ConsentReading.wholeCredential",
+     "label":
+     "The wallet sends a credential only when the holder approved every data element requested from it.",
+     "description":
+     "The wallet sends a credential only when the holder approved every data element requested from it."}],
+   "questions":
+   [{"theorem": "Rules.OneId.partial_consent_withholds_credential",
+     "question":
+     "When a holder approves only some of the data elements requested, does the wallet send those, or nothing from that credential? And is the answer the same in all three profiles?",
+     "examples": ["Rules.OneId.partialConsent"],
+     "criteria": ["OID-201.5"]}],
+   "profiles": ["mdocOverDcApi", "openid4vp", "proximity"],
+   "lean": "Rules.OneId.ConsentReading",
+   "label":
+   "What a wallet does when the holder approves only some of the data elements requested from a credential.",
+   "id": "ConsentReading",
+   "description":
+   "What a wallet does when the holder approves only some of the data elements requested from a credential. The guide requires informed consent and that the wallet show what is shared, and says nothing of a holder who approves a part. For its own profile OpenID4VP says a wallet that cannot deliver every claim asked of a credential must not return that credential (§6.4.1); whether a holder's refusal counts as that is not said. A credential that does not hold a requested data element is a separate case, which does not depend on consent and is decided where a credential is presented.",
+   "criteria": ["OID-201.5"],
+   "checks": ["Wallet.respond"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.accepted_holds_only_requested",
+     "question":
+     "In each profile, must a relying party refuse a response that holds a data element it did not request, discard the credential that holds it, or may it accept the response and set the extra aside?",
+     "examples": ["Rules.OneId.extraElementAccepted"],
+     "criteria": ["OID-202.6"]}],
+   "profiles": ["mdocOverDcApi"],
+   "lean": "Rules.OneId.AcceptanceReading.extrasRefusedInMdocProfile",
+   "label":
+   "Whether a relying party in the mdoc profile refuses a response that holds a data element it did not request.",
+   "id": "AcceptanceReading.extrasRefusedInMdocProfile",
+   "description":
+   "Whether a relying party in the mdoc profile refuses a response that holds a data element it did not request. The guide's list of checks for that profile has no step that compares the response with the request (§4.2.1.2 step 6).",
+   "criteria": ["OID-202.6"],
+   "checks": ["refusals", "pairRefusals"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.accepted_holds_only_requested",
+     "question":
+     "In each profile, must a relying party refuse a response that holds a data element it did not request, discard the credential that holds it, or may it accept the response and set the extra aside?",
+     "examples": ["Rules.OneId.extraElementAccepted"],
+     "criteria": ["OID-202.6"]}],
+   "profiles": ["openid4vp"],
+   "lean": "Rules.OneId.AcceptanceReading.extrasRefusedInOpenId4Vp",
+   "label":
+   "Whether a relying party in the OpenID4VP profile refuses a response that holds a data element it did not request.",
+   "id": "AcceptanceReading.extrasRefusedInOpenId4Vp",
+   "description":
+   "Whether a relying party in the OpenID4VP profile refuses a response that holds a data element it did not request. The guide says the token must match the query (§4.2.1.3 step 5). OpenID4VP requires the verifier to check that the returned presentations satisfy the request as §6.4 describes, where a wallet must not send a selectively disclosable claim that was not selected, and to discard a presentation that fails a check (§8.6, §14.9). Whether that rule of §6.4 is among what the verifier checks is not said in so many words.",
+   "criteria": ["OID-202.6"],
+   "checks": ["refusals", "pairRefusals"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.accepted_holds_only_requested",
+     "question":
+     "In each profile, must a relying party refuse a response that holds a data element it did not request, discard the credential that holds it, or may it accept the response and set the extra aside?",
+     "examples": ["Rules.OneId.extraElementAccepted"],
+     "criteria": ["OID-202.6"]}],
+   "profiles": ["proximity"],
+   "lean": "Rules.OneId.AcceptanceReading.extrasRefusedInProximity",
+   "label":
+   "Whether a reader in proximity refuses a response that holds a data element it did not request.",
+   "id": "AcceptanceReading.extrasRefusedInProximity",
+   "description":
+   "Whether a reader in proximity refuses a response that holds a data element it did not request. The guide says issuer data validation ensures the data elements that were requested (§4.2.2 step 5); what the ISO clause it cites checks was not read.",
+   "criteria": ["OID-202.6"],
+   "checks": ["refusals", "pairRefusals"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.accepted_holds_every_requested",
+     "question":
+     "Must a relying party in the mdoc profile and in proximity refuse a response that lacks a data element it requested?",
+     "examples": ["Rules.OneId.partialResponse"],
+     "criteria": ["OID-202.7"]}],
+   "profiles": ["mdocOverDcApi"],
+   "lean": "Rules.OneId.AcceptanceReading.missingRefusedInMdocProfile",
+   "label":
+   "Whether a relying party in the mdoc profile refuses a response that lacks a data element it requested.",
+   "id": "AcceptanceReading.missingRefusedInMdocProfile",
+   "description":
+   "Whether a relying party in the mdoc profile refuses a response that lacks a data element it requested. The guide's list of checks for that profile has no such step (§4.2.1.2 step 6).",
+   "criteria": ["OID-202.7"],
+   "checks": ["refusals", "pairRefusals"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.accepted_holds_every_requested",
+     "question":
+     "Must a relying party in the mdoc profile and in proximity refuse a response that lacks a data element it requested?",
+     "examples": ["Rules.OneId.partialResponse"],
+     "criteria": ["OID-202.7"]}],
+   "profiles": ["proximity"],
+   "lean": "Rules.OneId.AcceptanceReading.missingRefusedInProximity",
+   "label":
+   "Whether a reader in proximity refuses a response that lacks a data element it requested.",
+   "id": "AcceptanceReading.missingRefusedInProximity",
+   "description":
+   "Whether a reader in proximity refuses a response that lacks a data element it requested. The guide says issuer data validation ensures the data elements that were requested (§4.2.2 step 5), from an ISO clause that was not read.",
+   "criteria": ["OID-202.7"],
+   "checks": ["refusals", "pairRefusals"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.accepted_not_expired",
+     "question":
+     "Is a relying party required to refuse an expired credential in the OpenID4VP profile and in proximity?",
+     "examples": ["Rules.OneId.expiredBoardingPassAccepted"],
+     "criteria": ["OID-202.5"]}],
+   "profiles": ["openid4vp"],
+   "lean": "Rules.OneId.AcceptanceReading.validityCheckedInOpenId4Vp",
+   "label":
+   "Whether issuer data authentication in the OpenID4VP profile includes the check that a credential is within its validity.",
+   "id": "AcceptanceReading.validityCheckedInOpenId4Vp",
+   "description":
+   "Whether issuer data authentication in the OpenID4VP profile includes the check that a credential is within its validity. The profile cites ISO/IEC 18013-5 §9.1.2 with must and does not say (§4.2.1.3 step 5), and OpenID4VP §8.6 names no such check. The clause was not read.",
+   "criteria": ["OID-202.5"],
+   "checks": ["refusals", "pairRefusals"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.accepted_not_expired",
+     "question":
+     "Is a relying party required to refuse an expired credential in the OpenID4VP profile and in proximity?",
+     "examples": ["Rules.OneId.expiredBoardingPassAccepted"],
+     "criteria": ["OID-202.5"]}],
+   "profiles": ["proximity"],
+   "lean": "Rules.OneId.AcceptanceReading.validityCheckedInProximity",
+   "label":
+   "Whether a reader in proximity refuses a credential past its validity.",
+   "id": "AcceptanceReading.validityCheckedInProximity",
+   "description":
+   "Whether a reader in proximity refuses a credential past its validity. The profile cites ISO/IEC 18013-5 §9.1.2 with must and §9.3.1, the clause the mdoc profile says covers time validity, with should; its list opens by saying the checks include the validity of what was received (§4.2.2 step 5). Neither clause was read.",
+   "criteria": ["OID-202.5"],
+   "checks": ["refusals", "pairRefusals"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.accepted_answers_this_request",
+     "question":
+     "Must a reader in proximity rebuild the session transcript and check that the device signature was made over it?",
+     "examples": ["Rules.OneId.replayedInProximity"],
+     "criteria": ["OID-202.4"]}],
+   "profiles": ["proximity"],
+   "lean": "Rules.OneId.AcceptanceReading.proximityRebuildsTranscript",
+   "label":
+   "Whether a reader in proximity rebuilds the session transcript and validates the device signature over it.",
+   "id": "AcceptanceReading.proximityRebuildsTranscript",
+   "description":
+   "Whether a reader in proximity rebuilds the session transcript and validates the device signature over it. The guide lists the rebuilding with no requirement word, after a decryption step it marks should, in a list a verifier is said to need to perform; the device signature must be validated to prevent man in the middle attacks (§4.2.2 step 5).",
+   "criteria": ["OID-202.4"],
+   "checks": ["refusals", "pairRefusals"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.valid_at_validUntil",
+     "question":
+     "Is a credential still valid at the exact instant its validity ends?",
+     "examples": ["Rules.OneId.atTheEndOfValidity"],
+     "criteria": ["OID-105.4"]}],
+   "profiles": ["mdocOverDcApi", "openid4vp", "proximity"],
+   "lean": "Rules.OneId.ExpiryReading.validAtEnd",
+   "label":
+   "Whether a credential is still valid at the exact instant its validity ends.",
+   "id": "ExpiryReading.validAtEnd",
+   "description":
+   "Whether a credential is still valid at the exact instant its validity ends.",
+   "criteria": ["OID-105.4"],
+   "checks": ["refusals", "pairRefusals"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.OpenId4Vp.accepted_request_has_state",
+     "question":
+     "Is the must for state meant, and if so what does a relying party or a wallet do with it?",
+     "examples": ["Rules.OneId.requestWithoutState"],
+     "criteria": ["OID-203.6"]}],
+   "profiles": ["openid4vp"],
+   "lean": "Rules.OneId.OpenId4Vp.RequestReading.stateRequired",
+   "label": "Whether a request must carry `state`.",
+   "id": "OpenId4Vp.RequestReading.stateRequired",
+   "description":
+   "Whether a request must carry `state`. The guide says the nonce and `state` must be set as OpenID4VP §5.2 says. That clause requires `state` only for a presentation without a holder binding proof, §5.3 exempts the Digital Credentials API, and Appendix A does not define the parameter there. The guide's own example request has none.",
+   "criteria": ["OID-203.6"],
+   "checks": ["OpenId4Vp.requestFindings", "OpenId4Vp.walletFindings"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.OpenId4Vp.answered_request_signed",
+     "question":
+     "Must a wallet validate the signature of an OpenID4VP request and refuse one it cannot validate?",
+     "examples": ["Rules.OneId.wronglySignedRequestAnswered"],
+     "criteria": ["OID-204.2"]}],
+   "profiles": ["openid4vp"],
+   "lean": "Rules.OneId.OpenId4Vp.WalletReading.signatureChecked",
+   "label":
+   "Whether a wallet must validate the signature of a request and refuse one not signed with the key of the certificate its client identifier names.",
+   "id": "OpenId4Vp.WalletReading.signatureChecked",
+   "description":
+   "Whether a wallet must validate the signature of a request and refuse one not signed with the key of the certificate its client identifier names.",
+   "criteria": ["OID-204.2"],
+   "checks": ["OpenId4Vp.walletFindings"],
+   "asWritten": null},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.OpenId4Vp.answered_by_trusted_verifier",
+     "question":
+     "Must a wallet refuse an OpenID4VP request from a verifier that is not on its list?",
+     "examples": ["Rules.OneId.untrustedVerifierAnswered"],
+     "criteria": ["OID-204.3"]}],
+   "profiles": ["openid4vp"],
+   "lean": "Rules.OneId.OpenId4Vp.WalletReading.verifierListChecked",
+   "label":
+   "Whether a wallet must refuse a request whose client identifier names a certificate that is not on its list of trusted verifiers.",
+   "id": "OpenId4Vp.WalletReading.verifierListChecked",
+   "description":
+   "Whether a wallet must refuse a request whose client identifier names a certificate that is not on its list of trusted verifiers.",
+   "criteria": ["OID-204.3"],
+   "checks": ["OpenId4Vp.walletFindings"],
+   "asWritten": null},
+  {"settings":
+   [{"value": "notChecked",
+     "lean": "Rules.OneId.MatchReading.notChecked",
+     "label": "Nothing is checked: any photoid goes with any boarding pass.",
+     "description":
+     "Nothing is checked: any photoid goes with any boarding pass. This is the guide as written."},
+    {"value": "namesAgree",
+     "lean": "Rules.OneId.MatchReading.namesAgree",
+     "label":
+     "The names agree: the family name and given name of the photoid equal the passenger name the boarding pass string carries.",
+     "description":
+     "The names agree: the family name and given name of the photoid equal the passenger name the boarding pass string carries."}],
+   "questions":
+   [{"theorem": "Rules.OneId.accepted_pair_same_traveler",
+     "question":
+     "What ties a photoid and a boarding pass presented together to one traveler: the same device key, a rule for issuers, a comparison of names, or something else, and what must a relying party check?",
+     "examples": ["Rules.OneId.twoTravelersOneDevice"],
+     "criteria": ["OID-207.1"]},
+    {"theorem": "Rules.OneId.same_traveler_pair_accepted",
+     "question":
+     "Does One ID require a photoid and a boarding pass to be issued to the same device key, and what does a traveler do who holds them on two devices?",
+     "examples": ["Rules.OneId.twoDevicesOneTraveler"],
+     "criteria": ["OID-207.3"]}],
+   "profiles": ["mdocOverDcApi", "openid4vp", "proximity"],
+   "lean": "Rules.OneId.PairReading.content",
+   "label": "What is compared in the content of the two credentials.",
+   "id": "PairReading.content",
+   "description":
+   "What is compared in the content of the two credentials. What a relying party checks before it treats a photoid and a boarding pass as being about the same traveler. The guide states no rule, so the model keeps readings. The two here use only the content of the two credentials, and they are not the only ones: a check of the device key, a link the issuer asserts, names brought to a common form, or a name with a date of birth are others, to be added as the rules they need are modelled.",
+   "criteria": ["OID-207.1", "OID-207.3"],
+   "checks": ["pairRefusals"],
+   "asWritten": "notChecked"},
+  {"settings":
+   [{"value": true, "label": "Yes"}, {"value": false, "label": "No"}],
+   "questions":
+   [{"theorem": "Rules.OneId.accepted_pair_same_traveler",
+     "question":
+     "What ties a photoid and a boarding pass presented together to one traveler: the same device key, a rule for issuers, a comparison of names, or something else, and what must a relying party check?",
+     "examples": ["Rules.OneId.twoTravelersOneDevice"],
+     "criteria": ["OID-207.1"]},
+    {"theorem": "Rules.OneId.same_traveler_pair_accepted",
+     "question":
+     "Does One ID require a photoid and a boarding pass to be issued to the same device key, and what does a traveler do who holds them on two devices?",
+     "examples": ["Rules.OneId.twoDevicesOneTraveler"],
+     "criteria": ["OID-207.3"]}],
+   "profiles": ["mdocOverDcApi", "openid4vp", "proximity"],
+   "lean": "Rules.OneId.PairReading.sameDeviceKey",
+   "label": "Whether the two credentials must carry the same device key.",
+   "id": "PairReading.sameDeviceKey",
+   "description": "Whether the two credentials must carry the same device key.",
+   "criteria": ["OID-207.1", "OID-207.3"],
+   "checks": ["pairRefusals"],
+   "asWritten": null}],
+ "generatedBy": "lake exe oneid-facts"}

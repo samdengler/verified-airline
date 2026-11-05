@@ -5,7 +5,7 @@
 //
 //   node scripts/one-id-vectors.mjs --model ../model/one-id
 import { deepStrictEqual } from 'node:assert';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { build } from 'esbuild';
 
@@ -23,7 +23,8 @@ const thisModel = {
 const bundle = await build({ entryPoints: [entry], bundle: true, write: false, format: 'esm', platform: 'node', plugins: [thisModel], logLevel: 'error' });
 const { answer } = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`);
 
-const rows = readFileSync(resolve(dir, 'decisions.jsonl'), 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l));
+const files = ['decisions.jsonl', 'presentation/decisions.jsonl'].map((f) => resolve(dir, f)).filter(existsSync);
+const rows = files.flatMap((f) => readFileSync(f, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l)));
 const failed = [];
 for (const row of rows) {
   try {
@@ -36,4 +37,4 @@ if (failed.length) {
   console.error(`one-id-vectors: ${failed.length} of ${rows.length} lines differ\n${failed.join('\n')}`);
   process.exit(1);
 }
-console.log(`one-id-vectors: all ${rows.length} lines of decisions.jsonl agree with the TypeScript checks`);
+console.log(`one-id-vectors: all ${rows.length} lines of the model's decisions agree with the TypeScript checks`);

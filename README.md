@@ -235,6 +235,9 @@ quoted phrases of the guide, the longest eight words.
 - `scenarios.json`: the specimen travelers, one of them the default trip.
 - `readings.json`: every point the guide leaves undecided, with its settings.
 - `decisions.jsonl`: the model's answer for each scenario, check and setting.
+- `presentation/`: the same three files for the presentation rules of §4.2: how a
+  wallet answers a request, and what a relying party checks. verified-id's
+  repository has no remote, so a reader of these files cannot follow a link there.
 
 ### The checks in TypeScript
 
@@ -247,7 +250,7 @@ them as it stands.
 | Check | Runs in | Fails when |
 | --- | --- | --- |
 | `rules/conformance.spec.ts` | `npm test` | Any line of `decisions.jsonl` gets a different answer from the TypeScript |
-| `rules/properties.spec.ts` | `npm test` | A proven theorem, restated with fast-check and tagged with its criterion, fails on a generated input, or a proven criterion of OID-101 to OID-109 has no property |
+| `rules/properties.spec.ts`, `rules/presentation-properties.spec.ts` | `npm test` | A proven theorem, restated with fast-check and tagged with its criterion, fails on a generated input, or a proven criterion has no property |
 | `rules/traceability.spec.ts` | `npm test` | A check names no requirement, one the model lacks, or another Lean name for it; or the reading points differ from `readings.json` |
 | `scripts/check_one_id.py` | `npm run content`, `scripts/update-model.sh --one-id`, verified-id's `scripts/check-airline.sh` | The same comments and reading points, and with `--model` the vectors of any build through `web/scripts/one-id-vectors.mjs` |
 
@@ -355,6 +358,11 @@ tests, and passed all 682 once the change was reverted:
 - The vector `boundary expired boardingPass at the end of validity
   ExpiryReading.validAtEnd=true`: the same.
 - The property `valid_at_validUntil_of_validAtEnd`.
+
+A second seeded error tested the presentation rules: `rules/refusals.ts` was changed
+so the OpenID4VP profile no longer compares a response's session transcript with the
+request. `npm test` then failed 18 of 1,678 tests, 16 vectors of `replay-openid4vp`
+and 2 properties, and passed all 1,678 once the change was reverted.
 
 ## Planned
 

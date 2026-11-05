@@ -2,6 +2,8 @@
 // the oracle key them.  An expert who settles a question removes the point
 // from the model; the switches test then fails until it goes from here and
 // from the check that reads it.
+import type { AcceptanceReading, ConsentReading } from './exchange';
+import type { RequestReading, WalletReading } from './openid4vp';
 import type {
   BoardingPassReading,
   DepartureReading,
@@ -32,6 +34,50 @@ export const READING_POINTS: Readonly<Record<string, readonly string[]>> = {
   MatchReading: ['travelerMatch'],
   PhotoidValidityReading: ['Photoid.validityFindings'],
 };
+
+/** Every point of the presentation rules, with the checks that read it, as presentation/readings.json lists them. */
+export const PRESENTATION_READING_POINTS: Readonly<Record<string, readonly string[]>> = {
+  ConsentReading: ['Wallet.respond'],
+  'AcceptanceReading.extrasRefusedInMdocProfile': ['refusals', 'pairRefusals'],
+  'AcceptanceReading.extrasRefusedInOpenId4Vp': ['refusals', 'pairRefusals'],
+  'AcceptanceReading.extrasRefusedInProximity': ['refusals', 'pairRefusals'],
+  'AcceptanceReading.missingRefusedInMdocProfile': ['refusals', 'pairRefusals'],
+  'AcceptanceReading.missingRefusedInProximity': ['refusals', 'pairRefusals'],
+  'AcceptanceReading.validityCheckedInOpenId4Vp': ['refusals', 'pairRefusals'],
+  'AcceptanceReading.validityCheckedInProximity': ['refusals', 'pairRefusals'],
+  'AcceptanceReading.proximityRebuildsTranscript': ['refusals', 'pairRefusals'],
+  'ExpiryReading.validAtEnd': ['refusals', 'pairRefusals'],
+  'OpenId4Vp.RequestReading.stateRequired': ['OpenId4Vp.requestFindings', 'OpenId4Vp.walletFindings'],
+  'OpenId4Vp.WalletReading.signatureChecked': ['OpenId4Vp.walletFindings'],
+  'OpenId4Vp.WalletReading.verifierListChecked': ['OpenId4Vp.walletFindings'],
+  'PairReading.content': ['pairRefusals'],
+  'PairReading.sameDeviceKey': ['pairRefusals'],
+};
+
+export const consentReading = (s: Settings): ConsentReading => s['ConsentReading'] as ConsentReading;
+
+export const acceptanceReading = (s: Settings): AcceptanceReading => ({
+  extrasRefusedInMdocProfile: s['AcceptanceReading.extrasRefusedInMdocProfile'] === true,
+  extrasRefusedInOpenId4Vp: s['AcceptanceReading.extrasRefusedInOpenId4Vp'] === true,
+  extrasRefusedInProximity: s['AcceptanceReading.extrasRefusedInProximity'] === true,
+  missingRefusedInMdocProfile: s['AcceptanceReading.missingRefusedInMdocProfile'] === true,
+  missingRefusedInProximity: s['AcceptanceReading.missingRefusedInProximity'] === true,
+  validityCheckedInOpenId4Vp: s['AcceptanceReading.validityCheckedInOpenId4Vp'] === true,
+  validityCheckedInProximity: s['AcceptanceReading.validityCheckedInProximity'] === true,
+  proximityRebuildsTranscript: s['AcceptanceReading.proximityRebuildsTranscript'] === true,
+});
+
+export const requestReading = (s: Settings): RequestReading => ({ stateRequired: s['OpenId4Vp.RequestReading.stateRequired'] === true });
+
+export const walletReading = (s: Settings): WalletReading => ({
+  signatureChecked: s['OpenId4Vp.WalletReading.signatureChecked'] === true,
+  verifierListChecked: s['OpenId4Vp.WalletReading.verifierListChecked'] === true,
+});
+
+export const pairReading = (s: Settings): { content: MatchReading; sameDeviceKey: boolean } => ({
+  content: s['PairReading.content'] as MatchReading,
+  sameDeviceKey: s['PairReading.sameDeviceKey'] === true,
+});
 
 export const photoidReading = (s: Settings): PhotoidReading => ({
   portraitRequired: s['PhotoidReading.portraitRequired'] === true,

@@ -3,17 +3,20 @@
 // scripts/check_one_id.py reads the same comments when the build's content step
 // runs, so a check with no requirement stops the build as well.
 import { readFileSync, readdirSync } from 'node:fs';
-import { READING_POINTS } from './support/readings';
+import { PRESENTATION_READING_POINTS, READING_POINTS } from './support/readings';
 
 const DIR = 'src/app/one-id/rules';
 const model = JSON.parse(readFileSync('../model/one-id/model.json', 'utf8'));
 const readings = JSON.parse(readFileSync('../model/one-id/readings.json', 'utf8')).readings as { id: string; checks: string[] }[];
+const presentationReadings = JSON.parse(readFileSync('../model/one-id/presentation/readings.json', 'utf8')).readings as { id: string; checks: string[] }[];
 
 interface Named {
   file: string;
   name: string;
   requirement?: string;
   lean?: string;
+  /** A Lean function that is part of the requirement, beside the one it is named for. */
+  part: boolean;
   outside?: string;
 }
 
@@ -27,6 +30,7 @@ const checks: Named[] = files.flatMap((file) => {
       name,
       requirement: doc.match(/requirement: (\S+)/)?.[1],
       lean: doc.match(/lean: (\S+)/)?.[1],
+      part: /part of requirement:/.test(doc),
       outside: doc.match(/not in the model: (\S+)/)?.[1],
     };
   });
@@ -44,6 +48,16 @@ const TABLE: Record<string, string> = {
   photoidValidityFindings: 'OID-108',
   travelerMatch: 'OID-107',
   consent: 'G-01',
+  walletRespond: 'OID-201',
+  refusals: 'OID-202',
+  openId4VpRequestFindings: 'OID-203',
+  openId4VpReuseFindings: 'OID-203',
+  openId4VpWalletFindings: 'OID-204',
+  openId4VpTranscript: 'OID-205',
+  openId4VpTokenFindings: 'OID-205',
+  mdocProfileRequestFindings: 'OID-206',
+  pairRefusals: 'OID-207',
+  proximitySessionFindings: 'OID-301',
 };
 
 describe('traceability', () => {
@@ -55,7 +69,8 @@ describe('traceability', () => {
   it.each(checks.filter((c) => !c.outside))('$name names a requirement the model has, with its Lean function', (c) => {
     expect(c.requirement).toBe(TABLE[c.name]);
     expect(Object.keys(model.requirements)).toContain(c.requirement);
-    expect(c.lean).toBe(model.requirements[c.requirement!].name);
+    if (c.part) expect(c.lean).toMatch(/^Rules\.OneId\./);
+    else expect(c.lean).toBe(model.requirements[c.requirement!].name);
   });
 
   it('allows consent alone outside the model, and only while the model lacks its guarantee', () => {
@@ -66,5 +81,14 @@ describe('traceability', () => {
 
   it('takes the reading points readings.json has, for the same checks', () => {
     expect(READING_POINTS).toEqual(Object.fromEntries(readings.map((r) => [r.id, r.checks])));
+  });
+
+  it('takes the reading points presentation/readings.json has, for the same checks', () => {
+    expect(PRESENTATION_READING_POINTS).toEqual(Object.fromEntries(presentationReadings.map((r) => [r.id, r.checks])));
+  });
+
+  it('has a check for every requirement of the model', () => {
+    const named = new Set(checks.map((c) => c.requirement));
+    expect(Object.keys(model.requirements).filter((id) => !named.has(id))).toEqual([]);
   });
 });

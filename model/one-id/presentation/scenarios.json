@@ -1,0 +1,1728 @@
+{"standIns":
+ {"resolution792":
+  {"lean": "Rules.OneId.exampleResolution792",
+   "format": "exampleResolution792"},
+  "isoTranscripts":
+  [{"name": "exampleIsoTranscripts",
+    "lean": "Rules.OneId.exampleIsoTranscripts"},
+   {"name": "transcriptsWithoutNonce",
+    "lean": "Rules.OneId.transcriptsWithoutNonce"}],
+  "invented": true},
+ "scenarios":
+ [{"trustedVerifiers": [{"name": "Example Air check-in"}],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "Alice Martin checks in online with the OpenID4VP profile and approves everything asked",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": {"value": "https://checkin.example"},
+   "seen":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "MARTIN"}, "identifier": "family_name"},
+          {"value": {"text": "ALICE"}, "identifier": "given_name"},
+          {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}},
+     {"mdoc":
+      {"validUntil": 1803895200,
+       "nameSpaces":
+       [{"name": "org.iata.bcbp.1",
+         "elements":
+         [{"value": {"text": "EXAMPLE:MARTIN/ALICE"},
+           "identifier": "bcbp_string"}]}],
+       "docType": "org.iata.boardingpass.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Example Air"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "default-openid4vp",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "MARTIN"}, "identifier": "family_name"},
+         {"value": {"text": "ALICE"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}},
+    {"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:MARTIN/ALICE"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "issuer": {"name": "Example Air"},
+     "deviceKey": {"name": "phone"}}],
+   "example": null,
+   "deviceRequest": null,
+   "default": true,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "checkedAt": 1803889800,
+   "authorization":
+   {"state": "check-in 1",
+    "signedWith": {"name": "Example Air check-in"},
+    "responseType": "vp_token",
+    "responseMode": "dc_api.jwt",
+    "protocol": "openid4vp-v1-signed",
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "expectedOrigins": [{"value": "https://checkin.example"}],
+    "encryptionKey": {"name": "key for nonce 1"},
+    "credentials":
+    [{"format": "mso_mdoc",
+      "docType": "org.iso.23220.photoid.1",
+      "claims":
+      [["org.iso.23220.1", "family_name"],
+       ["org.iso.23220.1", "given_name"],
+       ["org.iso.23220.1", "portrait"]]},
+     {"format": "mso_mdoc",
+      "docType": "org.iata.boardingpass.1",
+      "claims": [["org.iata.bcbp.1", "bcbp_string"]]}],
+    "clientIdPrefix": "x509_hash",
+    "clientCertificate": {"name": "Example Air check-in"}}},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "Alice Martin checks in online with the mdoc profile and approves everything asked",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "mdocOverDcApi",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "MARTIN"}, "identifier": "family_name"},
+          {"value": {"text": "ALICE"}, "identifier": "given_name"},
+          {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"iso":
+        "example mdoc profile|https://checkin.example|nonce 1|key for nonce 1"},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}},
+     {"mdoc":
+      {"validUntil": 1803895200,
+       "nameSpaces":
+       [{"name": "org.iata.bcbp.1",
+         "elements":
+         [{"value": {"text": "EXAMPLE:MARTIN/ALICE"},
+           "identifier": "bcbp_string"}]}],
+       "docType": "org.iata.boardingpass.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Example Air"},
+      "deviceSignature":
+      {"transcript":
+       {"iso":
+        "example mdoc profile|https://checkin.example|nonce 1|key for nonce 1"},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "mdocOverDcApi",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "profile": "mdocOverDcApi",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "default-mdoc",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "MARTIN"}, "identifier": "family_name"},
+         {"value": {"text": "ALICE"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}},
+    {"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:MARTIN/ALICE"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "issuer": {"name": "Example Air"},
+     "deviceKey": {"name": "phone"}}],
+   "example": null,
+   "deviceRequest":
+   {"recipientKey": {"name": "key for nonce 1"},
+    "protocol": "org-iso-mdoc",
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "encryptionProtocol": "dcapi",
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "default": true,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "checkedAt": 1803889800,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "Alice Martin taps a phone at the gate reader and approves everything asked",
+   "standIns": true,
+   "sessions":
+   [{"retrieval": "bluetoothLowEnergy",
+     "readerKey": {"name": "reader key 1"},
+     "deviceKey": {"name": "engagement 1"}}],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "proximity",
+    "origin": {"value": "gate B12 reader"},
+    "nonce": {"value": "", "entropyBytes": 0},
+    "engagementKey": {"name": "engagement 1"},
+    "encryptionKey": {"name": "reader key 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "MARTIN"}, "identifier": "family_name"},
+          {"value": {"text": "ALICE"}, "identifier": "given_name"},
+          {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript": {"iso": "example proximity|gate B12 reader|reader key 1"},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}},
+     {"mdoc":
+      {"validUntil": 1803895200,
+       "nameSpaces":
+       [{"name": "org.iata.bcbp.1",
+         "elements":
+         [{"value": {"text": "EXAMPLE:MARTIN/ALICE"},
+           "identifier": "bcbp_string"}]}],
+       "docType": "org.iata.boardingpass.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Example Air"},
+      "deviceSignature":
+      {"transcript": {"iso": "example proximity|gate B12 reader|reader key 1"},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "proximity",
+    "origin": {"value": "gate B12 reader"},
+    "nonce": {"value": "", "entropyBytes": 0},
+    "engagementKey": {"name": "engagement 1"},
+    "encryptionKey": {"name": "reader key 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "profile": "proximity",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "default-proximity",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "MARTIN"}, "identifier": "family_name"},
+         {"value": {"text": "ALICE"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}},
+    {"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:MARTIN/ALICE"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "issuer": {"name": "Example Air"},
+     "deviceKey": {"name": "phone"}}],
+   "example": null,
+   "deviceRequest": null,
+   "default": true,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "checkedAt": 1803889800,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "John Smith approves the names and the portrait a check-in page asks for, and nothing of the boarding pass is sent",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+          {"value": {"text": "JOHN"}, "identifier": "given_name"},
+          {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "honest-check-in",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}},
+    {"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "issuer": {"name": "Example Air"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.checkInPresentation",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "given_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title": "John Smith approves the family name and declines the portrait",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "response": null,
+   "request": null,
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "partial-consent",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.partialConsent",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "John Smith's wallet sends the family name and not the portrait, in the OpenID4VP profile",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "SMITH"}, "identifier": "family_name"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "partial-response-openid4vp",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.partialResponse",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "John Smith's wallet sends the family name and not the portrait, in the mdoc profile",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "mdocOverDcApi",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "SMITH"}, "identifier": "family_name"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"iso":
+        "example mdoc profile|https://checkin.example|nonce 1|key for nonce 1"},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "mdocOverDcApi",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "profile": "mdocOverDcApi",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "partial-response-mdoc",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.partialResponse",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "A wallet that breaks the rules sends the portrait with the family name it was asked for",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen": null,
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+          {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "extra-element",
+   "held": [],
+   "example": "Rules.OneId.extraElementAccepted",
+   "deviceRequest": null,
+   "default": false,
+   "consent": null,
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "A captured response is sent again to a later request with another nonce, in the OpenID4VP profile",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "SMITH"}, "identifier": "family_name"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 2", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "replay-openid4vp",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.replayedResponse",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "A captured response is sent again to a later request with another nonce, in the mdoc profile",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "mdocOverDcApi",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "SMITH"}, "identifier": "family_name"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"iso":
+        "example mdoc profile|https://checkin.example|nonce 1|key for nonce 1"},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "mdocOverDcApi",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 2", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "profile": "mdocOverDcApi",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "replay-mdoc",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.replayedResponse",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "The same replay in the mdoc profile, with a stand-in transcript that leaves out the nonce",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "mdocOverDcApi",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "SMITH"}, "identifier": "family_name"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"iso":
+        "example mdoc profile without a nonce|https://checkin.example|key for nonce 1"},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "mdocOverDcApi",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 2", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "profile": "mdocOverDcApi",
+   "isoTranscripts": "transcriptsWithoutNonce",
+   "id": "nonce-outside-transcript",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.nonceOutsideTheTranscript",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "A response captured in one session at the gate reader is sent again in a later session",
+   "standIns": true,
+   "sessions":
+   [{"retrieval": "bluetoothLowEnergy",
+     "readerKey": {"name": "reader key 1"},
+     "deviceKey": {"name": "engagement 1"}},
+    {"retrieval": "bluetoothLowEnergy",
+     "readerKey": {"name": "reader key 2"},
+     "deviceKey": {"name": "engagement 2"}}],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "proximity",
+    "origin": {"value": "gate B12 reader"},
+    "nonce": {"value": "", "entropyBytes": 0},
+    "engagementKey": {"name": "engagement 1"},
+    "encryptionKey": {"name": "reader key 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "SMITH"}, "identifier": "family_name"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript": {"iso": "example proximity|gate B12 reader|reader key 1"},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "proximity",
+    "origin": {"value": "gate B12 reader"},
+    "nonce": {"value": "", "entropyBytes": 0},
+    "engagementKey": {"name": "engagement 2"},
+    "encryptionKey": {"name": "reader key 2"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "profile": "proximity",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "replay-proximity",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.replayedInProximity",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [{"name": "Example Air check-in"}],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "Another site copies the check-in page's request and shows it to John Smith",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": {"value": "https://checkin.example.invalid"},
+   "seen":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example.invalid"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "SMITH"}, "identifier": "family_name"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example.invalid"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "another-origin",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.requestFromAnotherOrigin",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"}]},
+   "checkedAt": 1803891600,
+   "authorization":
+   {"state": null,
+    "signedWith": {"name": "Example Air check-in"},
+    "responseType": "vp_token",
+    "responseMode": "dc_api.jwt",
+    "protocol": "openid4vp-v1-signed",
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "expectedOrigins": [{"value": "https://checkin.example"}],
+    "encryptionKey": {"name": "key for nonce 1"},
+    "credentials":
+    [{"format": "mso_mdoc",
+      "docType": "org.iso.23220.photoid.1",
+      "claims": [["org.iso.23220.1", "family_name"]]}],
+    "clientIdPrefix": "x509_hash",
+    "clientCertificate": {"name": "Example Air check-in"}}},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "An expired boarding pass is presented an hour after departure, in the mdoc profile",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "mdocOverDcApi",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1803895200,
+       "nameSpaces":
+       [{"name": "org.iata.bcbp.1",
+         "elements":
+         [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+           "identifier": "bcbp_string"}]}],
+       "docType": "org.iata.boardingpass.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Example Air"},
+      "deviceSignature":
+      {"transcript":
+       {"iso":
+        "example mdoc profile|https://checkin.example|nonce 1|key for nonce 1"},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "mdocOverDcApi",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "profile": "mdocOverDcApi",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "expired-mdoc",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "issuer": {"name": "Example Air"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.expiredBoardingPassAccepted",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "checkedAt": 1803898800,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "An expired boarding pass is presented an hour after departure, in the OpenID4VP profile",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1803895200,
+       "nameSpaces":
+       [{"name": "org.iata.bcbp.1",
+         "elements":
+         [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+           "identifier": "bcbp_string"}]}],
+       "docType": "org.iata.boardingpass.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Example Air"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "expired-openid4vp",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "issuer": {"name": "Example Air"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.expiredBoardingPassAccepted",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "checkedAt": 1803898800,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "An expired boarding pass is presented an hour after departure, at the gate reader",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "proximity",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1803895200,
+       "nameSpaces":
+       [{"name": "org.iata.bcbp.1",
+         "elements":
+         [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+           "identifier": "bcbp_string"}]}],
+       "docType": "org.iata.boardingpass.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Example Air"},
+      "deviceSignature":
+      {"transcript":
+       {"iso": "example proximity|https://checkin.example|key for nonce 1"},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}}]},
+   "request":
+   {"profile": "proximity",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "profile": "proximity",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "expired-proximity",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "issuer": {"name": "Example Air"},
+     "deviceKey": {"name": "phone"}}],
+   "example": "Rules.OneId.expiredBoardingPassAccepted",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "checkedAt": 1803898800,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "The check-in page's request has every part the guide lists and no state value",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen": null,
+   "response": null,
+   "request": null,
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "request-without-state",
+   "held": [],
+   "example": "Rules.OneId.requestWithoutState",
+   "deviceRequest": null,
+   "default": false,
+   "consent": null,
+   "checkedAt": 1803891600,
+   "authorization":
+   {"state": null,
+    "signedWith": {"name": "Example Air check-in"},
+    "responseType": "vp_token",
+    "responseMode": "dc_api.jwt",
+    "protocol": "openid4vp-v1-signed",
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "expectedOrigins": [{"value": "https://checkin.example"}],
+    "encryptionKey": {"name": "key for nonce 1"},
+    "credentials":
+    [{"format": "mso_mdoc",
+      "docType": "org.iso.23220.photoid.1",
+      "claims": [["org.iso.23220.1", "family_name"]]}],
+    "clientIdPrefix": "x509_hash",
+    "clientCertificate": {"name": "Example Air check-in"}}},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "Alice Martin's photoid and Bruno Keller's boarding pass are presented from one shared phone",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "MARTIN"}, "identifier": "family_name"},
+          {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "shared phone"}},
+      "deviceKey": {"name": "shared phone"}},
+     {"mdoc":
+      {"validUntil": 1803895200,
+       "nameSpaces":
+       [{"name": "org.iata.bcbp.1",
+         "elements":
+         [{"value": {"text": "EXAMPLE:KELLER/BRUNO"},
+           "identifier": "bcbp_string"}]}],
+       "docType": "org.iata.boardingpass.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Example Air"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "shared phone"}},
+      "deviceKey": {"name": "shared phone"}}]},
+   "request":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "two-travelers-one-device",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "MARTIN"}, "identifier": "family_name"},
+         {"value": {"text": "ALICE"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "shared phone"}},
+    {"subject": {"id": "traveler 2"},
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:KELLER/BRUNO"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "issuer": {"name": "Example Air"},
+     "deviceKey": {"name": "shared phone"}}],
+   "example": "Rules.OneId.twoTravelersOneDevice",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "John Smith holds the photoid on a phone and the boarding pass on a tablet",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": null,
+   "seen":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "response":
+   {"documents":
+    [{"mdoc":
+      {"validUntil": 1893456000,
+       "nameSpaces":
+       [{"name": "org.iso.23220.1",
+         "elements":
+         [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+          {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+       "docType": "org.iso.23220.photoid.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Utopia passport office"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "phone"}},
+      "deviceKey": {"name": "phone"}},
+     {"mdoc":
+      {"validUntil": 1803895200,
+       "nameSpaces":
+       [{"name": "org.iata.bcbp.1",
+         "elements":
+         [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+           "identifier": "bcbp_string"}]}],
+       "docType": "org.iata.boardingpass.1"},
+      "issuerSignatureValid": true,
+      "issuer": {"name": "Example Air"},
+      "deviceSignature":
+      {"transcript":
+       {"handover":
+        {"origin": {"value": "https://checkin.example"},
+         "nonce": {"value": "nonce 1", "entropyBytes": 16},
+         "encryptionKey": {"name": "key for nonce 1"}}},
+       "key": {"name": "tablet"}},
+      "deviceKey": {"name": "tablet"}}]},
+   "request":
+   {"profile": "openid4vp",
+    "origin": {"value": "https://checkin.example"},
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "engagementKey": null,
+    "encryptionKey": {"name": "key for nonce 1"},
+    "elements":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "two-devices-one-traveler",
+   "held":
+   [{"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "issuer": {"name": "Utopia passport office"},
+     "deviceKey": {"name": "phone"}},
+    {"subject": {"id": "traveler 1"},
+     "mdoc":
+     {"validUntil": 1803895200,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "issuer": {"name": "Example Air"},
+     "deviceKey": {"name": "tablet"}}],
+   "example": "Rules.OneId.twoDevicesOneTraveler",
+   "deviceRequest": null,
+   "default": false,
+   "consent":
+   {"approved":
+    [{"nameSpace": "org.iso.23220.1",
+      "identifier": "family_name",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iso.23220.1",
+      "identifier": "portrait",
+      "docType": "org.iso.23220.photoid.1"},
+     {"nameSpace": "org.iata.bcbp.1",
+      "identifier": "bcbp_string",
+      "docType": "org.iata.boardingpass.1"}]},
+   "checkedAt": 1803891600,
+   "authorization": null},
+  {"trustedVerifiers": [{"name": "Example Air check-in"}],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "The check-in page's request is signed with the key of another certificate",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": {"value": "https://checkin.example"},
+   "seen": null,
+   "response": null,
+   "request": null,
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "wrongly-signed-request",
+   "held": [],
+   "example": "Rules.OneId.wronglySignedRequestAnswered",
+   "deviceRequest": null,
+   "default": false,
+   "consent": null,
+   "checkedAt": 1803891600,
+   "authorization":
+   {"state": null,
+    "signedWith": {"name": "Someone else's certificate"},
+    "responseType": "vp_token",
+    "responseMode": "dc_api.jwt",
+    "protocol": "openid4vp-v1-signed",
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "expectedOrigins": [{"value": "https://checkin.example"}],
+    "encryptionKey": {"name": "key for nonce 1"},
+    "credentials":
+    [{"format": "mso_mdoc",
+      "docType": "org.iso.23220.photoid.1",
+      "claims": [["org.iso.23220.1", "family_name"]]}],
+    "clientIdPrefix": "x509_hash",
+    "clientCertificate": {"name": "Example Air check-in"}}},
+  {"trustedVerifiers": [],
+   "trustedIssuers":
+   [{"name": "Utopia passport office"}, {"name": "Example Air"}],
+   "title":
+   "The check-in page's certificate is not on the wallet's list of trusted verifiers",
+   "standIns": true,
+   "sessions": [],
+   "seenOrigin": {"value": "https://checkin.example"},
+   "seen": null,
+   "response": null,
+   "request": null,
+   "profile": "openid4vp",
+   "isoTranscripts": "exampleIsoTranscripts",
+   "id": "untrusted-verifier",
+   "held": [],
+   "example": "Rules.OneId.untrustedVerifierAnswered",
+   "deviceRequest": null,
+   "default": false,
+   "consent": null,
+   "checkedAt": 1803891600,
+   "authorization":
+   {"state": null,
+    "signedWith": {"name": "Example Air check-in"},
+    "responseType": "vp_token",
+    "responseMode": "dc_api.jwt",
+    "protocol": "openid4vp-v1-signed",
+    "nonce": {"value": "nonce 1", "entropyBytes": 16},
+    "expectedOrigins": [{"value": "https://checkin.example"}],
+    "encryptionKey": {"name": "key for nonce 1"},
+    "credentials":
+    [{"format": "mso_mdoc",
+      "docType": "org.iso.23220.photoid.1",
+      "claims": [["org.iso.23220.1", "family_name"]]}],
+    "clientIdPrefix": "x509_hash",
+    "clientCertificate": {"name": "Example Air check-in"}}}],
+ "generatedBy": "lake exe oneid-facts"}

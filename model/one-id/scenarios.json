@@ -343,5 +343,125 @@
           "identifier": "bcbp_string"}]}],
       "docType": "org.iata.boardingpass.1"},
      "about": "traveler 1"}],
+   "checkedAt": 1803889800},
+  {"title":
+   "The photoid carries a loyalty namespace and a data element that no table lists",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1924992000},
+   "journey": null,
+   "id": "unlisted-data",
+   "example": "Rules.OneId.photoidWithUnlistedData",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"},
+         {"value": {"other": "43"}, "identifier": "example_shoe_size"}]},
+       {"name": "org.example.loyalty.1",
+        "elements":
+        [{"value": {"text": "EX123456"},
+          "identifier": "frequent_flyer_number"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803889800},
+  {"title":
+   "The photoid's portrait is a different image from the one in data group 2",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1924992000},
+   "journey": null,
+   "id": "portrait-differs",
+   "example": "Rules.OneId.portraitDiffersFromDataGroup",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]},
+       {"name": "org.iso.23220.datagroups.1",
+        "elements":
+        [{"value": {"bytes": [9, 9, 9]}, "identifier": "dg2"},
+         {"value": {"bytes": [7]}, "identifier": "sod"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803889800},
+  {"title":
+   "The photoid namespace holds the enrolment image and no document number",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1924992000},
+   "journey": null,
+   "id": "photoid-namespace-incomplete",
+   "example": "Rules.OneId.photoidNameSpaceIncomplete",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]},
+       {"name": "org.iso.23220.photoid.1",
+        "elements":
+        [{"value": {"bytes": [9, 9, 9]},
+          "identifier": "enrolment_portrait_image"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803889800},
+  {"title":
+   "The data groups namespace holds data group 2 and no security object",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1924992000},
+   "journey": null,
+   "id": "data-groups-incomplete",
+   "example": "Rules.OneId.dataGroupsNameSpaceIncomplete",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"}]},
+       {"name": "org.iso.23220.datagroups.1",
+        "elements": [{"value": {"bytes": [1, 2, 3]}, "identifier": "dg2"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803889800},
+  {"title": "The photoid holds two family names, SMITH and then JONES",
+   "standIns": true,
+   "sourceDocument": {"kind": "passport", "expires": 1924992000},
+   "journey": null,
+   "id": "repeated-family-name",
+   "example": "Rules.OneId.repeatedIdentifier",
+   "default": false,
+   "credentials":
+   [{"role": "photoid",
+     "mdoc":
+     {"validUntil": 1893456000,
+      "nameSpaces":
+      [{"name": "org.iso.23220.1",
+        "elements":
+        [{"value": {"text": "SMITH"}, "identifier": "family_name"},
+         {"value": {"text": "JOHN"}, "identifier": "given_name"},
+         {"value": {"bytes": [1, 2, 3]}, "identifier": "portrait"},
+         {"value": {"text": "JONES"}, "identifier": "family_name"}]}],
+      "docType": "org.iso.23220.photoid.1"},
+     "about": "traveler 1"}],
    "checkedAt": 1803889800}],
  "generatedBy": "lake exe oneid-facts"}

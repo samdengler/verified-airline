@@ -69,17 +69,17 @@ def check_traceability(model):
                 render_airline.fail(where, f"{name} names no requirement and Lean function in its comment")
             if req.group(1) not in requirements:
                 render_airline.fail(where, f"{name} names {req.group(1)}, which the model does not have")
-            if requirements[req.group(1)]["name"] != lean.group(1):
+            if "part of requirement:" not in doc and requirements[req.group(1)]["name"] != lean.group(1):
                 render_airline.fail(where, f"{name} names {lean.group(1)}, and the model calls {req.group(1)} "
                                            f"{requirements[req.group(1)]['name']}")
             count += 1
     return count
 
 
-def check_readings(readings):
-    """The reading points the TypeScript takes are the ones readings.json has."""
+def check_readings(readings, constant="READING_POINTS"):
+    """The reading points the TypeScript takes are the ones a readings file has."""
     text = (RULES / "support" / "readings.ts").read_text()
-    block = text[text.index("READING_POINTS"):]
+    block = text[re.search(rf"\bconst {constant}\b", text).start():]
     block = block[:block.index("};")]
     ours = {k: re.findall(r"'([^']+)'", v) for k, v in re.findall(r"^\s*'?([\w.]+)'?: \[([^\]]*)\]", block, re.M)}
     theirs = {r["id"]: r["checks"] for r in readings["readings"]}
@@ -110,11 +110,15 @@ def main():
             print("check_one_id: content/one-id.json agrees with the model")
         checks = check_traceability(json.loads((model_dir / "model.json").read_text()))
         points = check_readings(json.loads((model_dir / "readings.json").read_text()))
+        presentation = model_dir / "presentation" / "readings.json"
+        if presentation.exists():
+            points += check_readings(json.loads(presentation.read_text()), "PRESENTATION_READING_POINTS")
         print(f"check_one_id: {checks} checks name what the model has; {points} reading points agree")
     except render_airline.BuildError as e:
         sys.exit(f"check_one_id: {e}")
     if args.decisions:
-        rows = [json.loads(line) for line in (model_dir / "decisions.jsonl").read_text().splitlines() if line.strip()]
+        files = [model_dir / "decisions.jsonl", model_dir / "presentation" / "decisions.jsonl"]
+        rows = [json.loads(line) for f in files if f.exists() for line in f.read_text().splitlines() if line.strip()]
         args.decisions.parent.mkdir(parents=True, exist_ok=True)
         args.decisions.write_text(json.dumps({r["name"]: r["response"]["result"] for r in rows if r["scenario"]},
                                              ensure_ascii=False, separators=(",", ":")) + "\n")

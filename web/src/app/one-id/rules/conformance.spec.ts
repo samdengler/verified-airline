@@ -12,10 +12,14 @@ interface Decision {
   response: { result: unknown };
 }
 
-const decisions: Decision[] = readFileSync('../model/one-id/decisions.jsonl', 'utf8')
-  .split('\n')
-  .filter(Boolean)
-  .map((line) => JSON.parse(line));
+const read = (file: string): Decision[] =>
+  readFileSync(file, 'utf8')
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
+
+const decisions = read('../model/one-id/decisions.jsonl');
+const presentation = read('../model/one-id/presentation/decisions.jsonl');
 
 describe('the conformance vectors', () => {
   it('has the eight rules of the oracle', () => {
@@ -23,6 +27,16 @@ describe('the conformance vectors', () => {
   });
 
   it.each(decisions)('$name', ({ request, response }) => {
+    expect(answer(request)).toEqual(response.result);
+  });
+});
+
+describe('the conformance vectors of the presentation rules', () => {
+  it('has the ten presentation rules of the oracle', () => {
+    expect(new Set(presentation.map((d) => d.request.rule)).size).toBe(10);
+  });
+
+  it.each(presentation)('$name', ({ request, response }) => {
     expect(answer(request)).toEqual(response.result);
   });
 });
