@@ -36,6 +36,7 @@ export function passNameLine(m: Mdoc): string {
       <dl class="oid-lean-ids" data-lean>
         <dt>{{ lean.docType }}</dt><dd><code>{{ mdoc().docType }}</code></dd>
         <dt>{{ lean.nameSpaces }}</dt><dd>@for (n of nameSpaces(); track $index) { <code>{{ n }}</code> }</dd>
+        @if (issuer(); as i) { <dt>{{ lean.issuer }}</dt><dd><code>{{ i }}</code></dd> }
       </dl>
     </article>
   `,
@@ -43,6 +44,8 @@ export function passNameLine(m: Mdoc): string {
 export class CredentialCard {
   readonly role = input.required<'photoid' | 'boardingPass'>();
   readonly mdoc = input.required<Mdoc>();
+  /** Who issued it, from the model's scenario. */
+  readonly issuer = input<string | null>(null);
   protected readonly labels = wording.traveler.labels;
   protected readonly specimen = wording.traveler.specimen;
   protected readonly lean = wording.lean.wallet;

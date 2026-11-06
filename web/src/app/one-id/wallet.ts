@@ -1,12 +1,14 @@
 import { Component, computed, inject } from '@angular/core';
 import { site } from '../content';
+import { LeanModel } from '../lean-model';
 import { CredentialCard, passNameLine, photoidNames } from './credential-card';
-import { credentialOf, dataElements, fill, formatInstant, requestedItems, wording } from './data';
+import { credentialOf, dataElements, fill, formatInstant, itemLabels, type PresentationScenario, wording } from './data';
 import { viewChecks } from './decide';
 import { Marker } from './marker';
-import { consent } from './rules/consent';
-import { Trip } from './trip';
-import { LeanModel } from '../lean-model';
+import { checkInPresentation, gatePresentation } from './presentation-checks';
+import { hasRef, mdocRefs } from './rules/support/exchange';
+import { bcbpStringId } from './rules/support/identifiers';
+import { PASS_HELD, Trip } from './trip';
 
 /** /wallet: a demo of a wallet, which in real life is a separate app from a separate party. */
 @Component({
@@ -27,41 +29,56 @@ import { LeanModel } from '../lean-model';
           </button>
         </header>
 
-        @if (asked()) {
-          <section class="oid-sheet" data-sheet="consent">
-            <h2>{{ asksLine() }}</h2>
-            <p>{{ forLine }}</p>
-            <div class="heading-row"><h3>{{ w.willShare }}</h3><va-marker key="consent" [grey]="grey.consent" /></div>
-            <div class="oid-card oid-list">
-              @for (item of sheet().shared; track item.identifier) {
-                <div class="oid-row">
-                  <span class="oid-grow">{{ labelOf(item.identifier) }}</span>
-                  @if ('text' in item.value) {
-                    <span class="oid-strong">{{ item.value.text }}</span>
-                  } @else {
-                    <svg class="oid-portrait small" viewBox="0 0 24 24" role="img" [attr.aria-label]="t.labels.portraitPlaceholder"><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 21c1-4 4-6 7.500-6s6.500 2 7.500 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                  }
-                  <code class="oid-id" data-lean>{{ item.nameSpace }} / {{ item.identifier }}</code>
-                </div>
-              }
+        @if (sheet(); as s) {
+          <section class="oid-sheet" data-sheet="consent" [attr.data-for]="s.forGate ? 'gate' : 'check-in'">
+            <h2>{{ s.asks }}</h2>
+            <p>{{ s.why }}</p>
+            <div class="oid-row marked oid-plain" data-lean data-check="walletFindings" [attr.data-status]="s.requestState">
+              <span class="oid-grow oid-small">{{ leanWords.wallet.requestChecked }}</span>
+              <span class="badge" [class.proven]="s.requestState === 'passed'" [class.open]="s.requestState !== 'passed'">{{ s.requestWord }}</span>
+              <va-marker key="wallet-findings" [requirements]="checks.walletFindings.requirements" />
             </div>
-            @if (sheet().kept.length) {
+            <div class="heading-row"><h3>{{ w.willShare }}</h3><va-marker key="consent" [requirements]="leanWords.wallet.consentMarker.requirements" /></div>
+            @if (s.items.length) {
+              <div class="oid-card oid-list">
+                @for (item of s.items; track item.identifier) {
+                  <div class="oid-row">
+                    <span class="oid-grow">{{ item.label }}</span>
+                    @if (item.text !== null) {
+                      <span class="oid-strong">{{ item.text }}</span>
+                    } @else {
+                      <svg class="oid-portrait small" viewBox="0 0 24 24" role="img" [attr.aria-label]="t.labels.portraitPlaceholder"><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 21c1-4 4-6 7.500-6s6.500 2 7.500 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                    }
+                    <code class="oid-id" data-lean>{{ item.nameSpace }} / {{ item.identifier }}</code>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p>{{ w.nothingToShare }}</p>
+            }
+            @if (s.kept.length) {
               <h3>{{ w.stays }}</h3>
               <div class="oid-card oid-list">
-                @for (item of sheet().kept; track item.nameSpace + item.identifier) {
-                  <div class="oid-row"><code class="oid-id">{{ item.nameSpace }} / {{ item.identifier }}</code></div>
+                @for (item of s.kept; track item) {
+                  <div class="oid-row"><code class="oid-id">{{ item }}</code></div>
                 }
               </div>
             }
-            <button type="button" class="oid-button" data-action="share" (click)="trip.go('shared')">{{ shareLine() }}</button>
-            <button type="button" class="oid-button secondary" data-action="decline" (click)="trip.go('declined')">{{ w.decline }}</button>
+            @if (s.items.length) {
+              @if (s.forGate) {
+                <a class="oid-button" href="/gate" target="va-gate" data-action="share-gate" (click)="trip.go('presented')">{{ s.share }}</a>
+              } @else {
+                <button type="button" class="oid-button" data-action="share" (click)="trip.go('shared')">{{ s.share }}</button>
+              }
+            }
+            <button type="button" class="oid-button secondary" data-action="decline" (click)="trip.go(s.forGate ? 'gateDeclined' : 'declined')">{{ w.decline }}</button>
           </section>
         }
 
         <section class="oid-stack">
           <h2>{{ w.credentials }}</h2>
           @if (photoid(); as p) {
-            <va-credential role="photoid" [mdoc]="p">
+            <va-credential role="photoid" [mdoc]="p" [issuer]="issuers().photoid">
               <div class="oid-person">
                 <svg class="oid-portrait" viewBox="0 0 24 24" role="img" [attr.aria-label]="t.labels.portraitPlaceholder"><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 21c1-4 4-6 7.500-6s6.500 2 7.500 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 <div>
@@ -73,7 +90,7 @@ import { LeanModel } from '../lean-model';
             </va-credential>
           }
           @if (showPass(); as b) {
-            <va-credential role="boardingPass" [mdoc]="b">
+            <va-credential role="boardingPass" [mdoc]="b" [issuer]="issuers().boardingPass">
               <div class="oid-between">
                 <div><p class="oid-label">{{ airline }}</p><p class="oid-big">{{ t.flight.number }}</p></div>
                 @if (departs(); as d) { <div class="oid-right"><p class="oid-label">{{ t.labels.departs }}</p><p class="oid-big">{{ d }}</p></div> }
@@ -89,13 +106,14 @@ import { LeanModel } from '../lean-model';
           }
         </section>
 
+        @if (trip.step() === 'gateDeclined') { <p data-state="gate-declined">{{ w.gateDeclined }}</p> }
         @if (presented()) {
           <p class="oid-strong" data-state="presented">{{ w.presented }}</p>
           <a class="oid-button secondary" href="/gate" target="va-gate">{{ gateTitle }}</a>
-        } @else if (showPass()) {
-          <a class="oid-button" href="/gate" target="va-gate" data-action="present" (click)="trip.go('presented')">{{ w.present }}</a>
+        } @else if (showPass() && !sheet()) {
+          <button type="button" class="oid-button" data-action="present" (click)="trip.go('gateAsked')">{{ w.present }}</button>
         }
-        @if (!asked() && !showPass()) {
+        @if (!sheet() && !showPass()) {
           <p class="oid-small" data-state="wallet-idle">{{ w.empty }}</p>
         }
         <p class="oid-note">{{ t.note }}</p>
@@ -108,16 +126,15 @@ export class Wallet {
   protected readonly lean = inject(LeanModel);
   protected readonly t = wording.traveler;
   protected readonly w = wording.traveler.wallet;
-  protected readonly grey = wording.lean.grey;
+  protected readonly leanWords = wording.lean;
   protected readonly checks = wording.lean.checks;
   protected readonly airline = site.airline;
   protected readonly gateTitle = wording.traveler.gate.title;
 
-  protected readonly asked = computed(() => this.trip.step() === 'asked' && !!this.photoid());
   protected readonly presented = computed(() => this.trip.step() === 'presented');
   protected readonly photoid = computed(() => credentialOf(this.trip.scenario(), 'photoid'));
   private readonly pass = computed(() => credentialOf(this.trip.scenario(), 'boardingPass'));
-  protected readonly showPass = computed(() => (['passAdded', 'presented'].includes(this.trip.step()) ? this.pass() : undefined));
+  protected readonly showPass = computed(() => (PASS_HELD.includes(this.trip.step()) ? this.pass() : undefined));
   protected readonly names = computed(() => photoidNames(this.photoid()!));
   protected readonly passName = computed(() => passNameLine(this.pass()!));
   protected readonly validUntil = computed(() => formatInstant(this.pass()!.validUntil));
@@ -130,13 +147,46 @@ export class Wallet {
     const state = viewChecks(this.trip.scenario(), this.trip.decisions()).find((c) => c.result.key === 'boardingPass')?.state;
     return state === 'depends' ? wording.lean.decision.walletDepends : state === 'passed' ? this.w.passOk : this.w.passFailed;
   });
+  /** Who issued each credential, from the default presentation. */
+  protected readonly issuers = computed(() => {
+    const held = gatePresentation(this.trip.scenario()).held;
+    const of = (m: { docType: string } | undefined) => held.find((h) => h.mdoc.docType === m?.docType)?.issuer.name ?? null;
+    return { photoid: of(this.photoid()), boardingPass: of(this.pass()) };
+  });
 
-  protected readonly sheet = computed(() => consent(requestedItems, this.photoid()!));
-  protected readonly asksLine = computed(() => fill(this.w.asks, { airline: this.airline, count: this.sheet().shared.length }));
-  protected readonly shareLine = computed(() => fill(this.w.share, { count: this.sheet().shared.length }));
-  protected readonly forLine = fill(this.w.forCheckIn, { flight: this.t.flight.number });
+  /** The sheet for the request in front of the holder.  Its lists are what the model's Wallet.respond would send if they agree. */
+  protected readonly sheet = computed(() => {
+    const step = this.trip.step();
+    if ((step !== 'asked' || !this.photoid()) && step !== 'gateAsked') return null;
+    const forGate = step === 'gateAsked';
+    const presentation = forGate ? gatePresentation(this.trip.scenario()) : checkInPresentation(this.trip.scenario());
+    const items = this.itemsOf(presentation);
+    const heldRefs = presentation.held.flatMap((h) => mdocRefs(h.mdoc));
+    const sharedRefs = presentation.response!.documents.flatMap((d) => mdocRefs(d.mdoc));
+    const request = viewChecks(presentation, this.trip.decisions()).find((c) => c.result.key === 'walletFindings');
+    const requestState = request?.state ?? 'passed';
+    return {
+      forGate,
+      items,
+      kept: heldRefs.filter((r) => !hasRef(sharedRefs, r)).map((r) => `${r.nameSpace} / ${r.identifier}`),
+      asks: forGate ? fill(this.w.asksGate, { count: items.length }) : fill(this.w.asks, { airline: this.airline, count: items.length }),
+      why: fill(forGate ? this.w.forGate : this.w.forCheckIn, { flight: this.t.flight.number }),
+      share: fill(this.w.share, { count: items.length }),
+      requestState,
+      requestWord: wording.lean.gate.status[requestState === 'depends' ? 'decide' : requestState],
+    };
+  });
 
-  protected labelOf(identifier: string): string {
-    return requestedItems.find((i) => i.identifier === identifier)?.label ?? dataElements.find((e) => e.value === identifier)?.name ?? identifier;
+  private itemsOf(p: PresentationScenario) {
+    return p.response!.documents.flatMap((d) =>
+      d.mdoc.nameSpaces.flatMap((ns) =>
+        ns.elements.map((e) => ({
+          nameSpace: ns.name,
+          identifier: e.identifier,
+          label: itemLabels.find((i) => i.identifier === e.identifier)?.label ?? dataElements.find((x) => x.value === e.identifier)?.name ?? e.identifier,
+          text: e.identifier === bcbpStringId ? passNameLine(d.mdoc) : 'text' in e.value ? e.value.text : null,
+        })),
+      ),
+    );
   }
 }

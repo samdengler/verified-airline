@@ -47,7 +47,6 @@ const TABLE: Record<string, string> = {
   expired: 'OID-105',
   photoidValidityFindings: 'OID-108',
   travelerMatch: 'OID-107',
-  consent: 'G-01',
   walletRespond: 'OID-201',
   refusals: 'OID-202',
   openId4VpRequestFindings: 'OID-203',
@@ -73,10 +72,8 @@ describe('traceability', () => {
     else expect(c.lean).toBe(model.requirements[c.requirement!].name);
   });
 
-  it('allows consent alone outside the model, and only while the model lacks its guarantee', () => {
-    const outside = checks.filter((c) => c.outside);
-    expect(outside.map((c) => [c.name, c.outside])).toEqual([['consent', 'G-01']]);
-    expect(Object.keys(model.requirements)).not.toContain('G-01');
+  it('leaves no check outside the model', () => {
+    expect(checks.filter((c) => c.outside)).toEqual([]);
   });
 
   it('takes the reading points readings.json has, for the same checks', () => {

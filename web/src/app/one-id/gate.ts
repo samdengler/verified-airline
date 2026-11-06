@@ -4,10 +4,11 @@ import { LeanModel } from '../lean-model';
 import { Band } from './band';
 import { type CheckKey, decisionName, describeFinding, sameAnswer } from './checks';
 import { passNameLine, photoidNameLine } from './credential-card';
-import { credentialOf, fill, formatTime, wording } from './data';
-import { type CheckView, viewGate } from './decide';
+import { fill, formatTime, wording } from './data';
+import { type CheckView, isPresentation, mdocOf, type Subject, viewGate } from './decide';
 import { Decision } from './decision';
 import { Marker } from './marker';
+import { gatePresentation } from './presentation-checks';
 import { Presenter } from './presenter';
 import { Trip } from './trip';
 
@@ -60,6 +61,15 @@ interface Row {
                   <p class="oid-banner-line">{{ credentialLine() }}</p>
                 </div>
                 <va-marker key="pair-rule" [requirements]="lean.gate.pairMarker.requirements" />
+              </div>
+            } @else if (view().kind === 'presentation') {
+              <div class="oid-banner credential" [class.refused]="view().outcome !== 'board'" data-state="gate-result" role="status">
+                <div class="oid-grow">
+                  <p class="oid-eyebrow">{{ lean.presentation.eyebrow }}</p>
+                  <p class="oid-banner-word">{{ view().outcome === 'board' ? d.preview.accepted : d.preview.refused }}</p>
+                  <p class="oid-banner-line">{{ presentationLine() }}</p>
+                </div>
+                <va-marker key="presentation-rule" [requirements]="lean.checks.refusals.requirements" />
               </div>
             } @else {
               <div class="oid-banner" [class.board]="board()" [class.refer]="!board()" data-state="gate-result" role="status">
@@ -128,34 +138,52 @@ export class Gate {
   private loading = false;
 
   protected readonly presented = computed(() => this.trip.step() === 'presented');
-  protected readonly view = computed(() => viewGate(this.trip.scenario(), this.trip.decisions()));
-  protected readonly board = computed(() => this.view().outcome === 'board');
+  private readonly subject = computed<Subject>(() => this.trip.subject());
+  /** The default trip also presents at this gate, under the model's proximity rules. */
+  private readonly presentation = computed(() => {
+    const s = this.subject();
+    return !isPresentation(s) && s.default ? gatePresentation(s) : null;
+  });
+  private readonly presentationView = computed(() => {
+    const p = this.presentation();
+    return p && viewGate(p, this.trip.decisions());
+  });
+  protected readonly view = computed(() => viewGate(this.subject(), this.trip.decisions()));
+  protected readonly board = computed(() => this.view().outcome === 'board' && (this.presentationView()?.outcome ?? 'board') === 'board');
 
-  protected readonly statusLine = computed(() => fill(this.w.status, { flight: this.t.flight.number, time: formatTime(this.trip.scenario().checkedAt) }));
+  protected readonly statusLine = computed(() => fill(this.w.status, { flight: this.t.flight.number, time: formatTime(this.subject().checkedAt) }));
   protected readonly bannerLine = computed(() => {
-    const f = this.view().failure;
+    const f = this.view().failure ?? this.presentationView()?.failure;
     return f ? (this.t.reasons as Record<string, string>)[f] : fill(this.w.boardLine, { flight: this.t.flight.number, destination: this.t.flight.destination });
   });
   protected readonly credentialLine = computed(() => {
-    const held = credentialOf(this.trip.scenario(), 'photoid') ? this.labels.photoid : this.labels.boardingPass;
+    const held = mdocOf(this.subject(), 'photoid') ? this.labels.photoid : this.labels.boardingPass;
     return fill(this.d.credentialLine, { credential: held.toLowerCase() });
   });
+  protected readonly presentationLine = computed(() => {
+    const s = this.subject();
+    return isPresentation(s) ? fill(this.lean.presentation.line, { profile: this.lean.presentation.profiles[s.profile] }) : '';
+  });
   protected readonly photoidName = computed(() => {
-    const m = credentialOf(this.trip.scenario(), 'photoid');
+    const m = mdocOf(this.subject(), 'photoid');
     return m ? photoidNameLine(m) : null;
   });
   protected readonly passName = computed(() => {
-    const m = credentialOf(this.trip.scenario(), 'boardingPass');
+    const m = mdocOf(this.subject(), 'boardingPass');
     return m ? passNameLine(m) : null;
   });
   protected readonly missing = computed(() => {
-    const s = this.trip.scenario();
+    const s = this.subject();
+    if (isPresentation(s)) return [];
     return (['photoid', 'boardingPass'] as const)
-      .filter((role) => !credentialOf(s, role))
+      .filter((role) => !mdocOf(s, role))
       .map((role) => fill(this.lean.gate.noCredential, { credential: (role === 'photoid' ? this.labels.photoid : this.labels.boardingPass).toLowerCase() }));
   });
 
-  protected readonly rows = computed<Row[]>(() => this.view().checks.map((c) => this.row(c)));
+  protected readonly rows = computed<Row[]>(() => [
+    ...this.view().checks.map((c) => this.row(c, this.subject())),
+    ...(this.presentationView()?.checks ?? []).map((c) => this.row(c, this.presentation()!)),
+  ]);
 
   constructor() {
     effect(() => {
@@ -169,7 +197,7 @@ export class Gate {
     });
   }
 
-  private row(c: CheckView): Row {
+  private row(c: CheckView, subject: Subject): Row {
     const r = c.result;
     const words = this.lean.checks[r.key];
     const status = this.statusOf(c);
@@ -181,8 +209,16 @@ export class Gate {
       status,
       statusWord: this.lean.gate.status[status],
       found: c.state !== 'depends' && Array.isArray(r.answer) ? r.answer.map(describeFinding).join(', ') : '',
-      model: c.state === 'depends' ? null : this.modelAnswer(c),
+      model: c.state === 'depends' ? null : this.modelAnswer(c, subject),
     };
+  }
+
+  private answerText(answer: unknown): string {
+    const words = this.lean.gate;
+    if (Array.isArray(answer)) return answer.length ? answer.map(describeFinding).join(', ') : words.noFindings;
+    if (typeof answer === 'boolean') return answer ? words.yes : words.no;
+    const documents = (answer as { documents?: unknown[] }).documents;
+    return documents ? fill(words.credentialsPresented, { count: documents.length }) : describeFinding(answer);
   }
 
   private statusOf(c: CheckView): Row['status'] {
@@ -193,15 +229,12 @@ export class Gate {
     return c.state === 'passed' ? 'passed' : 'failed';
   }
 
-  private modelAnswer(c: CheckView): Row['model'] {
+  private modelAnswer(c: CheckView, subject: Subject): Row['model'] {
     const table = this.decisions();
     if (!table) return null;
-    const answer = table[decisionName(this.trip.scenario(), c.result)];
+    const answer = table[decisionName(subject, c.result)];
     if (answer === undefined) return null;
     const words = this.lean.gate;
-    const text = Array.isArray(answer)
-      ? answer.length ? answer.map(describeFinding).join(', ') : words.noFindings
-      : answer ? words.yes : words.no;
-    return { text, same: sameAnswer(answer, c.result.answer) };
+    return { text: this.answerText(answer), same: sameAnswer(answer, c.result.answer) };
   }
 }

@@ -36,8 +36,8 @@ import render_airline
 ROOT = Path(__file__).resolve().parent.parent
 RULES = ROOT / "web" / "src" / "app" / "one-id" / "rules"
 DOC = re.compile(r"/\*\*((?:(?!\*/).)*?)\*/\s*export function (\w+)", re.S)
-# The one check the plan's table allows outside the model, until its package.
-OUTSIDE_THE_MODEL = {"consent": "G-01"}
+# A check outside the model would name its guarantee here.  There are none.
+OUTSIDE_THE_MODEL = {}
 
 
 def check_traceability(model):

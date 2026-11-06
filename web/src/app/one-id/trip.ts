@@ -1,12 +1,15 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, OnDestroy, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { LeanModel } from '../lean-model';
-import { defaultScenario, scenarios } from './data';
-import type { Decisions } from './decide';
+import { defaultScenario, presentationScenarios, scenarios } from './data';
+import type { Decisions, Subject } from './decide';
 import type { Setting } from './rules/support/readings';
 
-/** How far the trip has gone: the website asks, the wallet shares, the website issues, the wallet presents. */
-export type Step = 'start' | 'asked' | 'declined' | 'shared' | 'passAdded' | 'presented';
+/** How far the trip has gone: the website asks, the wallet shares, the website issues, the gate asks, the wallet presents. */
+export type Step = 'start' | 'asked' | 'declined' | 'shared' | 'passAdded' | 'gateAsked' | 'gateDeclined' | 'presented';
+
+/** The steps at which the wallet holds the boarding pass. */
+export const PASS_HELD: readonly Step[] = ['passAdded', 'gateAsked', 'gateDeclined', 'presented'];
 
 interface TripState {
   /** Grows with each change, so a surface takes only news. */
@@ -38,7 +41,10 @@ export class Trip implements OnDestroy {
   readonly step = computed(() => this.state().step);
   readonly decisions = computed(() => this.state().decisions);
   readonly pickedId = computed(() => this.state().scenarioId);
+  /** The traveler whose credentials the website and the wallet show.  A presentation picked on the panel leaves them on the default trip. */
   readonly scenario = computed(() => (this.lean.shown() ? (scenarios.find((s) => s.id === this.state().scenarioId) ?? defaultScenario) : defaultScenario));
+  /** What the gate is asked about: the picked presentation, or the traveler. */
+  readonly subject = computed<Subject>(() => (this.lean.shown() ? presentationScenarios.find((s) => s.id === this.state().scenarioId) : undefined) ?? this.scenario());
 
   constructor() {
     if (!this.channel) return;
@@ -76,7 +82,7 @@ export class Trip implements OnDestroy {
     this.change({ step: 'start' });
   }
 
-  /** The presenter's traveler goes straight to the gate reader. */
+  /** The presenter's traveler or presentation goes straight to the gate reader. */
   pick(scenarioId: string): void {
     this.change({ scenarioId, step: 'presented' });
   }

@@ -94,6 +94,12 @@ va-marker, va-one-id-band, va-credential, va-presenter, va-decision { display: c
 .oid-question + .oid-question { margin-top: 6px; }
 .oid-question-row { align-items: center; }
 
+.oid-group { border-top: 1px solid var(--line); padding-top: 10px; }
+.oid-group > summary { font-size: 14px; font-weight: 600; cursor: pointer; padding: 4px 0 10px; }
+.oid-row.oid-plain { padding: 0; }
+.oid-pickers { max-height: 340px; overflow-y: auto; padding: 2px; }
+.oid-sheet .oid-row .oid-id { flex-basis: 100%; }
+
 /* A point the trip stops at. */
 .oid-decision { position: relative; padding: 18px 20px; border: 1px solid var(--amber-line); border-radius: 12px; background: var(--surface); display: flex; flex-direction: column; gap: 12px; }
 .one-id .oid-decision-label { font-size: 16px; font-weight: 700; color: var(--ink); }

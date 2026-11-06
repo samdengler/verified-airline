@@ -236,8 +236,7 @@ quoted phrases of the guide, the longest eight words.
 - `readings.json`: every point the guide leaves undecided, with its settings.
 - `decisions.jsonl`: the model's answer for each scenario, check and setting.
 - `presentation/`: the same three files for the presentation rules of §4.2: how a
-  wallet answers a request, and what a relying party checks. verified-id's
-  repository has no remote, so a reader of these files cannot follow a link there.
+  wallet answers a request, and what a relying party checks.
 
 ### The checks in TypeScript
 
@@ -258,9 +257,9 @@ A pass of the vectors means the TypeScript is right on those cases. A pass of th
 properties means it held on every input tried. Neither is a proof; the proofs are
 about the Lean model.
 
-The consent sheet's `consent` is the one function outside the model. It is
-ordinary code tagged with the candidate guarantee G-01, which `model.json` does not
-have, and `check_one_id.py` allows no other.
+No check is outside the model: `check_one_id.py` fails on one that names no
+requirement of it, and a requirement of the model with no check fails
+`rules/traceability.spec.ts`.
 
 ### The three screens
 
@@ -290,14 +289,20 @@ Beside each computed result at the gate is the model's answer for that traveler 
 those settings, read from `public/one-id-decisions.json`, which `npm run content`
 writes from `decisions.jsonl`. The app loads it only with the model shown.
 
-Three steps on these screens are ordinary code, each with a grey marker: the
-request, the consent sheet's list, and combining the checks into "Board" or "Refer
-to agent". The model states the rule for a pair as OID-207 (`pairRefusals`): each
-credential accepted on its own, and both about one traveler. A contactless
-touchpoint needs both credentials. The data files hold no decisions for that rule
-yet, so the site's tests do not cover the combination. A traveler holding one
-credential is never boarded: the gate shows a "Credential check" with the result
-for that credential alone.
+The default trip runs on the model's presentation rules. The website's request is
+the default OpenID4VP presentation narrowed to the photoid, since the boarding pass
+is issued after it. The gate's is the default proximity presentation, and a test
+holds it equal to the model's. The wallet checks who is asking (OID-204), its consent
+sheets list what `Wallet.respond` would send (OID-201), and the relying party decides
+with `refusals` and `pairRefusals` (OID-202, OID-207). With the model shown, each of
+these carries the marker of its requirement.
+
+One step is ordinary code, with a grey marker: combining the result for a pair with
+the checks of each credential's content into "Board" or "Refer to agent". A contactless
+touchpoint needs both credentials, so a traveler holding one is never boarded: the gate
+shows a "Credential check" with the result for that credential alone. The panel also
+offers the model's 21 presentations, such as a replayed response or two travelers on
+one phone. Each shows the relying party's answer under the same rules.
 
 ### Where a trip stops
 
@@ -332,16 +337,17 @@ shown, and fails on any console error or on a banned word in the visible text.
 ### The presenter panel
 
 `/gate` has a panel for whoever presents the demo, shown only with the model. Its
-traveler picker comes from `scenarios.json`, so a scenario the model adds appears
-with no code. It has one switch per entry of `readings.json`, each with its settings
+pickers come from the two `scenarios.json` files, so a scenario the model adds appears
+with no code. It has one switch per entry of the two `readings.json` files, which share
+one point, each with its settings
 and its open question. Every switch starts undecided, and the setting that is the
 guide as written is marked where the model names one. A switch that would change the current traveler's outcome says so.
 "What the reader cannot see" compares who each credential is about, which the issuer
 knows and a relying party does not, with what the gate decided.
 
 `rules/support/readings.ts` lists the points the TypeScript reads, and
-`one-id/presenter.spec.ts` fails if the panel and `readings.json` disagree on a
-switch, a setting or a question. The same spec shows that test failing on a reading
+`one-id/presenter.spec.ts` fails if the panel and those files disagree on a switch, a
+setting or a question. The same spec shows that test failing on a reading
 added, a reading removed and a setting changed. The browser check runs each traveler
 that holds both credentials under both matching settings, and every scenario under
 the panel's settings, against the model's answers.

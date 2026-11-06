@@ -1,6 +1,6 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { consequences, type GateView, viewGate } from './decide';
-import { fill, readings, wording } from './data';
+import { allReadings, fill, wording } from './data';
 import { Marker } from './marker';
 import type { Setting } from './rules/support/readings';
 import { Trip } from './trip';
@@ -89,7 +89,7 @@ export class Decision {
   protected readonly w = wording.lean.decision;
   protected readonly presenter = wording.lean.presenter;
 
-  protected readonly reading = computed(() => readings.find((r) => r.id === this.point()));
+  protected readonly reading = computed(() => allReadings.find((r) => r.id === this.point()));
   protected readonly leftOpen = computed(() => this.trip.decisions()[this.point()] === null);
   protected readonly rows = computed(() => consequences(this.reading()!, this.trip.decisions()));
   protected readonly considerations = computed(() => (this.w.considerations as Record<string, string[]>)[this.point()]);
@@ -104,12 +104,12 @@ export class Decision {
   protected word(view: GateView): string {
     const p = this.w.preview;
     if (view.outcome === 'depends') return p.depends;
-    if (view.kind === 'credential') return view.outcome === 'board' ? p.accepted : p.refused;
+    if (view.kind !== 'pair') return view.outcome === 'board' ? p.accepted : p.refused;
     return view.outcome === 'board' ? p.board : p.refer;
   }
 
   /** What a setting leads to for the traveler at the gate. */
   protected preview(value: Setting): string {
-    return this.word(viewGate(this.trip.scenario(), { ...this.trip.decisions(), [this.point()]: value }));
+    return this.word(viewGate(this.trip.subject(), { ...this.trip.decisions(), [this.point()]: value }));
   }
 }

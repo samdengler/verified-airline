@@ -8,6 +8,8 @@ export interface DeviceRequest {
   elements: ElementRef[];
 }
 
+export type MdocProfileRequest = DeviceRequest;
+
 export type MdocRequestFinding =
   | { code: 'wrongProtocol'; found: string }
   | { code: 'wrongEncryptionProtocol'; found: string }

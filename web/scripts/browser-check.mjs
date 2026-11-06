@@ -27,6 +27,8 @@ if (shots) mkdirSync(shots, { recursive: true });
 const oneIdModel = JSON.parse(readFileSync(new URL('../../model/one-id/model.json', import.meta.url)));
 const oneIdScenarios = JSON.parse(readFileSync(new URL('../../model/one-id/scenarios.json', import.meta.url)));
 const oneIdReadings = JSON.parse(readFileSync(new URL('../../model/one-id/readings.json', import.meta.url)));
+const oneIdPresentationScenarios = JSON.parse(readFileSync(new URL('../../model/one-id/presentation/scenarios.json', import.meta.url)));
+const oneIdPresentationReadings = JSON.parse(readFileSync(new URL('../../model/one-id/presentation/readings.json', import.meta.url)));
 const results = [];
 const check = (name, ok, detail = '') => results.push(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? `  (${detail})` : ''}`);
 
@@ -260,7 +262,12 @@ try {
   check('the boarding pass reaches the wallet and is checked there', held.words === null && held.credentials === 2 && held.specimens === 2 && held.check === words.traveler.wallet.passOk, JSON.stringify(held));
   await shot(wallet, 'wallet-home-hidden');
 
-  let gate = await opensTab(ctx, wallet, '[data-action="present"]');
+  await wallet.locator('[data-action="present"]').click();
+  await wallet.locator('[data-sheet="consent"][data-for="gate"]').waitFor();
+  const gateSheet = { words: await hiddenWords(wallet), share: await wallet.locator('[data-action="share-gate"]').textContent(), text: await wallet.locator('[data-sheet="consent"]').innerText() };
+  check('the gate asks through a consent sheet before anything is presented', gateSheet.words === null && /4/.test(gateSheet.share) && gateSheet.text.includes('MARTIN / ALICE'), JSON.stringify({ words: gateSheet.words, share: gateSheet.share }));
+  await shot(wallet, 'wallet-gate-consent-hidden');
+  let gate = await opensTab(ctx, wallet, '[data-action="share-gate"]');
   await gate.locator('[data-state="gate-result"]').waitFor();
   const noPanel = !(await gate.locator('[data-panel="presenter"]').isVisible());
   check('the presenter panel does not show with the model hidden', noPanel);
@@ -276,16 +283,24 @@ try {
   ctx = await browser.newContext({ colorScheme: 'light', viewport: { width: 1280, height: 900 } });
   page = await watched(ctx);
   await page.goto(BASE + '/check-in?lean=1', { waitUntil: 'networkidle' });
-  const grey = page.locator('.heading-row button.lean-marker.partial').first();
+  const requestMarker = page.locator('.heading-row button.lean-marker').first();
   await shot(page, 'check-in-shown');
-  await grey.click();
-  await shot(page, 'check-in-grey-popover-shown');
+  await requestMarker.click();
+  const requestPop = await page.locator(`#${await requestMarker.getAttribute('aria-controls')}`).innerText();
+  await shot(page, 'check-in-request-popover-shown');
   await page.keyboard.press('Escape');
-  check('with the model shown the request carries a grey marker, and the items their identifiers',
-    (await page.locator('.oid-row code.oid-id').first().isVisible()) && (await page.locator('.lean-legend').isVisible()), '');
+  check('with the model shown the request carries the marker of its requirement, and the items their identifiers',
+    requestPop.includes(oneIdModel.requirements['OID-203'].ears) && !(await requestMarker.evaluate((b) => b.classList.contains('partial')))
+    && (await page.locator('.oid-row code.oid-id').first().isVisible()) && (await page.locator('.lean-legend').isVisible()), '');
   wallet = await opensTab(ctx, page, '[data-action="open-wallet"]');
   await wallet.locator('[data-sheet="consent"]').waitFor();
   await shot(wallet, 'wallet-consent-shown');
+  const consentMarker = wallet.locator('[data-sheet="consent"] .heading-row button.lean-marker');
+  await consentMarker.click();
+  const consentPop = await wallet.locator(`#${await consentMarker.getAttribute('aria-controls')}`).innerText();
+  await wallet.keyboard.press('Escape');
+  check('the consent sheet carries the marker of its requirement, and the wallet says it checked who asks',
+    consentPop.includes(oneIdModel.requirements['OID-201'].ears) && (await wallet.locator('[data-check="walletFindings"]').getAttribute('data-status')) === 'passed', '');
   await wallet.locator('[data-action="share"]').click();
   await page.locator('[data-action="add-pass"]').waitFor();
   const photoidMarker = page.locator('[data-check="photoid"] button.lean-marker');
@@ -300,20 +315,26 @@ try {
   await page.locator('[data-action="add-pass"]').click();
   await wallet.locator('[data-credential="boardingPass"]').waitFor();
   await shot(wallet, 'wallet-home-shown');
-  gate = await opensTab(ctx, wallet, '[data-action="present"]');
+  const presentationChecks = await page.locator('.oid-list [data-check="refusals"]').getAttribute('data-status');
+  check('check-in shows the wallet\'s answer accepted under the model\'s rules', presentationChecks === 'passed', presentationChecks);
+  await wallet.locator('[data-action="present"]').click();
+  await wallet.locator('[data-sheet="consent"][data-for="gate"]').waitFor();
+  await shot(wallet, 'wallet-gate-consent-shown');
+  gate = await opensTab(ctx, wallet, '[data-action="share-gate"]');
   await gate.locator('[data-state="gate-result"]').waitFor();
   await gate.locator('[data-model-answer]').first().waitFor();
   const rows = gate.locator('[data-check]');
   const same = await gate.locator('[data-model-answer][data-same="true"]').count();
   const shownGate = { word: await gate.locator('.oid-banner-word').textContent(), rows: await rows.count(), same, visible: await rows.first().isVisible() };
-  check('with the model shown the gate lists the checks that ran, each agreeing with the model', shownGate.word === words.traveler.gate.board && shownGate.rows === 9 && shownGate.same === 9 && shownGate.visible, JSON.stringify(shownGate));
+  check('with the model shown the gate lists the checks that ran, each agreeing with the model', shownGate.word === words.traveler.gate.board && shownGate.rows === 13 && shownGate.same === 13 && shownGate.visible, JSON.stringify(shownGate));
   await shot(gate, 'gate-shown');
 
   // The presenter's panel: its travelers and switches, from the model's files.
   const panel = gate.locator('[data-panel="presenter"]');
   const onPanel = { visible: await panel.isVisible(), travelers: await panel.locator('[data-scenario]').count(), switches: await panel.locator('[data-reading]').count(), first: await panel.locator('[data-scenario]').first().textContent() };
-  check('the panel shows a traveler for each scenario and a switch for each reading', onPanel.visible && onPanel.travelers === oneIdScenarios.scenarios.length
-    && onPanel.switches === oneIdReadings.readings.length && onPanel.first === oneIdScenarios.scenarios[0].title, JSON.stringify(onPanel));
+  const allSwitches = new Set([...oneIdReadings.readings, ...oneIdPresentationReadings.readings].map((r) => r.id)).size;
+  check('the panel shows a traveler for each scenario and a switch for each reading', onPanel.visible && onPanel.travelers === oneIdScenarios.scenarios.length + oneIdPresentationScenarios.scenarios.length
+    && onPanel.switches === allSwitches && onPanel.first === oneIdScenarios.scenarios[0].title, JSON.stringify(onPanel));
 
   // What the panel changes draws in one pass, so its pressed state says the reader has redrawn too.
   const pickTraveler = async (id) => {
@@ -416,6 +437,33 @@ try {
   check('no traveler holding one credential is shown as boarding', boardedAlone.length === 0, boardedAlone.join());
   await panel.locator('[data-action="clear-decisions"]').click();
   await panel.locator('[data-trail]').first().waitFor({ state: 'detached' });
+
+  // The presentations: a replay is refused with no decision, and a shared phone stops at the points the model leaves open.
+  const presentationAnswers = Object.fromEntries(readFileSync(new URL('../../model/one-id/presentation/decisions.jsonl', import.meta.url), 'utf8').split('\n').filter(Boolean).map((line) => {
+    const d = JSON.parse(line);
+    return [d.name, d.response.result];
+  }));
+  await pickTraveler('replay-openid4vp');
+  const replay = { word: await bannerWord(), stopped: await decideBanner.isVisible(), status: await gate.locator('[data-check="refusals"]').getAttribute('data-status'), found: await gate.locator('[data-check="refusals"] code').first().textContent() };
+  check('a replayed response is refused, under the model\'s rule', replay.word === decide.preview.refused && !replay.stopped && replay.status === 'failed' && /otherRequest/.test(replay.found), JSON.stringify(replay));
+  await shot(gate, 'presentation-replay-openid4vp');
+  await pickTraveler('default-proximity');
+  check('the default proximity presentation is accepted, with no decision', (await bannerWord()) === decide.preview.accepted && !(await decideBanner.isVisible()));
+  await pickTraveler('two-travelers-one-device');
+  const shared = { stopped: await decideBanner.isVisible(), points: await gate.locator('[data-decision]').evaluateAll((els) => els.map((e) => e.getAttribute('data-decision'))) };
+  check('two travelers on one phone stop at what ties a pair together', shared.stopped && shared.points.includes('PairReading.sameDeviceKey'), JSON.stringify(shared));
+  await shot(gate, 'presentation-two-travelers-one-device');
+  await pickTraveler('partial-consent');
+  const partial = { stopped: await decideBanner.isVisible(), points: await gate.locator('[data-decision]').evaluateAll((els) => els.map((e) => e.getAttribute('data-decision'))) };
+  check('a holder who approves part of a request stops at what the wallet then does', partial.stopped && partial.points.join() === 'ConsentReading', JSON.stringify(partial));
+  await panel.locator('[data-action="clear-decisions"]').click().catch(() => undefined);
+  const differingPresentations = [];
+  for (const scenario of oneIdPresentationScenarios.scenarios) {
+    await pickTraveler(scenario.id);
+    const differ = await gate.locator('[data-model-answer][data-same="false"]').count();
+    if (differ) differingPresentations.push(`${scenario.id}: ${differ}`);
+  }
+  check('every presentation can be shown, and every check agrees with the model', differingPresentations.length === 0 && gate.problems.length === 0 && Object.keys(presentationAnswers).length > 0, [...differingPresentations, ...gate.problems].join(' | '));
 
   // Hiding the model hides the panel and goes back to the default trip.
   await gate.locator('.lean-toggle').click();

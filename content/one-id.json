@@ -92,7 +92,11 @@
    "present": "Present at the gate",
    "presented": "Presented at the gate.",
    "derivedFromPassport": "Derived from a passport",
-   "derivedFromOther": "Derived from another identity document"
+   "derivedFromOther": "Derived from another identity document",
+   "asksGate": "The gate asks for {count} items",
+   "forGate": "For boarding flight {flight}.",
+   "gateDeclined": "You declined, so nothing went to the gate.",
+   "nothingToShare": "Your wallet holds nothing this request can use."
   },
   "gate": {
    "documentTitle": "Gate reader",
@@ -116,8 +120,22 @@
    "passValidity": "The boarding pass's end of validity does not fit the flight's departure.",
    "photoidExpired": "The photoid has expired.",
    "passExpired": "The boarding pass has expired.",
-   "match": "The names on the two credentials do not agree."
-  }
+   "match": "The names on the two credentials do not agree.",
+   "walletRespond": "The wallet presented nothing.",
+   "refusals": "The wallet's answer does not meet what was asked.",
+   "pairRefusals": "The two credentials were refused together.",
+   "requestFindings": "The request does not have the parts it needs.",
+   "walletFindings": "The wallet refused to answer this request.",
+   "tokenFindings": "The wallet's answer has the wrong form.",
+   "deviceRequest": "The request does not have the parts it needs.",
+   "sessions": "The reader's session does not meet the requirements."
+  },
+  "gateItems": [
+   {
+    "element": "bcbpStringId",
+    "label": "Boarding pass"
+   }
+  ]
  },
  "lean": {
   "legend": {
@@ -143,17 +161,9 @@
    }
   },
   "grey": {
-   "request": {
-    "title": "Not in the model yet",
-    "text": "This request and its list run on ordinary code. The site does not hold them to the model yet, so nothing here is checked against it."
-   },
-   "consent": {
-    "title": "Not in the model yet",
-    "text": "What this sheet says will be shared comes from ordinary code. The site does not hold it to the model yet, so nothing here is checked against it."
-   },
    "decision": {
     "title": "Not in the model yet",
-    "text": "Each check below is held to the model's answers. Combining them into Board or Refer runs on ordinary code here. The model states the rule for a pair in the requirement beside this marker, and the site's tests do not cover that combination yet."
+    "text": "The model decides each check below, and its rule for a pair. Combining the pair's result with the checks of each credential's content into Board or Refer runs on ordinary code here."
    }
   },
   "checkIn": {
@@ -165,11 +175,24 @@
    "fromDocType": "From a credential of type {docType}.",
    "advisories": "Recommendations not followed: {count}",
    "advisoriesNote": "A recommendation not followed does not stop check-in.",
-   "standIns": "The lists of mandatory elements and the boarding pass format in this demo are invented stand-ins for an ISO document and IATA Resolution 792."
+   "standIns": "The lists of mandatory elements, the boarding pass format and the ISO session transcripts in this demo are invented stand-ins for documents this project has not read.",
+   "requestMarker": {
+    "requirements": [
+     "OID-203"
+    ]
+   },
+   "presentationTitle": "The request and the wallet's answer"
   },
   "wallet": {
    "docType": "Document type",
-   "nameSpaces": "Namespaces"
+   "nameSpaces": "Namespaces",
+   "consentMarker": {
+    "requirements": [
+     "OID-201"
+    ]
+   },
+   "requestChecked": "The wallet checked who is asking",
+   "issuer": "Issuer"
   },
   "gate": {
    "checks": "The checks that ran",
@@ -189,13 +212,17 @@
    },
    "when": {
     "gate": "At the gate",
-    "issued": "When it was issued"
+    "issued": "When it was issued",
+    "wallet": "In the wallet",
+    "relyingParty": "By the relying party",
+    "request": "When it was asked"
    },
    "pairMarker": {
     "requirements": [
      "OID-207"
     ]
-   }
+   },
+   "credentialsPresented": "{count} credentials presented"
   },
   "checks": {
    "photoid": {
@@ -260,6 +287,69 @@
     "requirements": [
      "OID-107"
     ]
+   },
+   "walletRespond": {
+    "title": "The wallet answers with what was asked and approved",
+    "when": "wallet",
+    "requirements": [
+     "OID-201"
+    ]
+   },
+   "refusals": {
+    "title": "The relying party accepts the response",
+    "when": "relyingParty",
+    "requirements": [
+     "OID-202"
+    ]
+   },
+   "pairRefusals": {
+    "title": "The relying party accepts the pair",
+    "when": "relyingParty",
+    "requirements": [
+     "OID-207"
+    ]
+   },
+   "requestFindings": {
+    "title": "The request has what the guide requires",
+    "when": "request",
+    "requirements": [
+     "OID-203"
+    ]
+   },
+   "walletFindings": {
+    "title": "The wallet accepts who is asking",
+    "when": "wallet",
+    "requirements": [
+     "OID-204"
+    ]
+   },
+   "transcript": {
+    "title": "What the response is bound to",
+    "when": "relyingParty",
+    "requirements": [
+     "OID-205"
+    ]
+   },
+   "tokenFindings": {
+    "title": "Each device response holds one credential",
+    "when": "relyingParty",
+    "requirements": [
+     "OID-205"
+    ]
+   },
+   "deviceRequest": {
+    "title": "The request has what the guide requires",
+    "when": "request",
+    "requirements": [
+     "OID-206"
+    ]
+   },
+   "sessions": {
+    "title": "The reader's session uses keys of its own",
+    "when": "relyingParty",
+    "requirements": [
+     "OID-301"
+    ]
    }
   },
   "deciding": {
@@ -287,14 +377,18 @@
    "single": "This traveler holds one credential, so there is no pair to compare.",
    "example": "An example in the model shows this case:",
    "noExample": "The default trip, which every reading accepts.",
-   "standIns": "Invented stand-ins: the tables of photoid data elements and the boarding pass format.",
+   "standIns": "Invented stand-ins: the tables of photoid data elements, the boarding pass format and the ISO session transcripts. Keys, nonces and signatures are named values here: the model compares them and does no cryptography.",
    "undecided": "Undecided",
    "trail": "Decisions so far",
    "noTrail": "Nothing is decided yet.",
    "undo": "Undo",
    "clear": "Clear all decisions",
    "dependsSame": "Both credentials are about the same traveler. The gate's answer depends on a point still undecided.",
-   "dependsDifferent": "The credentials are about two different travelers. The gate's answer depends on a point still undecided."
+   "dependsDifferent": "The credentials are about two different travelers. The gate's answer depends on a point still undecided.",
+   "travelerCredentials": "Credential checks",
+   "travelerPresentations": "Presentations",
+   "readingsPresentations": "One switch for each point the presentation rules leave undecided",
+   "notAPair": "This case has no pair of credentials to compare."
   },
   "decision": {
    "needs": "Needs a decision",
@@ -330,7 +424,7 @@
     "MatchReading": [
      "When a refusal lands: a traveler learns at the gate today. The same check at check-in would warn them with time to fix it.",
      "Who carries each error: a wrong refusal sends a traveler to an agent, and a wrong acceptance boards someone on another traveler's pass.",
-     "What the gate receives: this demo shows no consent sheet at the gate. Requiring both credentials sends the name and the portrait there too.",
+     "What the gate receives: requiring both credentials sends the name and the portrait to the gate. The wallet's sheet lists them before it shares.",
      "No face step: this demo has no camera, so the portrait goes unused here. A touchpoint would match a face against it."
     ],
     "ValidityReading.departure": [
@@ -356,7 +450,25 @@
     ],
     "BoardingPassReading.repeatedNamesRefused": [
      "Under the looser setting a boarding pass with two strings is accepted, and the reader receives one of them."
+    ],
+    "PairReading.content": [
+     "Comparing names here has the errors the matching switch shows for credentials alone. A traveler whose names are written differently is refused."
+    ],
+    "PairReading.sameDeviceKey": [
+     "Requiring one device key refuses a traveler who holds a credential on a second device, and it accepts two travelers sharing one phone."
+    ],
+    "ConsentReading": [
+     "This demo offers all or nothing. Under one setting a traveler who declines the portrait still sends the rest, and under the other the wallet sends nothing of that credential."
     ]
+   }
+  },
+  "presentation": {
+   "eyebrow": "Presentation",
+   "line": "The relying party's answer in the {profile}, from the model's rules.",
+   "profiles": {
+    "openid4vp": "OpenID4VP profile",
+    "mdocOverDcApi": "mdoc profile",
+    "proximity": "proximity profile"
    }
   }
  }

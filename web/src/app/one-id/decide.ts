@@ -2,9 +2,30 @@
 // typed by hand: results come from the checks in rules/, tried under every
 // setting of each undecided point a check reads, and the link between a traveler
 // and an open question comes from scenarios.json and readings.json.
-import { type CheckKey, type CheckResult, runChecks } from './checks';
-import { credentialOf, defaultScenario, firstSettings, readings, type Reading, type Scenario, scenarios } from './data';
+import { type CheckKey, type CheckResult, planChecks, type PlannedCheck, resultOf } from './checks';
+import { allReadings, credentialOf, firstSettings, presentationReadings, type PresentationScenario, presentationScenarios, type Reading, readings, type Scenario, scenarios } from './data';
+import { planPresentationChecks } from './presentation-checks';
+import { boardingPassDocType, photoidDocType } from './rules/support/identifiers';
+import type { Mdoc } from './rules/support/types';
 import type { Setting, Settings } from './rules/support/readings';
+
+/** What the gate can be asked about: a traveler's credentials, or one presentation. */
+export type Subject = Scenario | PresentationScenario;
+
+export const isPresentation = (s: Subject): s is PresentationScenario => 'held' in s;
+
+/** Every traveler and every presentation. */
+export const subjects: readonly Subject[] = [...scenarios, ...presentationScenarios];
+
+const planFor = (s: Subject): PlannedCheck[] => (isPresentation(s) ? planPresentationChecks(s) : planChecks(s));
+
+/** The credential of a kind a subject holds. */
+export function mdocOf(s: Subject, role: 'photoid' | 'boardingPass'): Mdoc | undefined {
+  if (!isPresentation(s)) return credentialOf(s, role);
+  const docType = role === 'photoid' ? photoidDocType : boardingPassDocType;
+  return (s.response?.documents ?? s.held).find((c) => c.mdoc.docType === docType)?.mdoc;
+}
+
 
 /** A point's state: a setting, null for "none of these", or absent while nobody has decided it. */
 export type Decisions = Readonly<Record<string, Setting | null>>;
@@ -22,8 +43,8 @@ export interface CheckView {
 }
 
 export interface GateView {
-  /** A pair can be boarded.  One credential alone only gets a result for itself, since the gate needs both (OID-207). */
-  kind: 'pair' | 'credential';
+  /** A pair can be boarded.  One credential alone only gets a result for itself, since the gate needs both (OID-207).  A presentation is accepted or refused. */
+  kind: 'pair' | 'credential' | 'presentation';
   outcome: Outcome;
   checks: CheckView[];
   /** The check that refers this traveler, whichever way the undecided points go. */
@@ -40,52 +61,68 @@ function complete(d: Decisions): Settings {
   return out;
 }
 
+const settingsOf = (point: string) => allReadings.find((r) => r.id === point)!.settings;
+
 /** Every combination of the settings of some points. */
-function combinations(points: string[]): Settings[] {
-  return points.reduce<Settings[]>(
-    (all, point) => all.flatMap((c) => readings.find((r) => r.id === point)!.settings.map((s) => ({ ...c, [point]: s.value }))),
-    [{}],
-  );
+function combinations(points: readonly string[]): Settings[] {
+  return points.reduce<Settings[]>((all, point) => all.flatMap((c) => settingsOf(point).map((s) => ({ ...c, [point]: s.value }))), [{}]);
 }
 
-/** Each check the traveler's credentials allow, tried under every setting of what is undecided. */
-export function viewChecks(scenario: Scenario, d: Decisions): CheckView[] {
+/** One check, tried under every setting of the undecided points it reads. */
+function viewCheck(check: PlannedCheck, base: Settings, d: Decisions): CheckView {
+  const open = check.reads.filter((point) => !decided(d, point));
+  const passes = (extra: Settings): boolean => check.run({ ...base, ...extra }).passed;
+  const tried = combinations(open).map((c) => ({ c, passed: passes(c) }));
+  const state: CheckState = tried.every((t) => t.passed) ? 'passed' : tried.some((t) => t.passed) ? 'depends' : 'failed';
+  const splits = state !== 'depends' ? [] : open.filter((point) => tried.some(({ c, passed }) => settingsOf(point).some((s) => passes({ ...c, [point]: s.value }) !== passed)));
+  return { result: resultOf(check, base), state, splits };
+}
+
+/** Each check the subject allows, tried under every setting of what is undecided. */
+export function viewChecks(subject: Subject, d: Decisions): CheckView[] {
   const base = complete(d);
-  return runChecks(scenario, base).map((result) => {
-    const passes = (extra: Settings): boolean => runChecks(scenario, { ...base, ...extra }).find((r) => r.key === result.key && r.decisionCase === result.decisionCase)!.passed;
-    const open = Object.keys(result.points).filter((point) => !decided(d, point));
-    const tried = combinations(open).map((c) => ({ c, passed: passes(c) }));
-    const state: CheckState = tried.every((t) => t.passed) ? 'passed' : tried.some((t) => t.passed) ? 'depends' : 'failed';
-    const splits = state !== 'depends' ? [] : open.filter((point) =>
-      tried.some(({ c, passed }) => readings.find((r) => r.id === point)!.settings.some((s) => passes({ ...c, [point]: s.value }) !== passed)));
-    return { result, state, splits };
-  });
+  return planFor(subject).map((check) => viewCheck(check, base, d));
 }
 
-/** The points whose open question has this traveler as a worked example, from the two files. */
-export const exampleOf = (scenario: Scenario): string[] =>
-  readings.filter((r) => r.questions.some((q) => scenario.example !== null && q.examples.includes(scenario.example))).map((r) => r.id);
+/** The points whose open question has this subject as a worked example, from the files.  One the subject's rules do not read in its profile cannot stop it. */
+export function exampleOf(subject: Subject): string[] {
+  if (subject.example === null) return [];
+  const reads = new Set(planFor(subject).flatMap((c) => c.reads));
+  const named = [...readings, ...presentationReadings].filter((r) => r.questions.some((q) => q.examples.includes(subject.example!))).map((r) => r.id);
+  return [...new Set(named)].filter((point) => reads.has(point));
+}
 
-/** What the gate can say about a traveler. */
-export function viewGate(scenario: Scenario, d: Decisions): GateView {
-  const checks = viewChecks(scenario, d);
+function kindOf(subject: Subject): GateView['kind'] {
+  if (isPresentation(subject)) return 'presentation';
+  return credentialOf(subject, 'photoid') && credentialOf(subject, 'boardingPass') ? 'pair' : 'credential';
+}
+
+/** What the gate can say about a subject. */
+export function viewGate(subject: Subject, d: Decisions): GateView {
+  const checks = viewChecks(subject, d);
   const blocking = checks.filter((c) => c.result.blocks);
   const failed = blocking.find((c) => c.state === 'failed');
   const outcome: Outcome = failed ? 'refer' : blocking.some((c) => c.state === 'depends') ? 'depends' : 'board';
   const splitting = outcome === 'depends' ? blocking.flatMap((c) => c.splits) : [];
   return {
-    kind: credentialOf(scenario, 'photoid') && credentialOf(scenario, 'boardingPass') ? 'pair' : 'credential',
+    kind: kindOf(subject),
     outcome,
     checks,
     failure: failed?.result.key,
     // A worked example stops the trip even when its result is the same under every setting: the two John Smiths board either way.
-    stops: [...new Set([...splitting, ...exampleOf(scenario).filter((point) => !decided(d, point))])],
+    stops: [...new Set([...splitting, ...exampleOf(subject).filter((point) => !decided(d, point))])],
   };
 }
 
+/** Whether a setting of this point changes what the gate says about a subject. */
+export function affects(subject: Subject, point: Reading, d: Decisions): boolean {
+  if (!planFor(subject).some((c) => c.reads.includes(point.id))) return false;
+  return new Set(point.settings.map((option) => viewGate(subject, { ...d, [point.id]: option.value }).outcome)).size > 1;
+}
+
 export interface ConsequenceRow {
-  scenario: Scenario;
-  /** Whether both credentials are about one traveler, for a traveler holding both.  The issuer knows this; a reader does not. */
+  scenario: Subject;
+  /** Whether both credentials are about one traveler, for a subject holding both.  The issuer knows this; a reader does not. */
   sameTraveler: boolean | null;
   cells: { value: Setting; view: GateView; wrong: boolean }[];
 }
@@ -94,14 +131,19 @@ export interface ConsequenceRow {
 const isWrong = (view: GateView, same: boolean | null): boolean =>
   same !== null && ((view.outcome === 'board' && !same) || (view.outcome === 'refer' && same));
 
-const sameTravelerOf = (s: Scenario): boolean | null => {
-  const about = (role: 'photoid' | 'boardingPass') => s.credentials.find((c) => c.role === role)?.about;
-  return about('photoid') && about('boardingPass') ? about('photoid') === about('boardingPass') : null;
-};
+/** Whether a subject's two credentials are about one traveler, when it holds both. */
+export function sameTravelerOf(s: Subject): boolean | null {
+  const about = (docType: string): string | undefined =>
+    isPresentation(s) ? s.held.find((h) => h.mdoc.docType === docType)?.subject.id : s.credentials.find((c) => c.mdoc.docType === docType)?.about;
+  const photoid = about(photoidDocType);
+  const pass = about(boardingPassDocType);
+  return photoid && pass ? photoid === pass : null;
+}
 
-/** The default trip, for comparison, and each traveler this point changes or is an example of. */
+/** The defaults that read this point, for comparison, and each subject it changes or is an example of. */
 export function consequences(point: Reading, d: Decisions): ConsequenceRow[] {
-  return scenarios
+  return subjects
+    .filter((subject) => planFor(subject).some((c) => c.reads.includes(point.id)))
     .map((scenario) => {
       const same = sameTravelerOf(scenario);
       const cells = point.settings.map((s) => {
@@ -110,5 +152,5 @@ export function consequences(point: Reading, d: Decisions): ConsequenceRow[] {
       });
       return { scenario, sameTraveler: same, cells };
     })
-    .filter((row) => row.scenario === defaultScenario || new Set(row.cells.map((c) => c.view.outcome)).size > 1 || exampleOf(row.scenario).includes(point.id));
+    .filter((row) => row.scenario.default || new Set(row.cells.map((c) => c.view.outcome)).size > 1 || exampleOf(row.scenario).includes(point.id));
 }

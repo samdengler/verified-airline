@@ -6,7 +6,7 @@ import { provideRouter } from '@angular/router';
 import { readFileSync } from 'node:fs';
 import { Gate } from './gate';
 import { Presenter } from './presenter';
-import { READING_POINTS } from './rules/support/readings';
+import { PRESENTATION_READING_POINTS, READING_POINTS } from './rules/support/readings';
 import { Trip } from './trip';
 
 interface FileReading {
@@ -17,8 +17,14 @@ interface FileReading {
   criteria: string[];
 }
 
-const fileReadings: FileReading[] = JSON.parse(readFileSync('../model/one-id/readings.json', 'utf8')).readings;
-const fileScenarios: { id: string; title: string; default: boolean }[] = JSON.parse(readFileSync('../model/one-id/scenarios.json', 'utf8')).scenarios;
+const credentialReadings: FileReading[] = JSON.parse(readFileSync('../model/one-id/readings.json', 'utf8')).readings;
+const presentationFileReadings: FileReading[] = JSON.parse(readFileSync('../model/one-id/presentation/readings.json', 'utf8')).readings;
+// The two files share one point, which the panel shows once.
+const fileReadings: FileReading[] = [...credentialReadings, ...presentationFileReadings.filter((p) => !credentialReadings.some((r) => r.id === p.id))];
+const fileScenarios: { id: string; title: string; default: boolean }[] = [
+  ...JSON.parse(readFileSync('../model/one-id/scenarios.json', 'utf8')).scenarios,
+  ...JSON.parse(readFileSync('../model/one-id/presentation/scenarios.json', 'utf8')).scenarios,
+];
 
 /** What the panel on the screen shows of each switch. */
 function panelSwitches(el: Element) {
@@ -60,7 +66,7 @@ describe('the presenter panel', () => {
 
   afterEach(() => document.documentElement.classList.remove('lean-on'));
 
-  it('agrees with readings.json on every switch, its settings and its open questions', () => {
+  it('agrees with the two readings files on every switch, its settings and its open questions', () => {
     expect(disagreements(el, fileReadings)).toEqual([]);
     expect(el.querySelectorAll('[data-reading]').length).toBe(fileReadings.length);
   });
@@ -74,10 +80,10 @@ describe('the presenter panel', () => {
   });
 
   it('takes only points the TypeScript reads', () => {
-    expect(panelSwitches(el).map((s) => s.id).sort()).toEqual(Object.keys(READING_POINTS).sort());
+    expect(panelSwitches(el).map((s) => s.id).sort()).toEqual([...new Set([...Object.keys(READING_POINTS), ...Object.keys(PRESENTATION_READING_POINTS)])].sort());
   });
 
-  it('offers every traveler in scenarios.json, by its title', () => {
+  it('offers every traveler and presentation in the two scenarios files, by its title', () => {
     const travelers = [...el.querySelectorAll('[data-scenario]')].map((b) => [b.getAttribute('data-scenario'), b.textContent]);
     expect(travelers).toEqual(fileScenarios.map((s) => [s.id, s.title]));
   });

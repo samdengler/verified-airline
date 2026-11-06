@@ -190,6 +190,8 @@ def load_one_id(directory):
         elif key == "element" and value not in elements:
             fail(where, f"{at} names the data element {value}, which the model does not have")
     points = {r["id"] for r in json.loads((directory / "readings.json").read_text())["readings"]}
+    if (directory / "presentation" / "readings.json").exists():
+        points |= {r["id"] for r in json.loads((directory / "presentation" / "readings.json").read_text())["readings"]}
     for point in words["lean"].get("decision", {}).get("considerations", {}):
         if point not in points:
             fail(where, f"lean.decision.considerations names {point}, which is no longer an undecided point; rewrite that wording")

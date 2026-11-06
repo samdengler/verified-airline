@@ -52,6 +52,12 @@ describe('the One ID screens', () => {
     expect(wallet.el.querySelectorAll('.oid-specimen').length).toBe(2);
     expect(hiddenText(wallet.el)).not.toMatch(BANNED);
 
+    trip.go('gateAsked');
+    await wallet.fixture.whenStable();
+    expect(wallet.el.querySelector('[data-sheet="consent"]')?.getAttribute('data-for')).toBe('gate');
+    expect(wallet.el.querySelector('[data-action="share-gate"]')?.textContent).toMatch(/4/);
+    expect(hiddenText(wallet.el)).not.toMatch(BANNED);
+
     const gate = await render(Gate);
     expect(gate.el.querySelector('[data-state="gate-waiting"]')).not.toBeNull();
     trip.go('presented');
@@ -127,9 +133,9 @@ describe('the One ID screens', () => {
     expect(button.classList.contains('open')).toBe(true);
 
     fixture.componentRef.setInput('requirements', []);
-    fixture.componentRef.setInput('grey', wording.lean.grey.request);
+    fixture.componentRef.setInput('grey', wording.lean.grey.decision);
     await fixture.whenStable();
     expect(button.classList.contains('partial')).toBe(true);
-    expect(el.querySelector('.lean-req')?.textContent).toContain(wording.lean.grey.request.title);
+    expect(el.querySelector('.lean-req')?.textContent).toContain(wording.lean.grey.decision.title);
   });
 });

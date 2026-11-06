@@ -2,9 +2,10 @@ import { Component, computed, inject } from '@angular/core';
 import { Band } from './band';
 import { CredentialCard, passNameLine, photoidNames } from './credential-card';
 import { credentialOf, fill, formatInstant, requestedItems, titleCase, wording } from './data';
-import { viewChecks } from './decide';
+import { type CheckView, viewChecks } from './decide';
 import { Marker } from './marker';
-import { Trip } from './trip';
+import { checkInPresentation } from './presentation-checks';
+import { PASS_HELD, Trip } from './trip';
 
 /** /check-in: the airline's website.  It asks the wallet for three items, checks the photoid, and issues the boarding pass. */
 @Component({
@@ -27,7 +28,7 @@ import { Trip } from './trip';
               </dl>
             </section>
             <section class="oid-section">
-              <div class="heading-row"><h2>{{ w.asks }}</h2><va-marker key="request" [grey]="lean.grey.request" /></div>
+              <div class="heading-row"><h2>{{ w.asks }}</h2><va-marker key="request" [requirements]="lean.checkIn.requestMarker.requirements" /></div>
               <div class="oid-card oid-list">
                 @for (item of items; track item.identifier) {
                   <div class="oid-row">
@@ -62,6 +63,19 @@ import { Trip } from './trip';
                 </div>
               </div>
               <p class="oid-small">{{ w.received }}</p>
+              <div class="oid-section" data-lean>
+                <h3>{{ lean.checkIn.presentationTitle }}</h3>
+                <div class="oid-card oid-list">
+                  @for (row of presentationRows(); track row.key) {
+                    <div class="oid-row marked" [attr.data-check]="row.key" [attr.data-status]="row.state">
+                      <span class="oid-strong oid-grow">{{ row.title }}</span>
+                      <span class="badge" [class.proven]="row.state === 'passed'" [class.open]="row.state !== 'passed'">{{ row.word }}</span>
+                      <code class="oid-id">{{ row.requirements[0] }}</code>
+                      <va-marker [key]="'check-in-' + row.key" [requirements]="row.requirements" />
+                    </div>
+                  }
+                </div>
+              </div>
               <p class="oid-small" data-lean>{{ lean.checkIn.standIns }}</p>
             </section>
           }
@@ -132,14 +146,24 @@ export class CheckIn {
   private readonly check = (key: string) => this.checksFor().find((c) => c.result.key === key);
 
   /** The website has the wallet's answer once the holder has shared, and stays past that. */
-  protected readonly done = computed(() => ['shared', 'passAdded', 'presented'].includes(this.trip.step()) && !!this.photoid());
-  protected readonly added = computed(() => ['passAdded', 'presented'].includes(this.trip.step()));
+  protected readonly done = computed(() => (this.trip.step() === 'shared' || PASS_HELD.includes(this.trip.step())) && !!this.photoid());
+  protected readonly added = computed(() => PASS_HELD.includes(this.trip.step()));
   protected readonly photoidLine = computed(() => {
     const state = this.check('photoid')?.state;
     return state === 'depends' ? this.lean.decision.needs : state === 'passed' ? this.w.photoidOk : this.w.photoidFailed;
   });
   protected readonly fromPassport = computed(() => this.trip.scenario().sourceDocument?.kind === 'passport');
-  private readonly issueChecks = computed(() => this.checksFor().filter((c) => ['photoid', 'source', 'passValidity'].includes(c.result.key)));
+  /** The website's request and the wallet's answer, from the model's presentation rules. */
+  private readonly presentationChecks = computed(() => viewChecks(checkInPresentation(this.trip.scenario()), this.trip.decisions()));
+  protected readonly presentationRows = computed(() =>
+    this.presentationChecks()
+      .filter((c: CheckView) => c.result.blocks)
+      .map((c: CheckView) => {
+        const words = this.checks[c.result.key as 'refusals'];
+        return { key: c.result.key, state: c.state, title: words.title, requirements: words.requirements, word: this.lean.gate.status[c.state === 'depends' ? 'decide' : c.state] };
+      }),
+  );
+  private readonly issueChecks = computed(() => [...this.checksFor().filter((c) => ['photoid', 'source', 'passValidity'].includes(c.result.key)), ...this.presentationChecks().filter((c: CheckView) => c.result.blocks)]);
   private readonly issueFailure = computed(() => this.issueChecks().find((c) => c.state === 'failed'));
   private readonly issueDepends = computed(() => this.issueChecks().some((c) => c.state === 'depends'));
   protected readonly accepted = computed(() => !this.issueFailure() && !this.issueDepends());
