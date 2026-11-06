@@ -17,6 +17,22 @@ ROOT = Path(__file__).resolve().parent.parent
 ONE_ID = ROOT / "model" / "one-id"
 
 
+class Tours(unittest.TestCase):
+    def pages(self, target):
+        section = render_airline.Section("Tours", "tours", [])
+        section.blocks = [("fence", "tours", [f"A tour | What it shows | {target}"])]
+        return {"index": {"sections": [section]}}
+
+    def test_a_tour_may_start_with_any_traveler_in_the_model(self):
+        render_airline.check_tours(self.pages("/gate?lean=1&traveler=two-john-smiths"), ONE_ID)
+        render_airline.check_tours(self.pages("@refunds?lean=1"), ONE_ID)
+
+    def test_a_tour_whose_traveler_left_the_model_stops_the_build(self):
+        with self.assertRaises(render_airline.BuildError) as caught:
+            render_airline.check_tours(self.pages("/gate?traveler=nobody"), ONE_ID)
+        self.assertIn("nobody", str(caught.exception))
+
+
 class Wording(unittest.TestCase):
     def setUp(self):
         self.dir = Path(tempfile.mkdtemp())

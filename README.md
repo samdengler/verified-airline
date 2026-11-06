@@ -292,6 +292,16 @@ where only its own lane does. The route is ordinary code in `one-id/trip-route.t
 the map's marker is grey. A model of the trip would export the route, and the map would
 read that file instead.
 
+### The home page's tours
+
+Three tours on the home page start a visitor in the right place: the whole trip with the
+model hidden, the two John Smiths stopped at a decision with the model shown, and a policy
+page beside its model. They live in `content/index.md`. A link that names a traveler, as
+in `/gate?traveler=two-john-smiths`, starts a fresh trip with nothing decided, and the
+build stops if that traveler leaves the model's scenarios. The browser check fails if the
+decision tour no longer stops, which is the sign to rewrite it once an expert settles that
+question.
+
 ### The three screens
 
 `/check-in` is the airline's website, `/wallet` the traveler's wallet and `/gate`

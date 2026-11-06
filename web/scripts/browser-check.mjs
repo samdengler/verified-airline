@@ -324,6 +324,48 @@ try {
   check('the trip logs no console error', tripProblems.length === 0, tripProblems.join(' | '));
   await ctx.close();
 
+  // The tours on the home page, each from a clean start, with an older trip still open in another tab.
+  ctx = await browser.newContext({ colorScheme: 'light', viewport: { width: 1280, height: 900 } });
+  page = await watched(ctx);
+  const homeTours = async () => {
+    await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+    return page.locator('.tour');
+  };
+  const tours = await homeTours();
+  const tourWords = { count: await tours.count(), words: await hiddenWords(page) };
+  check('the home page offers three tours, in words a traveler can read', tourWords.count === 3 && tourWords.words === null, JSON.stringify(tourWords));
+  await shot(page, 'home-tours');
+  const older = await watched(ctx);
+  await older.goto(BASE + '/wallet', { waitUntil: 'networkidle' });
+  await (await homeTours()).nth(1).click();
+  await page.locator('[data-state="gate-decide"]').waitFor();
+  const decision = page.locator('[data-panel="presenter"]');
+  const stopTour = { url: new URL(page.url()), panel: await decision.isVisible(), pressed: await decision.locator('[data-scenario="two-john-smiths"][aria-pressed="true"]').count() };
+  check('the decision tour lands on the two John Smiths, stopped, with the model shown', stopTour.url.pathname === '/gate' && stopTour.url.search === '' && stopTour.panel && stopTour.pressed === 1, JSON.stringify(stopTour));
+  await shot(page, 'tour-decision');
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('[data-state="gate-decide"]').waitFor();
+  check('a reload keeps the tour\'s trip', await page.locator('[data-panel="presenter"] [data-scenario="two-john-smiths"][aria-pressed="true"]').count() === 1);
+  await page.locator('[data-decision] [data-option]').first().click();
+  await page.locator('[data-state="gate-decide"]').waitFor({ state: 'detached' });
+  const chosen = await page.locator('[data-state="gate-decide"]').count();
+  await (await homeTours()).nth(1).click();
+  await page.locator('[data-state="gate-decide"]').waitFor();
+  check('taking the decision tour again starts it undecided', chosen === 0 && await page.locator('[data-state="gate-decide"]').isVisible(), JSON.stringify({ chosen }));
+  await (await homeTours()).nth(0).click();
+  // The prerendered page already shows the first stop, so wait for the link to have started the trip.
+  await page.waitForURL((u) => u.pathname === '/check-in' && u.search === '');
+  await page.locator('[data-state="trip-map"][data-at="openWallet"]').waitFor();
+  const tripTour = { url: new URL(page.url()), lean: await page.evaluate(() => document.documentElement.classList.contains('lean-on')), action: await page.locator('[data-action="open-wallet"]').count(), older: await mapAt(older, 'openWallet', false) };
+  check('the trip tour starts a fresh trip with the model hidden, and other tabs follow', tripTour.url.pathname === '/check-in' && tripTour.url.search === '' && !tripTour.lean && tripTour.action === 1 && tripTour.older, JSON.stringify(tripTour));
+  await (await homeTours()).nth(2).click();
+  await page.waitForLoadState('networkidle');
+  const policyTour = { path: new URL(page.url()).pathname, lean: await page.evaluate(() => document.documentElement.classList.contains('lean-on')), markers: await page.locator('button.lean-marker:visible').count() };
+  check('the policy tour opens a policy page with its markers showing', policyTour.path.startsWith('/policies/') && policyTour.lean && policyTour.markers > 0, JSON.stringify(policyTour));
+  const tourProblems = [page, older].flatMap((p) => p.problems);
+  check('the tours log no console error', tourProblems.length === 0, tourProblems.join(' | '));
+  await ctx.close();
+
   // The same trip driven from the map's button, which stops at each consent sheet.
   ctx = await browser.newContext({ colorScheme: 'light', viewport: { width: 1280, height: 900 } });
   page = await watched(ctx);

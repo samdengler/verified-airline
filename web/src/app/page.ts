@@ -85,12 +85,16 @@ export class Page {
     event.preventDefault();
   }
 
-  /** A link to a page of this site goes through the router; files such as facts.json and other sites load as usual. */
+  /**
+   * A link to a page of this site goes through the router; files such as facts.json,
+   * other sites and a link with a query, such as a tour's, load as usual, so the
+   * script in index.html reads ?lean= before the page draws.
+   */
   private route(link: HTMLAnchorElement, event: MouseEvent): boolean {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
     if (link.target) return false;
     const url = new URL(link.getAttribute('href')!, this.doc.location.href);
-    if (url.origin !== this.doc.location.origin || /\.[a-z0-9]+$/i.test(url.pathname)) return false;
+    if (url.origin !== this.doc.location.origin || url.search || /\.[a-z0-9]+$/i.test(url.pathname)) return false;
     event.preventDefault();
     this.close(false);
     void this.router.navigateByUrl((url.pathname.replace(/\/+$/, '') || '/') + url.hash);

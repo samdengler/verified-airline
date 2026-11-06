@@ -1,5 +1,5 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Injectable, OnDestroy, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { Location, isPlatformBrowser } from '@angular/common';
+import { Injectable, OnDestroy, PLATFORM_ID, afterNextRender, computed, inject, signal } from '@angular/core';
 import { LeanModel } from '../lean-model';
 import { defaultScenario, presentationScenarios, scenarios } from './data';
 import type { Decisions, Subject } from './decide';
@@ -68,7 +68,8 @@ export class Trip implements OnDestroy {
   }
 
   private change(part: Partial<TripState>): void {
-    const next = { ...this.state(), ...part, rev: this.state().rev + 1 };
+    // The clock lets a change in a new tab beat a trip older tabs still hold, which a count alone would not.
+    const next = { ...this.state(), ...part, rev: Math.max(this.state().rev + 1, Date.now()) };
     this.state.set(next);
     this.post({ type: 'state', state: next });
   }
@@ -87,6 +88,11 @@ export class Trip implements OnDestroy {
     this.change({ scenarioId, step: 'presented' });
   }
 
+  /** A fresh trip for a traveler, with nothing decided. */
+  begin(scenarioId: string, step: Step): void {
+    this.change({ scenarioId, step, decisions: {} });
+  }
+
   /** Records a setting of a point, or null for "none of these", which keeps the trip stopped there. */
   set(point: string, value: Setting | null): void {
     this.change({ decisions: { ...this.state().decisions, [point]: value } });
@@ -100,4 +106,22 @@ export class Trip implements OnDestroy {
   clearDecisions(): void {
     this.change({ decisions: {} });
   }
+}
+
+/**
+ * For a screen's constructor.  A tour's link names a traveler, as in
+ * /gate?traveler=two-john-smiths: this starts a fresh trip for them at this screen,
+ * then takes the query out of the address so a reload keeps the trip.  It waits for
+ * the first render, which has to match the page as it was prerendered.
+ */
+export function startFromTourLink(step: Step): void {
+  const trip = inject(Trip);
+  const location = inject(Location);
+  afterNextRender(() => {
+    const [path, query] = location.path().split('?');
+    const id = new URLSearchParams(query).get('traveler');
+    if (!id) return;
+    if ([...scenarios, ...presentationScenarios].some((s) => s.id === id)) trip.begin(id, step);
+    location.replaceState(path);
+  });
 }

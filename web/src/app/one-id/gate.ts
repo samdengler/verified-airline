@@ -12,7 +12,7 @@ import { Marker } from './marker';
 import { ModelLegend } from './model-legend';
 import { gatePresentation } from './presentation-checks';
 import { Presenter } from './presenter';
-import { Trip } from './trip';
+import { Trip, startFromTourLink } from './trip';
 import { TripMap } from './trip-map';
 
 interface Row {
@@ -195,6 +195,7 @@ export class Gate {
   ]);
 
   constructor() {
+    startFromTourLink('presented');
     effect(() => {
       if (this.isBrowser && this.leanModel.shown() && !this.decisions() && !this.loading) {
         this.loading = true;

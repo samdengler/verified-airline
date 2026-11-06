@@ -33,7 +33,7 @@ items under "Still being decided" ending in `{open: ONE-503.5}`, paragraphs
 (one ending in `{model: ...}` gets a marker of its own), `- ` lists, **bold**,
 [links](@changes#cancel) to another page, and fenced blocks for the fare
 table (`fares`), worked examples (`example`), the stages of a trip (`stages`)
-and the home page's questions (`questions`).
+and the home page's questions (`questions`) and tours (`tours`).
 
   python3 scripts/render_airline.py [--model DIR] [--out DIR] [--content FILE]
 
@@ -367,7 +367,7 @@ def customer_strings(page):
                 for line in b[2]:
                     if b[1] == "fares":
                         out.append(line.split(":", 1)[1] if ":" in line and "|" not in line else line.split("|")[0])
-                    elif b[1] == "questions":
+                    elif b[1] in ("questions", "tours"):
                         out.extend(line.split("|")[:2])
                     else:
                         out.append(line)
@@ -379,6 +379,21 @@ def customer_strings(page):
             out.append(it.title)
             blocks(it.blocks)
     return out
+
+
+def check_tours(pages, directory):
+    """Each tour that starts with a traveler names one the One ID model still has."""
+    known = {s["id"] for f in ("scenarios.json", "presentation/scenarios.json")
+             for s in json.loads((directory / f).read_text())["scenarios"]}
+    page = pages["index"]
+    for section in page["sections"]:
+        for b in section.blocks:
+            if b[0] == "fence" and b[1] == "tours":
+                for line in filter(str.strip, b[2]):
+                    target = line.split("|")[-1].strip()
+                    for name in re.findall(r"[?&]traveler=([^&]+)", target):
+                        if name not in known:
+                            fail("content/index.md", f"a tour starts with {name}, which the One ID model does not have")
 
 
 def check_page(page, model, pages):
@@ -624,6 +639,24 @@ class Renderer:
                          f'<span class="q-text">{self.inline(question, here)}</span></a>')
         return '<div class="questions">' + "".join(cards) + "</div>"
 
+    def fence_tours(self, lines, here):
+        cards = []
+        for l in lines:
+            if not l.strip():
+                continue
+            title, text, target = (x.strip() for x in l.split("|"))
+            href = target
+            if target.startswith("@"):
+                slug, _, query = target[1:].partition("?")
+                if slug not in self.pages:
+                    fail(f"content/{here}.md", f"a tour links to {target}, which does not exist")
+                href = self.href(here, slug) + (f"?{query}" if query else "")
+            cards.append(f'<a class="question tour" href="{esc(href)}">'
+                         f'<span class="q-text">{self.inline(title, here)}</span>'
+                         f'<span class="q-note">{self.inline(text, here)}</span>'
+                         f'<span class="q-go">Start this tour</span></a>')
+        return '<div class="questions">' + "".join(cards) + "</div>"
+
     def fence_fares(self, lines, here):
         """The fare table: for each row an action and a stage, and for each
         fare what the model decides there."""
@@ -771,6 +804,14 @@ class Renderer:
         m = p["meta"]
         sections = []
         for s in p["sections"]:
+            if s.anchor != "questions":
+                # The tours start in the app; the static pages have no check-in or gate reader.
+                if not self.app:
+                    continue
+                sections.append(f'<section class="home-section {s.anchor}" id="{s.anchor}"><div class="wrap">'
+                                f'<h2>{self.inline(s.title, "index")}</h2>'
+                                f'{self.blocks(s.blocks, "index")}</div></section>')
+                continue
             sections.append(f'<section class="home-section" id="{s.anchor}"><div class="wrap">'
                             f'<div class="home-head"><div><h2>{self.inline(s.title, "index")}</h2>'
                             f'<p class="lede">{self.inline(m["lede"], "index")}</p></div>'
@@ -871,6 +912,8 @@ def main():
             check_hidden(text, f"the {slug} page")
         chat = load_chat()
         one_id = load_one_id(args.one_id)
+        if one_id:
+            check_tours(pages, args.one_id)
         if args.content:
             a = Renderer(pages, facts, model, m["source"], app=True)
             app = {"index": a.home(), "policies": a.hub()}

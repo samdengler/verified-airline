@@ -5,7 +5,7 @@ import { credentialOf, fill, formatInstant, requestedItems, titleCase, wording }
 import { type CheckView, viewChecks } from './decide';
 import { Marker } from './marker';
 import { checkInPresentation } from './presentation-checks';
-import { PASS_HELD, Trip } from './trip';
+import { PASS_HELD, Trip, startFromTourLink } from './trip';
 import { type NextAction, TripMap } from './trip-map';
 import { websiteAction } from './trip-route';
 
@@ -223,6 +223,10 @@ export class CheckIn {
     const answer = this.check('advisories')?.result.answer;
     return fill(this.lean.checkIn.advisories, { count: Array.isArray(answer) ? answer.length : 0 });
   });
+
+  constructor() {
+    startFromTourLink('start');
+  }
 
   protected ask(): void {
     this.trip.go('asked');
