@@ -1,0 +1,17 @@
+name = "trip-model"
+version = "0.1.0"
+defaultTargets = ["Trip", "trip-export"]
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+# The trip across the website, the wallet and the gate reader.
+[[lean_lib]]
+name = "Trip"
+
+# Writes the site's files in model/trip/, with each status from the compiled proofs.
+[[lean_exe]]
+name = "trip-export"
+root = "Export"
+supportInterpreter = true

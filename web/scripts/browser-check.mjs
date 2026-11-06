@@ -25,6 +25,7 @@ const content = JSON.parse(readFileSync(new URL('../src/generated/content.json',
 const shots = opt('--shots');
 if (shots) mkdirSync(shots, { recursive: true });
 const oneIdModel = JSON.parse(readFileSync(new URL('../../model/one-id/model.json', import.meta.url)));
+const tripModel = JSON.parse(readFileSync(new URL('../../model/trip/model.json', import.meta.url)));
 const oneIdScenarios = JSON.parse(readFileSync(new URL('../../model/one-id/scenarios.json', import.meta.url)));
 const oneIdReadings = JSON.parse(readFileSync(new URL('../../model/one-id/readings.json', import.meta.url)));
 const oneIdPresentationScenarios = JSON.parse(readFileSync(new URL('../../model/one-id/presentation/scenarios.json', import.meta.url)));
@@ -358,6 +359,9 @@ try {
   await page.locator('[data-state="trip-map"][data-at="openWallet"]').waitFor();
   const tripTour = { url: new URL(page.url()), lean: await page.evaluate(() => document.documentElement.classList.contains('lean-on')), action: await page.locator('[data-action="open-wallet"]').count(), older: await mapAt(older, 'openWallet', false) };
   check('the trip tour starts a fresh trip with the model hidden, and other tabs follow', tripTour.url.pathname === '/check-in' && tripTour.url.search === '' && !tripTour.lean && tripTour.action === 1 && tripTour.older, JSON.stringify(tripTour));
+  await page.goto(BASE + '/gate?traveler=default-trip', { waitUntil: 'networkidle' });
+  await page.waitForURL((u) => u.pathname === '/gate' && u.search === '');
+  check('with the model hidden a link cannot go straight to the gate, which would skip consent', await page.locator('[data-state="gate-waiting"]').isVisible() && await page.locator('[data-state="gate-result"]').count() === 0);
   await (await homeTours()).nth(2).click();
   await page.waitForLoadState('networkidle');
   const policyTour = { path: new URL(page.url()).pathname, lean: await page.evaluate(() => document.documentElement.classList.contains('lean-on')), markers: await page.locator('button.lean-marker:visible').count() };
@@ -408,8 +412,8 @@ try {
   await shot(page, 'check-in-shown');
   const mapMarker = page.locator('[data-state="trip-map"] button.lean-marker');
   await mapMarker.click();
-  const mapPop = { grey: await mapMarker.evaluate((b) => b.classList.contains('partial')), text: await page.locator(`#${await mapMarker.getAttribute('aria-controls')}`).innerText() };
-  check("with the model shown the map says its route is not in the model yet", mapPop.grey && mapPop.text.includes(words.lean.grey.map.title), JSON.stringify(mapPop));
+  const mapPop = { blue: await mapMarker.evaluate((b) => !b.classList.contains('partial') && !b.classList.contains('open')), text: await page.locator(`#${await mapMarker.getAttribute('aria-controls')}`).innerText() };
+  check("with the model shown the map's marker is proven, from the trip's model", mapPop.blue && mapPop.text.includes(tripModel.requirements['TRIP-001'].ears) && mapPop.text.includes('Trip.reaching_gate_needs_both_shares'), JSON.stringify(mapPop));
   await page.keyboard.press('Escape');
   await requestMarker.click();
   const requestPop = await page.locator(`#${await requestMarker.getAttribute('aria-controls')}`).innerText();

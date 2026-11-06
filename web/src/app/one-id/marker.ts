@@ -3,9 +3,9 @@ import { openQuestions, requirements, wording } from './data';
 
 /**
  * A ∀ button and its popover, as on the policy pages: blue when every criterion
- * behind it is proven, amber when any is open, grey for a step the model does
- * not cover yet.  Everything it says about the model comes from model.json.
- * Requirements show every criterion; `criteria` shows the open ones it names.
+ * behind it is proven, amber when any is open.  Everything it says about the model
+ * comes from the model's files.  Requirements show every criterion; `criteria` shows
+ * the open ones it names.
  */
 @Component({
   selector: 'va-marker',
@@ -13,12 +13,6 @@ import { openQuestions, requirements, wording } from './data';
     <span class="lean-anchor" data-lean>
       <button type="button" class="lean-marker" [class.open]="tone() === 'open'" [class.partial]="tone() === 'partial'" [attr.aria-expanded]="isOpen()" [attr.aria-controls]="popId()" [attr.aria-label]="label()" (click)="toggle()">∀</button>
       <div class="lean-pop" [class.amber]="tone() === 'open'" [id]="popId()" role="dialog" [attr.aria-label]="label()" [hidden]="!isOpen()">
-        @if (grey(); as g) {
-          <div class="lean-req">
-            <p class="lean-head"><strong>{{ g.title }}</strong></p>
-            <p>{{ g.text }}</p>
-          </div>
-        }
         @for (r of rows(); track r.id) {
           <div class="lean-req">
             <p class="lean-head">
@@ -35,6 +29,7 @@ import { openQuestions, requirements, wording } from './data';
                 <li>
                   <span class="badge" [class.proven]="c.status === 'proven'" [class.open]="c.status === 'open'" [class.example]="c.status === 'example'" [class.not-checked]="c.status === 'not checked'">{{ c.word }}</span>
                   <code>{{ c.id }}</code> {{ c.ears }}
+                  @if (c.theorem) { <p class="lean-name">{{ w.proof }} <code>{{ c.theorem }}</code></p> }
                   @for (q of c.questions; track q.theorem) {
                     <p class="lean-question">{{ q.question }}</p>
                     <p class="lean-name">{{ w.theorem }} <code>{{ q.theorem }}</code></p>
@@ -47,7 +42,9 @@ import { openQuestions, requirements, wording } from './data';
             </ul>
           </div>
         }
-        @if (rows().length) {
+        @if (isTrip()) {
+          <p class="lean-name"><a [href]="trip.source">{{ trip.sourceText }}</a></p>
+        } @else if (rows().length) {
           <p class="lean-name">{{ w.noLink }}</p>
         }
       </div>
@@ -59,12 +56,11 @@ export class Marker {
   readonly requirements = input<readonly string[]>([]);
   /** Criterion IDs, shown alone under their requirement. */
   readonly criteria = input<readonly string[]>([]);
-  /** The words for a step the model does not cover. */
-  readonly grey = input<{ title: string; text: string } | null>(null);
   /** Makes the popover's id unique on the page. */
   readonly key = input.required<string>();
 
   protected readonly w = wording.lean.popover;
+  protected readonly trip = wording.lean.trip;
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   protected readonly isOpen = signal(false);
   protected readonly popId = computed(() => `one-id-pop-${this.key()}`);
@@ -89,12 +85,13 @@ export class Marker {
   });
 
   protected readonly tone = computed<'proven' | 'open' | 'partial'>(() => {
-    if (this.grey()) return 'partial';
     const statuses = this.rows().flatMap((r) => (this.criteria().length ? r.criteria : requirements[r.id].criteria).map((c) => c.status));
     return statuses.includes('open') ? 'open' : statuses.every((s) => s === 'proven') ? 'proven' : 'partial';
   });
 
-  protected readonly label = computed(() => this.grey()?.title ?? `${this.w.requirement} ${this.rows().map((r) => r.id).join(', ')}`);
+  protected readonly label = computed(() => `${this.w.requirement} ${this.rows().map((r) => r.id).join(', ')}`);
+  /** The trip's model is in this repository, unlike verified-id's, so its popover can link to it. */
+  protected readonly isTrip = computed(() => this.rows().length > 0 && this.rows().every((r) => r.id.startsWith('TRIP-')));
 
   private word(status: string): string {
     return (this.w.status as Record<string, string>)[status] ?? status;

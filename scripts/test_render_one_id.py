@@ -57,7 +57,7 @@ class Wording(unittest.TestCase):
         self.assertIsNotNone(self.load())
 
     def test_a_traveler_never_reads_the_banned_words(self):
-        for word in ("the rule", "a theorem", "this criterion", "these criteria", "OID-101", "OID-101.5", "G-01"):
+        for word in ("the rule", "a theorem", "this criterion", "these criteria", "OID-101", "OID-101.5", "TRIP-001", "G-01"):
             self.words["traveler"]["gate"]["lede"] = f"This mentions {word} by mistake."
             self.fails("never reads")
 

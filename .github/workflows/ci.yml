@@ -40,6 +40,18 @@ jobs:
         with: { path: pages }
       - uses: actions/upload-artifact@v4
         with: { name: site, path: web/dist/verified-airline/browser }
+  # The trip's model: fails if a proof breaks or depends on sorry, or if the files
+  # in model/trip/ are not what this model writes.  The site's build reads the
+  # committed files and needs no Lean.
+  trip-model:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with: { lake-package-directory: trip-model, auto-config: false, build: true, test: false, lint: false, use-mathlib-cache: false }
+      - run: lake exe trip-export ../model/trip
+        working-directory: trip-model
+      - run: git diff --exit-code -- model/trip
   # Deploys github.io's redirects once Pages is available for the
   # repository: set the repository variable PAGES_ENABLED to true after
   # turning Pages on.
@@ -61,7 +73,7 @@ jobs:
   # from the branch to the environment, which the role does not trust.
   publish:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && vars.AWS_PUBLISH_ROLE_ARN != ''
-    needs: build
+    needs: [build, trip-model]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -37,9 +37,9 @@ describe('the trip route', () => {
 
   it('offers the website the next action only for a traveler it can serve', () => {
     const fine = { photoid: true, pass: true, accepted: true };
-    expect(websiteAction('start', fine)).toBe('open');
-    expect(websiteAction('declined', fine)).toBe('open');
-    expect(websiteAction('shared', fine)).toBe('add');
+    expect(websiteAction('start', fine)).toBe('openWallet');
+    expect(websiteAction('declined', fine)).toBe('openWallet');
+    expect(websiteAction('shared', fine)).toBe('addPass');
     expect(websiteAction('passAdded', fine)).toBe('present');
     expect(websiteAction('gateDeclined', fine)).toBe('present');
     expect(websiteAction('start', { ...fine, photoid: false })).toBeNull();

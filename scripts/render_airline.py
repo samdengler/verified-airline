@@ -96,7 +96,7 @@ SUN_SVG = ('<svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><g fill="non
 
 # The words a traveler never reads, and requirement IDs.  Both may appear only
 # in the parts of a page shown with the Lean model.
-BANNED = re.compile(r"\b(rules?|theorems?|criterion|criteria)\b|\b(?:ONE|OO|OID)-\d{3}(?:\.\d+)?\b|\bG-\d{2}\b", re.I)
+BANNED = re.compile(r"\b(rules?|theorems?|criterion|criteria)\b|\b(?:ONE|OO|OID|TRIP)-\d{3}(?:\.\d+)?\b|\bG-\d{2}\b", re.I)
 TYPED_AMOUNT = re.compile(r"[$€£]\s*\d|\b\d+(?:[.,]\d+)?\s*(?:dollars?|cents?|USD|EUR|GBP|euros?)\b", re.I)
 PLACEHOLDER = re.compile(r"\{\{\s*([\w.]+)\s*\}\}")
 MARK = re.compile(r"\s*\{(model|open):\s*([^}]*)\}\s*$")
@@ -170,7 +170,11 @@ def load_one_id(directory):
     words = json.loads(path.read_text())
     model = json.loads((directory / "model.json").read_text())
     scenarios = json.loads((directory / "scenarios.json").read_text())
-    requirements = model["requirements"]
+    requirements = dict(model["requirements"])
+    # The trip's model is this repository's own, so its requirements are always here.
+    trip = MODEL / "trip" / "model.json"
+    if trip.exists():
+        requirements.update(json.loads(trip.read_text())["requirements"])
     criteria = {c["id"]: c for r in requirements.values() for c in r["criteria"]}
     elements = {e["name"] for e in model["identifiers"]["dataElements"]}
     check_traveler_wording(words["traveler"], where)

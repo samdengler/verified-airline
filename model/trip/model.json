@@ -1,0 +1,109 @@
+{"requirements":
+ {"TRIP-004":
+  {"review": null,
+   "name": "Trip.outcomeOf",
+   "ears":
+   "THE SYSTEM SHALL combine the results of the gate's checks into one outcome.",
+   "criteria":
+   [{"theorem": "Trip.outcome_refer_iff",
+     "status": "proven",
+     "id": "TRIP-004.1",
+     "ears":
+     "IF any check failed THEN THE SYSTEM SHALL refer the traveler, and only then."},
+    {"theorem": "Trip.outcome_depends_iff",
+     "status": "proven",
+     "id": "TRIP-004.2",
+     "ears":
+     "IF no check failed and a check rests on an undecided point THEN THE SYSTEM SHALL leave the outcome undecided, and only then."},
+    {"theorem": "Trip.outcome_board_iff",
+     "status": "proven",
+     "id": "TRIP-004.3",
+     "ears":
+     "IF every check passed THEN THE SYSTEM SHALL give the outcome Board, and only then."}]},
+  "TRIP-003":
+  {"review": null,
+   "name": "Trip.gateShows",
+   "ears":
+   "THE SYSTEM SHALL show a result at the gate only for a trip the traveler presented, and Board only when nothing stands against it.",
+   "criteria":
+   [{"theorem": "Trip.gate_waits_until_presented",
+     "status": "proven",
+     "id": "TRIP-003.1",
+     "ears":
+     "IF a trip is not presented THEN THE SYSTEM SHALL show the gate waiting."},
+    {"theorem": "Trip.gate_result_needs_consent",
+     "status": "proven",
+     "id": "TRIP-003.2",
+     "ears":
+     "IF the gate shows a result on any path THEN THE SYSTEM SHALL have had the traveler's shares."},
+    {"theorem": "Trip.one_credential_never_boards",
+     "status": "proven",
+     "id": "TRIP-003.3",
+     "ears":
+     "IF a traveler holds one credential THEN THE SYSTEM SHALL NOT show Board."},
+    {"theorem": "Trip.stop_never_answers",
+     "status": "proven",
+     "id": "TRIP-003.4",
+     "ears":
+     "IF a trip rests on an undecided point THEN THE SYSTEM SHALL show neither Board nor Refer."},
+    {"theorem": "Trip.board_needs_everything",
+     "status": "proven",
+     "id": "TRIP-003.5",
+     "ears":
+     "IF the gate shows Board THEN THE SYSTEM SHALL have a presented trip, nothing undecided and no check against it."}]},
+  "TRIP-002":
+  {"review": null,
+   "name": "Trip.act",
+   "ears":
+   "THE SYSTEM SHALL send nothing to the website or the gate until the traveler shares it in the wallet.",
+   "criteria":
+   [{"theorem": "Trip.presented_only_after_share",
+     "status": "proven",
+     "id": "TRIP-002.1",
+     "ears":
+     "IF a trip reaches the gate THEN THE SYSTEM SHALL have come from the wallet's consent sheet by its Share."},
+    {"theorem": "Trip.reaching_gate_needs_both_shares",
+     "status": "proven",
+     "id": "TRIP-002.2",
+     "ears":
+     "IF any path of a traveler's actions reaches the gate THEN THE SYSTEM SHALL have had both of the traveler's shares on that trip."},
+    {"theorem": "Trip.nothing_sent_to_gate_before_it",
+     "status": "proven",
+     "id": "TRIP-002.3",
+     "ears":
+     "IF a trip is short of the gate on any path THEN THE SYSTEM SHALL have sent the gate nothing."},
+    {"theorem": "Trip.decline_sends_nothing",
+     "status": "proven",
+     "id": "TRIP-002.4",
+     "ears": "WHEN a traveler declines THE SYSTEM SHALL send nothing."},
+    {"theorem": "Trip.declined_sent_nothing",
+     "status": "proven",
+     "id": "TRIP-002.5",
+     "ears":
+     "IF a trip stands at a decline of the website's request on any path THEN THE SYSTEM SHALL have sent the website nothing."},
+    {"theorem": "Trip.gate_declined_sent_nothing",
+     "status": "proven",
+     "id": "TRIP-002.6",
+     "ears":
+     "IF a trip stands at a decline at the gate on any path THEN THE SYSTEM SHALL have sent the gate nothing."}]},
+  "TRIP-001":
+  {"review": null,
+   "name": "Trip.next",
+   "ears": "THE SYSTEM SHALL move a trip only by the steps of its route.",
+   "criteria":
+   [{"theorem": "Trip.route_reaches_the_gate",
+     "status": "proven",
+     "id": "TRIP-001.1",
+     "ears":
+     "THE SYSTEM SHALL let a trip reach the gate by following the route's stops in order."},
+    {"theorem": "Trip.route_moves_forward",
+     "status": "proven",
+     "id": "TRIP-001.2",
+     "ears":
+     "WHEN a traveler takes the action at a stop THE SYSTEM SHALL move the trip to the next stop."},
+    {"theorem": "Trip.no_dead_ends",
+     "status": "proven",
+     "id": "TRIP-001.3",
+     "ears":
+     "IF a trip is short of the gate THEN THE SYSTEM SHALL offer an action that moves it on."}]}},
+ "openQuestions": {}}

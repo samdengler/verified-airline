@@ -1,52 +1,29 @@
-import type { Step } from './trip';
+import routeFile from '../../../../model/trip/route.json';
+import type { Action, Step } from './trip-steps';
 
 /** The three apps a trip moves between. */
 export type App = 'website' | 'wallet' | 'gate';
 
 export const APPS: readonly App[] = ['website', 'wallet', 'gate'];
 
-/**
- * The trip's route: its stops in order, each in the app where it happens, and the
- * stop the trip waits at after each step.  This is ordinary code, so the map marks
- * it as not in the model yet.  A model of the trip would export this same data, and
- * the map would then read that file and be unable to drift from the model.
- */
-export const STOPS = [
-  { id: 'openWallet', app: 'website' },
-  { id: 'share', app: 'wallet' },
-  { id: 'addPass', app: 'website' },
-  { id: 'present', app: 'wallet' },
-  { id: 'shareGate', app: 'wallet' },
-  { id: 'answer', app: 'gate' },
-] as const satisfies readonly { id: string; app: App }[];
+export type StopId = 'openWallet' | 'share' | 'addPass' | 'present' | 'shareGate' | 'answer';
 
-export type StopId = (typeof STOPS)[number]['id'];
+/** The trip's route, from the model: its stops in order, each in the app where it happens. */
+export const STOPS = routeFile.stops as readonly { id: StopId; app: App; action: Action | null }[];
 
-/** A decline goes back to the stop before the wallet asked. */
-const STOP_AFTER: Record<Step, StopId> = {
-  start: 'openWallet',
-  declined: 'openWallet',
-  asked: 'share',
-  shared: 'addPass',
-  passAdded: 'present',
-  gateDeclined: 'present',
-  gateAsked: 'shareGate',
-  presented: 'answer',
-};
+const STOP_AFTER = routeFile.stopAfter as Record<Step, StopId>;
 
 /** Where in the route the trip stands after a step. */
 export const stopIndex = (step: Step): number => STOPS.findIndex((s) => s.id === STOP_AFTER[step]);
-
-export type WebsiteAction = 'open' | 'add' | 'present';
 
 /**
  * What the website can do next for this traveler.  None of these sends anything:
  * sharing happens only on the wallet's consent sheet, so nothing here can skip it.
  */
-export function websiteAction(step: Step, traveler: { photoid: boolean; pass: boolean; accepted: boolean }): WebsiteAction | null {
-  if (step === 'start' || step === 'declined') return traveler.photoid ? 'open' : null;
+export function websiteAction(step: Step, traveler: { photoid: boolean; pass: boolean; accepted: boolean }): Action | null {
+  if (step === 'start' || step === 'declined') return traveler.photoid ? 'openWallet' : null;
   if (!traveler.photoid || !traveler.pass || !traveler.accepted) return null;
-  if (step === 'shared') return 'add';
+  if (step === 'shared') return 'addPass';
   return step === 'passAdded' || step === 'gateDeclined' ? 'present' : null;
 }
 

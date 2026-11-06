@@ -124,11 +124,11 @@ import { websiteAction } from './trip-route';
                 }
               }
             </va-credential>
-            <button type="button" class="oid-link" (click)="trip.reset()">{{ t.startAgain }}</button>
+            <button type="button" class="oid-link" (click)="trip.act('startAgain')">{{ t.startAgain }}</button>
           } @else {
             <section class="oid-card oid-stack">
               <p>{{ w.noPass }}</p>
-              <button type="button" class="oid-link" (click)="trip.reset()">{{ t.startAgain }}</button>
+              <button type="button" class="oid-link" (click)="trip.act('startAgain')">{{ t.startAgain }}</button>
             </section>
           }
         </aside>
@@ -178,9 +178,9 @@ export class CheckIn {
   /** The same action as this screen's own button, for the trip map. */
   protected readonly next = computed<NextAction | null>(() => {
     switch (this.action()) {
-      case 'open': return { label: this.w.open, step: 'asked', opensWallet: true };
-      case 'add': return { label: this.w.add, step: 'passAdded', opensWallet: false };
-      case 'present': return { label: this.t.wallet.present, step: 'gateAsked', opensWallet: true };
+      case 'openWallet': return { label: this.w.open, action: 'openWallet', opensWallet: true };
+      case 'addPass': return { label: this.w.add, action: 'addPass', opensWallet: false };
+      case 'present': return { label: this.t.wallet.present, action: 'present', opensWallet: true };
       default: return null;
     }
   });
@@ -229,14 +229,14 @@ export class CheckIn {
   }
 
   protected ask(): void {
-    this.trip.go('asked');
+    this.trip.act('openWallet');
   }
 
   protected add(): void {
-    this.trip.go('passAdded');
+    this.trip.act('addPass');
   }
 
   protected present(): void {
-    this.trip.go('gateAsked');
+    this.trip.act('present');
   }
 }

@@ -36,24 +36,24 @@ describe('the One ID screens', () => {
     expect(checkIn.el.querySelector('h1')?.textContent).toBe(wording.traveler.checkIn.title);
     expect(hiddenText(checkIn.el)).not.toMatch(BANNED);
 
-    trip.go('asked');
+    trip.act('openWallet');
     const wallet = await render(Wallet);
     expect(wallet.el.querySelector('h1')?.textContent).toBe('Demo wallet');
     expect(wallet.el.querySelector('[data-sheet="consent"]')).not.toBeNull();
     expect(hiddenText(wallet.el)).not.toMatch(BANNED);
 
-    trip.go('shared');
+    trip.act('share');
     await checkIn.fixture.whenStable();
     expect(checkIn.el.querySelector('h1')?.textContent).toMatch(/checked in, Alice/);
     expect(hiddenText(checkIn.el)).not.toMatch(BANNED);
 
-    trip.go('passAdded');
+    trip.act('addPass');
     await wallet.fixture.whenStable();
     expect(wallet.el.querySelectorAll('[data-credential]').length).toBe(2);
     expect(wallet.el.querySelectorAll('.oid-specimen').length).toBe(2);
     expect(hiddenText(wallet.el)).not.toMatch(BANNED);
 
-    trip.go('gateAsked');
+    trip.act('present');
     await wallet.fixture.whenStable();
     expect(wallet.el.querySelector('[data-sheet="consent"]')?.getAttribute('data-for')).toBe('gate');
     expect(wallet.el.querySelector('[data-action="share-gate"]')?.textContent).toMatch(/4/);
@@ -61,7 +61,7 @@ describe('the One ID screens', () => {
 
     const gate = await render(Gate);
     expect(gate.el.querySelector('[data-state="gate-waiting"]')).not.toBeNull();
-    trip.go('presented');
+    trip.act('shareGate');
     await gate.fixture.whenStable();
     expect(gate.el.querySelector('.oid-banner-word')?.textContent).toBe(wording.traveler.gate.board);
     expect(hiddenText(gate.el)).not.toMatch(BANNED);
@@ -90,10 +90,10 @@ describe('the One ID screens', () => {
   it('declining in the wallet returns check-in to its start', async () => {
     const trip = TestBed.inject(Trip);
     const checkIn = await render(CheckIn);
-    trip.go('asked');
+    trip.act('openWallet');
     await checkIn.fixture.whenStable();
     expect(checkIn.el.querySelector('[data-state="waiting"]')).not.toBeNull();
-    trip.go('declined');
+    trip.act('decline');
     await checkIn.fixture.whenStable();
     expect(checkIn.el.querySelector('[data-state="declined"]')).not.toBeNull();
     expect(checkIn.el.querySelector('[data-action="open-wallet"]')).not.toBeNull();
@@ -147,10 +147,10 @@ describe('the One ID screens', () => {
     await fixture.whenStable();
     expect(button.classList.contains('open')).toBe(true);
 
-    fixture.componentRef.setInput('requirements', []);
-    fixture.componentRef.setInput('grey', wording.lean.grey.decision);
+    fixture.componentRef.setInput('requirements', ['TRIP-003']);
     await fixture.whenStable();
-    expect(button.classList.contains('partial')).toBe(true);
-    expect(el.querySelector('.lean-req')?.textContent).toContain(wording.lean.grey.decision.title);
+    expect(button.classList.contains('open')).toBe(false);
+    expect(el.querySelector('.lean-req')?.textContent).toContain('TRIP-003');
+    expect(el.querySelector('.lean-pop a')?.getAttribute('href')).toBe(wording.lean.trip.source);
   });
 });

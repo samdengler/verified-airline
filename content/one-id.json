@@ -156,7 +156,6 @@
   "legend": {
    "proven": "Every criterion proven",
    "open": "A criterion is an open question",
-   "grey": "Not in the model yet",
    "text": "Each check runs as TypeScript in this browser. The tests compare it with the model's answer on every row of the model's table. That is a test of those cases; the proofs are about the Lean model. No signature or protocol is checked, because the model holds no cryptography."
   },
   "popover": {
@@ -165,6 +164,7 @@
    "criteria": "criteria",
    "openQuestion": "Open question",
    "name": "Lean:",
+   "proof": "Proof:",
    "theorem": "Open theorem:",
    "example": "An example shows the case:",
    "noLink": "The review document has no public address yet, so this shows no link.",
@@ -175,15 +175,11 @@
     "not checked": "not checked"
    }
   },
-  "grey": {
-    "map": {
-      "title": "Not in the model yet",
-      "text": "The order of these steps runs on ordinary code, and no proof covers it yet. The model decides what each check says and what a wallet may send."
-    },
-   "decision": {
-    "title": "Not in the model yet",
-    "text": "The model decides each check below, and its rule for a pair. Combining the pair's result with the checks of each credential's content into Board or Refer runs on ordinary code here."
-   }
+  "trip": {
+    "mapMarker": { "requirements": ["TRIP-001", "TRIP-002"] },
+    "note": "These proofs cover a traveler's own actions. The presenter's picks go straight to the gate, and they show only with the model. Tabs pass the step to each other unchecked, and in one browser no credential travels.",
+    "source": "https://github.com/samdengler/verified-airline/tree/main/trip-model",
+    "sourceText": "The trip's model is in this site's repository."
   },
   "checkIn": {
    "itemsMarker": {
@@ -236,6 +232,7 @@
     "relyingParty": "By the relying party",
     "request": "When it was asked"
    },
+   "decisionMarker": { "requirements": ["TRIP-003", "TRIP-004"] },
    "pairMarker": {
     "requirements": [
      "OID-207"

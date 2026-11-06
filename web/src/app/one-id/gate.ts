@@ -14,6 +14,7 @@ import { gatePresentation } from './presentation-checks';
 import { Presenter } from './presenter';
 import { Trip, startFromTourLink } from './trip';
 import { TripMap } from './trip-map';
+import { gateShows } from './trip-steps';
 
 interface Row {
   key: CheckKey;
@@ -51,10 +52,10 @@ interface Row {
       <div class="oid-map-band"><div class="wrap"><va-trip-map surface="gate" /></div></div>
       <div class="wrap oid-gate" id="content">
         <main class="oid-main">
-          @if (!presented()) {
+          @if (shows() === 'waiting') {
             <p class="oid-card oid-waiting" data-state="gate-waiting">{{ w.waiting }}</p>
           } @else {
-            @if (view().stops.length) {
+            @if (shows() === 'decide') {
               <div class="oid-banner decide" data-state="gate-decide" role="status">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9.500 16.500h-19z" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/><path d="M12 10v4.500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.100" fill="currentColor"/></svg>
                 <div class="oid-grow">
@@ -62,20 +63,20 @@ interface Row {
                   <p class="oid-banner-line">{{ d.line }}</p>
                 </div>
               </div>
-            } @else if (view().kind === 'credential') {
-              <div class="oid-banner credential" [class.refused]="view().outcome !== 'board'" data-state="gate-result" role="status">
+            } @else if (shows() === 'credentialAccepted' || shows() === 'credentialRefused') {
+              <div class="oid-banner credential" [class.refused]="shows() === 'credentialRefused'" data-state="gate-result" role="status">
                 <div class="oid-grow">
                   <p class="oid-eyebrow">{{ d.credentialCheck }}</p>
-                  <p class="oid-banner-word">{{ view().outcome === 'board' ? d.preview.accepted : d.preview.refused }}</p>
+                  <p class="oid-banner-word">{{ shows() === 'credentialAccepted' ? d.preview.accepted : d.preview.refused }}</p>
                   <p class="oid-banner-line">{{ credentialLine() }}</p>
                 </div>
                 <va-marker key="pair-rule" [requirements]="lean.gate.pairMarker.requirements" />
               </div>
-            } @else if (view().kind === 'presentation') {
-              <div class="oid-banner credential" [class.refused]="view().outcome !== 'board'" data-state="gate-result" role="status">
+            } @else if (shows() === 'presentationAccepted' || shows() === 'presentationRefused') {
+              <div class="oid-banner credential" [class.refused]="shows() === 'presentationRefused'" data-state="gate-result" role="status">
                 <div class="oid-grow">
                   <p class="oid-eyebrow">{{ lean.presentation.eyebrow }}</p>
-                  <p class="oid-banner-word">{{ view().outcome === 'board' ? d.preview.accepted : d.preview.refused }}</p>
+                  <p class="oid-banner-word">{{ shows() === 'presentationAccepted' ? d.preview.accepted : d.preview.refused }}</p>
                   <p class="oid-banner-line">{{ presentationLine() }}</p>
                 </div>
                 <va-marker key="presentation-rule" [requirements]="lean.checks.refusals.requirements" />
@@ -93,7 +94,7 @@ interface Row {
                   <p class="oid-banner-word">{{ board() ? w.board : w.refer }}</p>
                   <p class="oid-banner-line">{{ bannerLine() }}</p>
                 </div>
-                <va-marker key="decision" [grey]="lean.grey.decision" />
+                <va-marker key="decision" [requirements]="lean.gate.decisionMarker.requirements" />
                 <va-marker key="pair-rule" [requirements]="lean.gate.pairMarker.requirements" />
               </div>
             }
@@ -123,7 +124,7 @@ interface Row {
                 }
               </div>
             </section>
-            <button type="button" class="oid-link" (click)="trip.reset()">{{ t.startAgain }}</button>
+            <button type="button" class="oid-link" (click)="trip.act('startAgain')">{{ t.startAgain }}</button>
           }
           <p class="oid-note">{{ t.note }}</p>
         </main>
@@ -146,7 +147,6 @@ export class Gate {
   private readonly decisions = signal<Record<string, unknown> | null>(null);
   private loading = false;
 
-  protected readonly presented = computed(() => this.trip.step() === 'presented');
   private readonly subject = computed<Subject>(() => this.trip.subject());
   /** The default trip also presents at this gate, under the model's proximity rules. */
   private readonly presentation = computed(() => {
@@ -158,7 +158,9 @@ export class Gate {
     return p && viewGate(p, this.trip.decisions());
   });
   protected readonly view = computed(() => viewGate(this.subject(), this.trip.decisions()));
-  protected readonly board = computed(() => this.view().outcome === 'board' && (this.presentationView()?.outcome ?? 'board') === 'board');
+  /** What the reader shows, by the model's rule for the gate. */
+  protected readonly shows = computed(() => gateShows(this.trip.step(), this.view(), this.presentationView()));
+  protected readonly board = computed(() => this.shows() === 'board');
 
   protected readonly statusLine = computed(() => fill(this.w.status, { flight: this.t.flight.number, time: formatTime(this.subject().checkedAt) }));
   protected readonly bannerLine = computed(() => {

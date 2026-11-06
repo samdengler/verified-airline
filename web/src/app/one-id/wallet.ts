@@ -67,12 +67,12 @@ import { TripMap } from './trip-map';
             }
             @if (s.items.length) {
               @if (s.forGate) {
-                <a class="oid-button" href="/gate" target="va-gate" data-action="share-gate" (click)="trip.go('presented')">{{ s.share }}</a>
+                <a class="oid-button" href="/gate" target="va-gate" data-action="share-gate" (click)="trip.act('shareGate')">{{ s.share }}</a>
               } @else {
-                <button type="button" class="oid-button" data-action="share" (click)="trip.go('shared')">{{ s.share }}</button>
+                <button type="button" class="oid-button" data-action="share" (click)="trip.act('share')">{{ s.share }}</button>
               }
             }
-            <button type="button" class="oid-button secondary" data-action="decline" (click)="trip.go(s.forGate ? 'gateDeclined' : 'declined')">{{ w.decline }}</button>
+            <button type="button" class="oid-button secondary" data-action="decline" (click)="trip.act(s.forGate ? 'declineGate' : 'decline')">{{ w.decline }}</button>
           </section>
         }
 
@@ -81,7 +81,7 @@ import { TripMap } from './trip-map';
           <p class="oid-strong" data-state="presented">{{ w.presented }}</p>
           <a class="oid-button secondary" href="/gate" target="va-gate">{{ gateTitle }}</a>
         } @else if (showPass() && !sheet()) {
-          <button type="button" class="oid-button" data-action="present" (click)="trip.go('gateAsked')">{{ w.present }}</button>
+          <button type="button" class="oid-button" data-action="present" (click)="trip.act('present')">{{ w.present }}</button>
         }
 
         <section class="oid-stack">

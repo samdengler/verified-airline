@@ -6,6 +6,7 @@ import presentationReadingsFile from '../../../../model/one-id/presentation/read
 import presentationScenariosFile from '../../../../model/one-id/presentation/scenarios.json';
 import readingsFile from '../../../../model/one-id/readings.json';
 import scenariosFile from '../../../../model/one-id/scenarios.json';
+import tripModelFile from '../../../../model/trip/model.json';
 import { oneIdWording } from '../content';
 import type { MdocProfileRequest } from './rules/mdoc-profile-request-findings';
 import type { Session } from './rules/proximity-session-findings';
@@ -70,7 +71,7 @@ export interface Requirement {
   name: string;
   ears: string;
   review: string | null;
-  criteria: { id: string; status: string; ears: string }[];
+  criteria: { id: string; status: string; ears: string; theorem?: string }[];
 }
 
 export interface OpenQuestion {
@@ -101,7 +102,7 @@ export const allReadings: Reading[] = [...readings, ...presentationReadings.filt
 
 /** The default presentation of a profile: Alice Martin's honest one, which every reading accepts. */
 export const defaultPresentation = (profile: Profile): PresentationScenario => presentationScenarios.find((s) => s.default && s.profile === profile)!;
-export const requirements = modelFile.requirements as unknown as Record<string, Requirement>;
+export const requirements = { ...modelFile.requirements, ...tripModelFile.requirements } as unknown as Record<string, Requirement>;
 export const openQuestions = modelFile.openQuestions as unknown as Record<string, OpenQuestion[]>;
 export const dataElements = modelFile.identifiers.dataElements as unknown as Identifier[];
 

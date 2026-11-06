@@ -90,7 +90,8 @@ site's content security policy and fails on any console error.
 | `content/*.md` | The wording of each page; the docstring of `scripts/render_airline.py` describes the format |
 | `content/chat.json`, `content/one-id.json` | The wording of the chat and of the One ID screens |
 | `assets/` | The stylesheet and the design system in `assets/design/`, shared by the static pages and the app, and the static pages' script |
-| `model/` | `facts.json` and `model.json` from verified-air, committed; `model/one-id/` from verified-id |
+| `model/` | `facts.json` and `model.json` from verified-air, committed; `model/one-id/` from verified-id; `model/trip/` from `trip-model/` |
+| `trip-model/` | The trip's Lean model, with no Mathlib: the steps, what the gate may show, their proofs, and the export the site reads |
 | `web/` | The Angular app: the header and footer, the page component that shows the renderer's pages, the One ID screens in `src/app/one-id/`, the browser check |
 | `infra/` | The `VerifiedAirline` CDK stack (Python): the site at air.dengler.io and its publish role |
 | `scripts/render_airline.py` | The pages and their checks, written to `build/`, and with `--content` for the app |
@@ -288,9 +289,48 @@ lane per app, a numbered stop per step and a pin at the stop the trip waits at. 
 and a button under the map run the next action if the screen offers one, and otherwise
 go to the app where the stop is. Neither ever shares anything: sharing happens only on
 the wallet's consent sheet. Each lane has its app's color, except in the wallet,
-where only its own lane does. The route is ordinary code in `one-id/trip-route.ts`, so
-the map's marker is grey. A model of the trip would export the route, and the map would
-read that file instead.
+where only its own lane does. The route comes from the trip's model, in
+`model/trip/route.json`, so the map cannot drift from it, and its marker opens the
+theorems behind it.
+
+### The trip's model
+
+verified-id proves what the wallet may send. `trip-model/`, a small Lean package with no
+Mathlib, proves the order around it: which step can follow which, what has been sent at
+each, and what the gate may show for any result of the checks.
+
+| Requirement | Says |
+| --- | --- |
+| `TRIP-001` | A trip moves only by the steps of its route, and has no dead ends |
+| `TRIP-002` | Nothing goes to the website or the gate until the traveler shares it, and a decline sends nothing |
+| `TRIP-003` | The gate shows a result only for a presented trip. One credential never boards, and a stop shows neither Board nor Refer |
+| `TRIP-004` | Any failed check refers, anything undecided leaves the outcome undecided, and Board needs every check passed |
+
+The traveler can decline and try again, or start again at any step, so paths have no
+limit, and the theorems hold by induction over all of them. `lake exe trip-export
+../model/trip`, run in `trip-model/`, writes three files, and takes each status from the
+axioms of the theorem behind it:
+
+- `model.json`: the requirements and criteria the markers show.
+- `route.json`: the stops the trip map draws.
+- `decisions.jsonl`: the model's answer for all 64 pairs of a step and an action, all
+  1,536 inputs to the gate, and every list of up to three checks.
+
+`next`, `gateShows`, `kindFrom` and `outcomeOf` in `one-id/trip-steps.ts` mirror the Lean
+functions. Their inputs are finite and the table holds every one, so a pass means they
+agree with the model on every input. `one-id/trip-properties.spec.ts` restates the
+theorems on random paths of real actions. The screens change the trip only through `next`,
+and the gate's banner comes only from `gateShows`.
+
+CI's `trip-model` job builds the proofs and fails if the committed files differ from what
+the model writes, and publishing waits for it. The site's build reads the committed files
+and needs no Lean, so `render_airline.py` and verified-air's CI are unaffected.
+
+Three things stay outside these proofs. The presenter's picks go straight to the gate:
+they are no part of a traveler's trip, and they happen only with the model shown. Tabs
+pass the step to each other through a BroadcastChannel, unchecked. And in one browser no
+credential travels, so "sent" says what a real wallet would have sent; the relay in
+package 5 is the first place anything is sent.
 
 ### The home page's tours
 
@@ -322,9 +362,9 @@ With the model hidden, the trip is the scenario `scenarios.json` marks as the
 default, whose result the build checks is the same under every reading. With it
 shown, the existing Lean model button adds ∀ markers fed from `model.json`, the
 identifiers, and at the gate the checks that ran. A marker is blue when every
-criterion behind it is proven, amber when one is open, and grey for a step the
-model does not cover. Popovers show no link, because verified-id's review document
-has no public address yet.
+criterion behind it is proven and amber when one is open. Popovers on verified-id's
+requirements show no link, because its review document has no public address yet; the
+trip's model is in this repository, so its popovers link to it.
 
 Beside each computed result at the gate is the model's answer for that traveler and
 those settings, read from `public/one-id-decisions.json`, which `npm run content`
@@ -338,9 +378,8 @@ sheets list what `Wallet.respond` would send (OID-201), and the relying party de
 with `refusals` and `pairRefusals` (OID-202, OID-207). With the model shown, each of
 these carries the marker of its requirement.
 
-One step is ordinary code, with a grey marker: combining the result for a pair with
-the checks of each credential's content into "Board" or "Refer to agent". A contactless
-touchpoint needs both credentials, so a traveler holding one is never boarded: the gate
+Combining the checks into "Board" or "Refer to agent" is in the trip's model below. A
+contactless touchpoint needs both credentials, so a traveler holding one is never boarded: the gate
 shows a "Credential check" with the result for that credential alone. The panel also
 offers the model's 21 presentations, such as a replayed response or two travelers on
 one phone. Each shows the relying party's answer under the same rules.
@@ -410,6 +449,18 @@ A second seeded error tested the presentation rules: `rules/refusals.ts` was cha
 so the OpenID4VP profile no longer compares a response's session transcript with the
 request. `npm test` then failed 18 of 1,678 tests, 16 vectors of `replay-openid4vp`
 and 2 properties, and passed all 1,678 once the change was reverted.
+
+Package 8's model and code were seeded the same way on 5 November 2026. In the Lean model,
+a shortcut from `passAdded` straight to `presented` stopped `lake build` at
+`presented_only_after_share`, and a `sorry` in that theorem stopped `trip-export`. In the
+TypeScript, of 3,357 tests:
+
+| Seeded error | Tests failed |
+| --- | --- |
+| `next` lets a trip skip the gate's consent sheet | 2 |
+| `gateShows` answers Board before checking for a stop | 6 |
+| `kindFrom` counts one credential as a pair | 14 |
+| `outcomeOf` puts undecided ahead of failed | 16 |
 
 ## Planned
 
@@ -494,3 +545,9 @@ shows is unproved and is labelled that way.
     read as one airline's. The demo wallet takes the same components under neutral
     tokens, since a real wallet comes from another party. The review game's design
     system is a separate, internal one with its own brand, and nothing is shared with it.
+14. **The trip has a small model of its own, in this repository.** Lean already proved
+    what the wallet may send, and nothing proved the trip asks first. The model needs
+    nothing from verified-id, since a check's result is an input to it, so public CI can
+    build it. Its table holds every input, because a table of paths could never be
+    complete. The design rules stayed out of Lean: they are a fixed list that a script
+    can check whole, so "proven" would have claimed more than it does here.

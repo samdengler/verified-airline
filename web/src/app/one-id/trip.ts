@@ -4,9 +4,9 @@ import { LeanModel } from '../lean-model';
 import { defaultScenario, presentationScenarios, scenarios } from './data';
 import type { Decisions, Subject } from './decide';
 import type { Setting } from './rules/support/readings';
+import { type Action, next, type Step } from './trip-steps';
 
-/** How far the trip has gone: the website asks, the wallet shares, the website issues, the gate asks, the wallet presents. */
-export type Step = 'start' | 'asked' | 'declined' | 'shared' | 'passAdded' | 'gateAsked' | 'gateDeclined' | 'presented';
+export type { Action, Step } from './trip-steps';
 
 /** The steps at which the wallet holds the boarding pass. */
 export const PASS_HELD: readonly Step[] = ['passAdded', 'gateAsked', 'gateDeclined', 'presented'];
@@ -74,21 +74,22 @@ export class Trip implements OnDestroy {
     this.post({ type: 'state', state: next });
   }
 
-  go(step: Step): void {
-    this.change({ step });
+  /** A traveler's action, by the model's steps.  One the current step does not allow changes nothing. */
+  act(action: Action): void {
+    const step = next(this.state().step, action);
+    if (step) this.change({ step });
   }
 
-  /** Back to the start of the trip, keeping the traveler and the switches. */
-  reset(): void {
-    this.change({ step: 'start' });
-  }
-
-  /** The presenter's traveler or presentation goes straight to the gate reader. */
+  /**
+   * The presenter's traveler or presentation goes straight to the gate reader.  This is
+   * no part of a traveler's trip, so the model's theorems do not cover it, and it is
+   * only on the panel, which shows only with the model.
+   */
   pick(scenarioId: string): void {
     this.change({ scenarioId, step: 'presented' });
   }
 
-  /** A fresh trip for a traveler, with nothing decided. */
+  /** A fresh trip for a traveler, with nothing decided.  A tour's link starts here. */
   begin(scenarioId: string, step: Step): void {
     this.change({ scenarioId, step, decisions: {} });
   }
@@ -112,16 +113,20 @@ export class Trip implements OnDestroy {
  * For a screen's constructor.  A tour's link names a traveler, as in
  * /gate?traveler=two-john-smiths: this starts a fresh trip for them at this screen,
  * then takes the query out of the address so a reload keeps the trip.  It waits for
- * the first render, which has to match the page as it was prerendered.
+ * the first render, which has to match the page as it was prerendered.  Going straight
+ * to the gate skips the traveler's consent, so that happens only with the model shown,
+ * as the presenter's picks do.
  */
 export function startFromTourLink(step: Step): void {
   const trip = inject(Trip);
   const location = inject(Location);
+  const lean = inject(LeanModel);
   afterNextRender(() => {
     const [path, query] = location.path().split('?');
     const id = new URLSearchParams(query).get('traveler');
     if (!id) return;
-    if ([...scenarios, ...presentationScenarios].some((s) => s.id === id)) trip.begin(id, step);
+    const known = [...scenarios, ...presentationScenarios].some((s) => s.id === id);
+    if (known && (step !== 'presented' || lean.shown())) trip.begin(id, step);
     location.replaceState(path);
   });
 }

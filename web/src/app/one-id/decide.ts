@@ -8,6 +8,9 @@ import { planPresentationChecks } from './presentation-checks';
 import { boardingPassDocType, photoidDocType } from './rules/support/identifiers';
 import type { Mdoc } from './rules/support/types';
 import type { Setting, Settings } from './rules/support/readings';
+import { type CheckState, kindFrom, type Kind, type Outcome, outcomeOf } from './trip-steps';
+
+export type { CheckState, Outcome } from './trip-steps';
 
 /** What the gate can be asked about: a traveler's credentials, or one presentation. */
 export type Subject = Scenario | PresentationScenario;
@@ -30,9 +33,6 @@ export function mdocOf(s: Subject, role: 'photoid' | 'boardingPass'): Mdoc | und
 /** A point's state: a setting, null for "none of these", or absent while nobody has decided it. */
 export type Decisions = Readonly<Record<string, Setting | null>>;
 
-export type CheckState = 'passed' | 'failed' | 'depends';
-export type Outcome = 'board' | 'refer' | 'depends';
-
 export interface CheckView {
   /** The check under the decided settings, and the first setting of each undecided point. */
   result: CheckResult;
@@ -44,7 +44,7 @@ export interface CheckView {
 
 export interface GateView {
   /** A pair can be boarded.  One credential alone only gets a result for itself, since the gate needs both (OID-207).  A presentation is accepted or refused. */
-  kind: 'pair' | 'credential' | 'presentation';
+  kind: Kind;
   outcome: Outcome;
   checks: CheckView[];
   /** The check that refers this traveler, whichever way the undecided points go. */
@@ -92,17 +92,15 @@ export function exampleOf(subject: Subject): string[] {
   return [...new Set(named)].filter((point) => reads.has(point));
 }
 
-function kindOf(subject: Subject): GateView['kind'] {
-  if (isPresentation(subject)) return 'presentation';
-  return credentialOf(subject, 'photoid') && credentialOf(subject, 'boardingPass') ? 'pair' : 'credential';
-}
+const kindOf = (subject: Subject): Kind =>
+  isPresentation(subject) ? kindFrom({ presentation: true, photoid: false, pass: false }) : kindFrom({ presentation: false, photoid: !!credentialOf(subject, 'photoid'), pass: !!credentialOf(subject, 'boardingPass') });
 
 /** What the gate can say about a subject. */
 export function viewGate(subject: Subject, d: Decisions): GateView {
   const checks = viewChecks(subject, d);
   const blocking = checks.filter((c) => c.result.blocks);
   const failed = blocking.find((c) => c.state === 'failed');
-  const outcome: Outcome = failed ? 'refer' : blocking.some((c) => c.state === 'depends') ? 'depends' : 'board';
+  const outcome = outcomeOf(blocking.map((c) => c.state));
   const splitting = outcome === 'depends' ? blocking.flatMap((c) => c.splits) : [];
   return {
     kind: kindOf(subject),

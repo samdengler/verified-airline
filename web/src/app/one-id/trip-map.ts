@@ -2,7 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Component, OnInit, PLATFORM_ID, computed, inject, input } from '@angular/core';
 import { wording } from './data';
 import { Marker } from './marker';
-import { type Step, Trip } from './trip';
+import { type Action, Trip } from './trip';
 import { APPS, type App, STOPS, legsOf, stopIndex } from './trip-route';
 
 /** Each app's page, and the tab it opens in, so going back to an app finds its tab. */
@@ -15,7 +15,7 @@ const PAGES: Record<App, { href: string; target: string }> = {
 /** The next step when this screen can run it, offered by the screen that owns it. */
 export interface NextAction {
   label: string;
-  step: Step;
+  action: Action;
   opensWallet: boolean;
 }
 
@@ -29,7 +29,7 @@ export interface NextAction {
   imports: [Marker],
   template: `
     <section class="oid-map" data-state="trip-map" [attr.data-at]="stop().id" [attr.data-here]="here()" [attr.aria-label]="m.title">
-      <div class="heading-row"><h2>{{ m.title }}</h2><va-marker key="trip-map" [grey]="grey" /></div>
+      <div class="heading-row"><h2>{{ m.title }}</h2><va-marker key="trip-map" [requirements]="lean.mapMarker.requirements" /></div>
       <p class="oid-small">{{ m.lede }}</p>
       <div class="oid-map-grid">
         @for (lane of lanes; track lane) {
@@ -58,6 +58,7 @@ export interface NextAction {
           }
         </ol>
       </div>
+      <p class="oid-small" data-lean>{{ lean.note }}</p>
       <div class="oid-map-next">
         <p class="oid-map-line oid-grow" data-state="trip-map-line">
           <span class="oid-strong">{{ here() ? m.here + '.' : m.inApp[stop().app] }}</span>
@@ -79,7 +80,7 @@ export class TripMap implements OnInit {
   private readonly trip = inject(Trip);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   protected readonly m = wording.traveler.map;
-  protected readonly grey = wording.lean.grey.map;
+  protected readonly lean = wording.lean.trip;
   protected readonly lanes = APPS;
 
   private readonly current = computed(() => stopIndex(this.trip.step()));
@@ -105,7 +106,7 @@ export class TripMap implements OnInit {
     const next = this.next();
     if (!next) return;
     if (!next.opensWallet) event.preventDefault();
-    this.trip.go(next.step);
+    this.trip.act(next.action);
   }
 
   ngOnInit(): void {
