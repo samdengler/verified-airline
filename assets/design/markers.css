@@ -1,0 +1,27 @@
+/* Markers and their popovers */
+.lean-marker { flex: none; width: 36px; height: 36px; border-radius: var(--radius-pill); border: 1.5px solid var(--proven-ink); background: var(--proven-bg);
+  color: var(--proven-ink); font: 700 17px/1 var(--mono); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.lean-marker[aria-expanded="true"] { background: var(--proven-on); }
+.lean-marker.open { border-color: var(--amber-edge); background: var(--amber-bg); color: var(--amber-ink); }
+.lean-marker.open[aria-expanded="true"] { background: var(--amber-on); }
+.lean-marker.partial { border-color: var(--muted); background: var(--surface); color: var(--muted); }
+
+.lean-pop { position: absolute; top: calc(100% + 8px); left: 0; z-index: 5; width: 100%; max-width: 520px; padding: 16px 18px;
+  border: 1px solid var(--pop-line); border-radius: var(--radius-panel); background: var(--surface); box-shadow: 0 10px 28px var(--shadow);
+  display: flex; flex-direction: column; gap: 14px; font-size: 14px; color: var(--ink); }
+.lean-pop[hidden] { display: none; }
+.lean-pop.amber { border-color: var(--amber-line); }
+.lean-req { display: flex; flex-direction: column; gap: 8px; }
+.lean-req + .lean-req { border-top: 1px solid var(--line); padding-top: 14px; }
+.policy .lean-pop p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--ink); }
+.policy .lean-pop .lean-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; }
+.lean-count { color: var(--muted); }
+.policy .lean-pop .lean-ears { font: 13px/1.6 var(--mono); }
+.policy .lean-pop .lean-question { color: var(--body); }
+.policy .lean-pop .lean-name { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
+.lean-pop code, .lean-question code { font: 12.5px var(--mono); }
+.lean-pop a { font-weight: 600; }
+.badge { display: inline-block; padding: 3px 8px; border-radius: var(--radius-pill); font-weight: 600; font-size: 13px; line-height: 1.4; }
+.badge.proven { background: var(--proven-bg); color: var(--proven-ink); }
+.badge.open { background: var(--amber-bg); color: var(--amber-ink); }
+.badge.example, .badge.not-checked { background: var(--neutral-bg); color: var(--body); }

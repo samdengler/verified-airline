@@ -2,7 +2,7 @@
  "about": "The check-in, wallet and gate screens' wording. render_airline.py checks every string under traveler as it checks the pages: no rule, theorem or criterion, no requirement ID, no typed amount. Strings under lean show only with the Lean model. Under lean, requirements must name requirements the model has, open must name criteria that are still open, and element must name an identifier of the model. Results are computed; this file holds only the words for each result.",
  "traveler": {
   "specimen": "Specimen",
-  "note": "Verified Airline is a fictional airline. The traveler, the flight and the credentials are specimens.",
+  "note": "Verified Airline is a fictional airline. This is a proof of concept, not affiliated with IATA. The traveler, the flight and the credentials are specimens.",
   "toggle": {
    "show": "Show the Lean model",
    "hide": "Hide the Lean model"
@@ -96,16 +96,12 @@
    "asksGate": "The gate asks for {count} items",
    "forGate": "For boarding flight {flight}.",
    "gateDeclined": "You declined, so nothing went to the gate.",
-   "nothingToShare": "Your wallet holds nothing this request can use."
+   "nothingToShare": "Your wallet holds nothing this request can use.",
+   "note": "This is a demo. The credentials are specimens and the airline in them is fictional. It is a proof of concept, not affiliated with IATA."
   },
   "gate": {
    "documentTitle": "Gate reader",
-   "crumbs": [
-    "Airport",
-    "Gate reader"
-   ],
    "title": "Gate reader",
-   "lede": "The reader takes what a traveler's wallet presents and tells the agent whether to board them.",
    "status": "{flight} · checked at {time}",
    "waiting": "Waiting for a traveler to present at the gate.",
    "board": "Board",

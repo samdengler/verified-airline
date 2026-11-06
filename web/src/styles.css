@@ -2,3 +2,4 @@
    scripts/render_airline.py writes.  The fonts it names come from @fontsource
    (angular.json), so the site loads nothing from another origin. */
 @import "../../assets/airline.css";
+@import "../../assets/design/components.css";

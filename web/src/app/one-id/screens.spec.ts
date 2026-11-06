@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { site } from '../content';
 import { CheckIn } from './check-in';
 import { defaultScenario, requirements, scenarios, wording } from './data';
 import { Gate } from './gate';
@@ -64,6 +65,20 @@ describe('the One ID screens', () => {
     await gate.fixture.whenStable();
     expect(gate.el.querySelector('.oid-banner-word')?.textContent).toBe(wording.traveler.gate.board);
     expect(hiddenText(gate.el)).not.toMatch(BANNED);
+  });
+
+  it('shows the wallet as its own app, with no sign of the airline brand', async () => {
+    const { el } = await render(Wallet);
+    expect(el.querySelector('.surface-wallet')).not.toBeNull();
+    expect(el.querySelector('.brand')).toBeNull();
+    expect(el.querySelector('h1')?.textContent).toBe('Demo wallet');
+  });
+
+  it('heads the gate reader with the airline brand and its own title', async () => {
+    const { el } = await render(Gate);
+    expect(el.querySelector('.gate-bar .wordmark')?.textContent).toBe(site.airline);
+    expect(el.querySelector('.gate-bar h1')?.textContent).toBe(wording.traveler.gate.title);
+    expect(el.querySelector('.gate-bar [data-state="gate-status"]')).not.toBeNull();
   });
 
   it('uses the default scenario with the model hidden, whichever traveler was picked', () => {

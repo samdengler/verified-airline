@@ -1,0 +1,51 @@
+/* Verified Airline's design tokens: the colors, type and shapes its website and
+   gate reader share.  Every component takes its look from these, so a surface
+   with its own look, such as the demo wallet, sets its own values and changes
+   nothing else.  Each color is light-dark(light, dark): the pages follow the system
+   setting, and data-theme on the root, set by the button in the header, overrides it.
+
+   The proven and amber colors belong to the Lean model's markers.  They mean the
+   same on every surface, so a theme leaves them alone. */
+
+:root {
+  color-scheme: light dark;
+  --page: light-dark(#FFFFFF, #0E1320);
+  --surface: light-dark(#FFFFFF, #161C2E);
+  --accent: light-dark(#2B3A67, #A9B9EC);
+  --on-accent: light-dark(#FFFFFF, #0E1320);
+  --proven-ink: light-dark(#2B3A67, #A9B9EC);
+  --ink: light-dark(#14213D, #E8ECF5);
+  --body: light-dark(#374151, #C5CCDA);
+  --muted: light-dark(#4B5563, #9AA3B5);
+  --line: light-dark(#E5E7EB, #283048);
+  --band: light-dark(#F3F6FA, #151B2C);
+  --foot: light-dark(#F8FAFC, #121827);
+  --field: light-dark(#C7CED8, #3A4562);
+  --search-line: light-dark(#D9DEE5, #2C3550);
+  --legend: light-dark(#EAF0F8, #141C33);
+  --legend-line: light-dark(#D5DFEC, #26304B);
+  --pop-line: light-dark(#C9D7EA, #34406A);
+  --shadow: light-dark(rgba(20, 33, 61, 0.14), rgba(0, 0, 0, 0.5));
+  --neutral-bg: light-dark(#EEF0F3, #232A3B);
+  --proven-bg: light-dark(#E0ECF8, #1E2A4D);
+  --proven-on: light-dark(#C7D7EE, #2A3A66);
+  --amber-bg: light-dark(#FEF3C7, #3A2A0A);
+  --amber-on: light-dark(#FDE68A, #4D3810);
+  --amber-soft: light-dark(#FFFBEB, #221A08);
+  --amber-line: light-dark(#F3D58A, #6B4F17);
+  --amber-edge: light-dark(#D97706, #F59E0B);
+  --amber-ink: light-dark(#92400E, #FCD38A);
+  /* Fira Sans stands in for Whitney, which needs a paid web license. */
+  --sans: "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: "DM Serif Display", Georgia, serif;
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --radius-small: 6px;
+  --radius-control: 8px;
+  --radius-panel: 10px;
+  --radius-card: 12px;
+  --radius-large: 16px;
+  --radius-pill: 999px;
+}
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+

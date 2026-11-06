@@ -91,6 +91,12 @@ async function opensTab(context, page, selector) {
   return tab;
 }
 
+// Every page has the same event replay script, so a change of one page's events cannot need a new policy.
+if (!opt('--url')) {
+  const scripts = new Set(htmlFiles(DIST).filter((f) => !f.endsWith('index.csr.html')).flatMap((f) => [...readFileSync(f, 'utf8').matchAll(/__jsaction_bootstrap\(document\.body,"ng",(\[[^\]]*\])/g)].map((m) => m[1])));
+  check('every page lists the same events for replay', scripts.size === 1, [...scripts].join(' '));
+}
+
 const server = opt('--url') ? null : await serve();
 const BASE = (opt('--url') ?? `http://127.0.0.1:${server.address().port}`).replace(/\/$/, '');
 const browser = await chromium.launch({ channel: 'chrome', headless: true });
@@ -235,6 +241,8 @@ try {
   const shot = async (p, name) => { if (shots) await p.screenshot({ path: join(shots, `${name}.png`), fullPage: true }); };
   const pageH1 = (p) => p.locator('h1').first().textContent();
   const start = { h1: await pageH1(page), words: await hiddenWords(page), current: await page.locator('header.site nav a[aria-current]').textContent(), title: await page.title() };
+  const siteLook = await page.evaluate(() => ({ accent: getComputedStyle(document.querySelector('.oid-button')).backgroundColor, font: getComputedStyle(document.body).fontFamily }));
+  check('the website keeps its look', siteLook.accent === 'rgb(43, 58, 103)' && /Fira/.test(siteLook.font), JSON.stringify(siteLook));
   check('/check-in starts the trip with the model hidden', start.h1 === words.traveler.checkIn.title && start.words === null
     && start.current === 'Check in' && start.title === `${words.traveler.checkIn.documentTitle}: ${content.airline}`, JSON.stringify(start));
   await shot(page, 'check-in-hidden');
@@ -245,6 +253,12 @@ try {
   const family = defaultScenario.credentials[0].mdoc.nameSpaces[0].elements[0].value.text;
   const sheet = { h1: await pageH1(wallet), words: await hiddenWords(wallet), hasName: consentText.includes(family), share: await wallet.locator('[data-action="share"]').textContent(),
     credentials: await wallet.locator('[data-credential]').count(), specimens: await wallet.locator('.oid-specimen').count() };
+  const walletLook = await wallet.evaluate(() => ({
+    brand: document.querySelector('.brand, .wordmark') !== null, site: document.querySelector('header.site, footer.site') !== null,
+    font: getComputedStyle(document.querySelector('.surface-wallet')).fontFamily, title: document.title,
+    accent: getComputedStyle(document.querySelector('.oid-button')).backgroundColor,
+  }));
+  check('the wallet is its own app, with no sign of the airline brand', !walletLook.brand && !walletLook.site && !/Fira/.test(walletLook.font) && walletLook.title === words.traveler.wallet.documentTitle && walletLook.accent !== 'rgb(43, 58, 103)', JSON.stringify(walletLook));
   check('the wallet is titled Demo wallet and asks for the items, each credential a specimen', sheet.h1 === 'Demo wallet' && sheet.words === null && sheet.hasName
     && /3/.test(sheet.share) && sheet.credentials > 0 && sheet.credentials === sheet.specimens, JSON.stringify(sheet));
   await shot(wallet, 'wallet-consent-hidden');
@@ -269,6 +283,11 @@ try {
   await shot(wallet, 'wallet-gate-consent-hidden');
   let gate = await opensTab(ctx, wallet, '[data-action="share-gate"]');
   await gate.locator('[data-state="gate-result"]').waitFor();
+  const gateLook = await gate.evaluate(() => ({
+    bar: document.querySelector('.gate-bar .wordmark')?.textContent, h1: document.querySelector('h1')?.textContent, site: document.querySelector('header.site, footer.site, .chat-open') !== null,
+    font: getComputedStyle(document.body).fontFamily, status: document.querySelector('.gate-bar [data-state="gate-status"]')?.textContent,
+  }));
+  check('the gate reader has its own header, in the airline design', gateLook.bar === content.airline && gateLook.h1 === words.traveler.gate.title && !gateLook.site && /Fira/.test(gateLook.font) && /VA 118/.test(gateLook.status), JSON.stringify(gateLook));
   const noPanel = !(await gate.locator('[data-panel="presenter"]').isVisible());
   check('the presenter panel does not show with the model hidden', noPanel);
   const result = { word: await gate.locator('.oid-banner-word').textContent(), words: await hiddenWords(gate), checks: await gate.locator('[data-check]').first().isVisible().catch(() => false), url: new URL(gate.url()).pathname };

@@ -1,0 +1,50 @@
+/* Verified Airline's components, shared by its website and gate reader and used by
+   the demo wallet under its own tokens.  Each takes its look from assets/design/tokens.css
+   and types no color.  No inline styles: the content security policy allows none. */
+
+.oid-card { border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); }
+.oid-card.oid-stack { padding: 24px; gap: 16px; }
+.oid-stack, .oid-section { display: flex; flex-direction: column; gap: 12px; }
+.oid-list { overflow: visible; }
+.oid-row { position: relative; padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.oid-row + .oid-row { border-top: 1px solid var(--line); }
+.oid-row.oid-plain { padding: 0; }
+.oid-grow { flex: 1 1 0; min-width: 0; }
+.oid-strong { font-weight: 600; }
+.oid-big { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.oid-small { font-size: 14px; color: var(--muted); }
+.oid-label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.oid-name { font: 500 16px var(--mono); }
+.oid-id { font: 13px var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.oid-right { text-align: right; }
+.oid-between { display: flex; justify-content: space-between; gap: 16px; }
+.oid-note { font-size: 14px; color: var(--muted); padding-top: 8px; padding-bottom: 40px; }
+.oid-eyebrow { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.oid-tag { display: block; font-size: 12px; font-weight: 600; color: var(--muted); }
+
+.oid-facts { margin: 0; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 16px; }
+.oid-facts dt { font-size: 13px; font-weight: 600; color: var(--muted); }
+.oid-facts dd { margin: 0; color: var(--body); }
+.oid-facts dd.oid-strong { font-size: 17px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.oid-button { min-height: 48px; padding: 0 16px; border: 0; border-radius: var(--radius-control); background: var(--accent); color: var(--on-accent); font: inherit; font-weight: 600;
+  text-decoration: none; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; }
+.oid-button:hover { color: var(--on-accent); opacity: 0.92; }
+.oid-button.secondary { background: var(--surface); color: var(--ink); border: 1px solid var(--field); }
+.oid-link { align-self: flex-start; padding: 8px 0; border: 0; background: none; color: var(--accent); font: inherit; font-weight: 600; text-decoration: underline; cursor: pointer; }
+
+/* A result an agent or a presenter reads at a glance. */
+.oid-banner { position: relative; border-radius: var(--radius-large); padding: 24px 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 20px; min-height: 132px; border: 2px solid transparent; }
+.oid-banner > svg { width: 56px; height: 56px; flex: none; }
+.oid-banner.board { background: var(--accent); color: var(--on-accent); }
+.oid-banner.refer { background: var(--amber-bg); color: var(--amber-ink); border-color: var(--amber-edge); }
+.oid-banner.decide { background: var(--amber-soft); color: var(--amber-ink); border: 2px dashed var(--amber-edge); }
+.oid-banner.credential { background: var(--proven-bg); color: var(--accent); border-color: var(--pop-line); }
+.oid-banner.credential.refused { background: var(--amber-bg); color: var(--amber-ink); border-color: var(--amber-edge); }
+.oid-banner.credential .oid-eyebrow { color: inherit; }
+.oid-banner-word { font-size: 44px; line-height: 1.05; font-weight: 700; }
+.oid-banner-line { font-size: 18px; }
+
+@media (max-width: 720px) {
+  .oid-banner-word { font-size: 36px; }
+}

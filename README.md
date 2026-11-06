@@ -89,7 +89,7 @@ site's content security policy and fails on any console error.
 | --- | --- |
 | `content/*.md` | The wording of each page; the docstring of `scripts/render_airline.py` describes the format |
 | `content/chat.json`, `content/one-id.json` | The wording of the chat and of the One ID screens |
-| `assets/` | The stylesheet, shared by the static pages and the app, and the static pages' script |
+| `assets/` | The stylesheet and the design system in `assets/design/`, shared by the static pages and the app, and the static pages' script |
 | `model/` | `facts.json` and `model.json` from verified-air, committed; `model/one-id/` from verified-id |
 | `web/` | The Angular app: the header and footer, the page component that shows the renderer's pages, the One ID screens in `src/app/one-id/`, the browser check |
 | `infra/` | The `VerifiedAirline` CDK stack (Python): the site at air.dengler.io and its publish role |
@@ -260,6 +260,25 @@ about the Lean model.
 No check is outside the model: `check_one_id.py` fails on one that names no
 requirement of it, and a requirement of the model with no check fails
 `rules/traceability.spec.ts`.
+
+### The design system
+
+Verified Airline has a design system of its own, extracted from its website and shared
+with the gate reader. It has nothing to do with any other project's.
+
+| File | Holds |
+| --- | --- |
+| `assets/design/tokens.css` | Colors, in light and dark, type and shapes |
+| `assets/design/markers.css` | The Lean model's markers, popovers and status badges |
+| `assets/design/components.css` | Cards, rows, buttons, labels and the result banner |
+
+Components take their look from the tokens and type no color, so a surface with its own
+look sets its own values. The website and the gate reader use the airline's. The gate
+reader has its own header for staff, with the airline's brand and no site navigation,
+chat or footer. The demo wallet stands in for another company's app, so it sets neutral
+colors and the system's fonts in `.surface-wallet`, and shows no sign of the airline's
+brand. The colors of the Lean model's markers mean the same everywhere, so a theme
+leaves them alone.
 
 ### The three screens
 
@@ -448,3 +467,8 @@ shows is unproved and is labelled that way.
     to match its theorem: the amount due on a change is the fee plus the fare
     difference when the price paid covers the fee. `scripts/export_chat.py`
     keeps the knowledge base's documents, which need this repository's pages.
+13. **Verified Airline keeps its own design system.** Its tokens and components are
+    extracted from the website as it stood and shared with the gate reader, so the two
+    read as one airline's. The demo wallet takes the same components under neutral
+    tokens, since a real wallet comes from another party. The review game's design
+    system is a separate, internal one with its own brand, and nothing is shared with it.

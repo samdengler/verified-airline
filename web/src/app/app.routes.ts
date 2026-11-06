@@ -11,7 +11,7 @@ export const routes: Routes = [
   { path: 'policies', component: Page, data: { slug: 'policies' }, title },
   { path: 'policies/:slug', component: Page, title },
   { path: 'check-in', loadComponent: () => import('./one-id/check-in').then((m) => m.CheckIn), title: `${oneIdWording.traveler.checkIn.documentTitle}: ${site.airline}` },
-  { path: 'wallet', loadComponent: () => import('./one-id/wallet').then((m) => m.Wallet), title: `${oneIdWording.traveler.wallet.documentTitle}: ${site.airline}` },
+  { path: 'wallet', loadComponent: () => import('./one-id/wallet').then((m) => m.Wallet), title: oneIdWording.traveler.wallet.documentTitle },
   { path: 'gate', loadComponent: () => import('./one-id/gate').then((m) => m.Gate), title: `${oneIdWording.traveler.gate.documentTitle}: ${site.airline}` },
   { path: '**', component: NotFound, title: NOT_FOUND_TITLE },
 ];

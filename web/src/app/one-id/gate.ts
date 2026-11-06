@@ -1,13 +1,15 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
+import { Brand } from '../brand';
 import { LeanModel } from '../lean-model';
-import { Band } from './band';
 import { type CheckKey, decisionName, describeFinding, sameAnswer } from './checks';
 import { passNameLine, photoidNameLine } from './credential-card';
 import { fill, formatTime, wording } from './data';
 import { type CheckView, isPresentation, mdocOf, type Subject, viewGate } from './decide';
 import { Decision } from './decision';
+import { LeanToggle } from './lean-toggle';
 import { Marker } from './marker';
+import { ModelLegend } from './model-legend';
 import { gatePresentation } from './presentation-checks';
 import { Presenter } from './presenter';
 import { Trip } from './trip';
@@ -33,15 +35,20 @@ interface Row {
  */
 @Component({
   selector: 'va-gate',
-  imports: [Band, Decision, Marker, Presenter],
+  imports: [Brand, Decision, LeanToggle, Marker, ModelLegend, Presenter],
   // The same events as the policy pages, so Angular writes the same inline script and the live policy's hash allows it.
   host: { '(submit)': '$event.preventDefault()' },
   template: `
     <div class="one-id">
-      <va-one-id-band [title]="w.title" [lede]="w.lede" [crumbs]="w.crumbs" [crumbLabel]="w.title" />
+      <header class="gate-bar"><div class="wrap">
+        <va-brand />
+        <h1>{{ w.title }}</h1>
+        <p class="gate-status" data-state="gate-status">{{ statusLine() }}</p>
+        <va-lean-toggle />
+      </div></header>
+      <va-model-legend />
       <div class="wrap oid-gate" id="content">
         <main class="oid-main">
-          <p class="oid-strong" data-state="gate-status">{{ statusLine() }}</p>
           @if (!presented()) {
             <p class="oid-card oid-waiting" data-state="gate-waiting">{{ w.waiting }}</p>
           } @else {

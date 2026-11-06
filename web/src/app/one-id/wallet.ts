@@ -1,9 +1,9 @@
 import { Component, computed, inject } from '@angular/core';
 import { site } from '../content';
-import { LeanModel } from '../lean-model';
 import { CredentialCard, passNameLine, photoidNames } from './credential-card';
 import { credentialOf, dataElements, fill, formatInstant, itemLabels, type PresentationScenario, wording } from './data';
 import { viewChecks } from './decide';
+import { LeanToggle } from './lean-toggle';
 import { Marker } from './marker';
 import { checkInPresentation, gatePresentation } from './presentation-checks';
 import { hasRef, mdocRefs } from './rules/support/exchange';
@@ -13,20 +13,18 @@ import { PASS_HELD, Trip } from './trip';
 /** /wallet: a demo of a wallet, which in real life is a separate app from a separate party. */
 @Component({
   selector: 'va-wallet',
-  imports: [CredentialCard, Marker],
+  imports: [CredentialCard, LeanToggle, Marker],
   // The same events as the policy pages, so Angular writes the same inline script and the live policy's hash allows it.
   host: { '(submit)': '$event.preventDefault()' },
   template: `
-    <div class="one-id">
+    <div class="one-id surface-wallet">
       <main class="oid-wallet" id="content">
         <header class="oid-wallet-head">
           <div class="oid-grow">
             <h1>{{ w.title }}</h1>
             <p class="oid-small">{{ w.lede }}</p>
           </div>
-          <button type="button" class="lean-toggle" [attr.aria-pressed]="lean.shown()" (click)="lean.toggle()">
-            <span class="when-off">{{ t.toggle.show }}</span><span class="when-on">{{ t.toggle.hide }}</span>
-          </button>
+          <va-lean-toggle />
         </header>
 
         @if (sheet(); as s) {
@@ -116,14 +114,13 @@ import { PASS_HELD, Trip } from './trip';
         @if (!sheet() && !showPass()) {
           <p class="oid-small" data-state="wallet-idle">{{ w.empty }}</p>
         }
-        <p class="oid-note">{{ t.note }}</p>
+        <p class="oid-note">{{ w.note }}</p>
       </main>
     </div>
   `,
 })
 export class Wallet {
   protected readonly trip = inject(Trip);
-  protected readonly lean = inject(LeanModel);
   protected readonly t = wording.traveler;
   protected readonly w = wording.traveler.wallet;
   protected readonly leanWords = wording.lean;

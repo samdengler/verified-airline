@@ -3,9 +3,9 @@
    Angular's component styles would be.  Colours are the site's tokens. */
 
 .chat-open { flex: none; height: 44px; display: inline-flex; align-items: center; gap: 8px; padding: 0 14px;
-  border: 1px solid var(--field); border-radius: 8px; background: var(--surface); color: var(--indigo);
+  border: 1px solid var(--field); border-radius: var(--radius-control); background: var(--surface); color: var(--accent);
   font: 600 15px var(--sans); cursor: pointer; }
-.chat-open:hover, .chat-open[aria-expanded="true"] { border-color: var(--indigo); }
+.chat-open:hover, .chat-open[aria-expanded="true"] { border-color: var(--accent); }
 .chat-open svg { width: 20px; height: 20px; }
 
 .chat-panel { position: fixed; right: 24px; bottom: 24px; z-index: 50; width: 440px;
@@ -18,23 +18,23 @@
 .chat-switch { display: inline-flex; align-items: center; gap: 8px; padding: 6px 4px; border: 0; background: none;
   color: var(--ink); font: 600 14px var(--sans); cursor: pointer; }
 .chat-switch:disabled { cursor: progress; opacity: 0.6; }
-.chat-switch .track { position: relative; width: 36px; height: 20px; border-radius: 999px; background: var(--field); }
-.chat-switch .thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 999px; background: var(--surface); }
-.chat-switch[aria-checked="true"] .track { background: var(--indigo); }
-.chat-switch[aria-checked="true"] .thumb { left: 18px; background: var(--on-indigo); }
+.chat-switch .track { position: relative; width: 36px; height: 20px; border-radius: var(--radius-pill); background: var(--field); }
+.chat-switch .thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: var(--radius-pill); background: var(--surface); }
+.chat-switch[aria-checked="true"] .track { background: var(--accent); }
+.chat-switch[aria-checked="true"] .thumb { left: 18px; background: var(--on-accent); }
 .chat-new, .chat-close { width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; padding: 0;
-  border: 0; border-radius: 8px; background: none; color: var(--muted); cursor: pointer; }
+  border: 0; border-radius: var(--radius-control); background: none; color: var(--muted); cursor: pointer; }
 .chat-new:hover, .chat-close:hover { background: var(--band); color: var(--ink); }
 .chat-new:disabled { cursor: progress; opacity: 0.6; background: none; }
 .chat-new svg, .chat-close svg { width: 18px; height: 18px; }
 
 .chat-mode { margin: 0; padding: 10px 18px; border-bottom: 1px solid var(--line); background: var(--band);
   font-size: 13px; line-height: 1.5; color: var(--body); }
-.chat-mode.on { background: var(--proven-bg); color: var(--indigo); }
+.chat-mode.on { background: var(--proven-bg); color: var(--accent); }
 
 .chat-log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 .msg { max-width: 86%; margin: 0; padding: 10px 14px; border-radius: 14px; font-size: 15px; line-height: 1.5; overflow-wrap: anywhere; }
-.msg.traveler { align-self: flex-end; background: var(--indigo); color: var(--on-indigo); border-bottom-right-radius: 4px; }
+.msg.traveler { align-self: flex-end; background: var(--accent); color: var(--on-accent); border-bottom-right-radius: 4px; }
 .msg.airline { align-self: flex-start; background: var(--band); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
 .msg.airline > p { margin: 0; }
 .msg.airline.held { background: var(--amber-soft); border-color: var(--amber-line); }
@@ -42,15 +42,15 @@
 .msg-why { margin: 6px 0 0; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
 
 .chat-verified { display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px 2px 2px;
-  border: 1.5px solid var(--indigo); border-radius: 999px; background: var(--proven-bg); color: var(--indigo);
+  border: 1.5px solid var(--accent); border-radius: var(--radius-pill); background: var(--proven-bg); color: var(--accent);
   font: 600 13px var(--sans); cursor: pointer; }
 .chat-verified[aria-expanded="true"] { background: var(--proven-on); }
 .chat-verified .lean-marker { width: 22px; height: 22px; font-size: 12px; border-width: 0; background: var(--surface); cursor: inherit; }
-.chat-compare, .chat-link { padding: 0; border: 0; background: none; color: var(--indigo); font: 600 13px var(--sans);
+.chat-compare, .chat-link { padding: 0; border: 0; background: none; color: var(--accent); font: 600 13px var(--sans);
   text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 
 .chat-detail { align-self: stretch; display: flex; flex-direction: column; gap: 8px; padding: 14px 16px;
-  border: 1px solid var(--pop-line); border-radius: 10px; background: var(--surface); font-size: 14px; line-height: 1.55; }
+  border: 1px solid var(--pop-line); border-radius: var(--radius-panel); background: var(--surface); font-size: 14px; line-height: 1.55; }
 .chat-detail p { margin: 0; }
 .chat-detail code { font: 12.5px var(--mono); padding: 1px 6px; border-radius: 4px; background: var(--neutral-bg); color: var(--ink); }
 .detail-title { font: 400 18px/1.3 var(--serif); color: var(--ink); }
@@ -77,15 +77,15 @@
 .chat-thinking::after { content: "…"; }
 
 .chat-suggestions { display: flex; flex-direction: column; gap: 6px; padding: 0 16px 12px; }
-.chat-suggestions button { padding: 8px 12px; border: 1px solid var(--field); border-radius: 10px; background: var(--surface);
+.chat-suggestions button { padding: 8px 12px; border: 1px solid var(--field); border-radius: var(--radius-panel); background: var(--surface);
   color: var(--ink); font: 14px/1.4 var(--sans); text-align: left; cursor: pointer; }
-.chat-suggestions button:hover { border-color: var(--indigo); }
+.chat-suggestions button:hover { border-color: var(--accent); }
 
 .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); }
-.chat-input textarea { flex: 1; resize: none; padding: 10px 12px; border: 1px solid var(--field); border-radius: 10px;
+.chat-input textarea { flex: 1; resize: none; padding: 10px 12px; border: 1px solid var(--field); border-radius: var(--radius-panel);
   background: var(--page); color: var(--ink); font: 15px/1.4 var(--sans); }
-.chat-input textarea:focus { outline: 2px solid var(--indigo); outline-offset: 0; border-color: var(--indigo); }
-.chat-input button { padding: 0 18px; border: 0; border-radius: 10px; background: var(--indigo); color: var(--on-indigo);
+.chat-input textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: var(--accent); }
+.chat-input button { padding: 0 18px; border: 0; border-radius: var(--radius-panel); background: var(--accent); color: var(--on-accent);
   font: 600 15px var(--sans); cursor: pointer; }
 .chat-input button:disabled { opacity: 0.45; cursor: default; }
 
