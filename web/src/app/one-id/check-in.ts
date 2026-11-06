@@ -6,16 +6,19 @@ import { type CheckView, viewChecks } from './decide';
 import { Marker } from './marker';
 import { checkInPresentation } from './presentation-checks';
 import { PASS_HELD, Trip } from './trip';
+import { type NextAction, TripMap } from './trip-map';
+import { websiteAction } from './trip-route';
 
 /** /check-in: the airline's website.  It asks the wallet for three items, checks the photoid, and issues the boarding pass. */
 @Component({
   selector: 'va-check-in',
-  imports: [Band, CredentialCard, Marker],
+  imports: [Band, CredentialCard, Marker, TripMap],
   // The same events as the policy pages, so Angular writes the same inline script and the live policy's hash allows it.
   host: { '(submit)': '$event.preventDefault()' },
   template: `
     <div class="one-id">
       <va-one-id-band [title]="title()" [lede]="lede()" [crumbs]="w.crumbs" [crumbLabel]="flight.number" />
+      <div class="oid-map-band"><div class="wrap"><va-trip-map surface="website" [next]="next()" /></div></div>
       <main class="wrap oid-columns" id="content">
         <div class="oid-main">
           @if (!done()) {
@@ -111,7 +114,11 @@ import { PASS_HELD, Trip } from './trip';
               @if (accepted()) {
                 @if (added()) {
                   <p class="oid-strong" data-state="added">{{ w.added }}</p>
-                  <a class="oid-link" href="/wallet" target="va-wallet">{{ w.openWallet }}</a>
+                  @if (action() === 'present') {
+                    <a class="oid-button" href="/wallet" target="va-wallet" data-action="present-from-pass" (click)="present()">{{ t.wallet.present }}</a>
+                  } @else {
+                    <a class="oid-link" href="/wallet" target="va-wallet">{{ w.openWallet }}</a>
+                  }
                 } @else {
                   <button type="button" class="oid-button" data-action="add-pass" (click)="add()">{{ w.add }}</button>
                 }
@@ -167,6 +174,16 @@ export class CheckIn {
   private readonly issueFailure = computed(() => this.issueChecks().find((c) => c.state === 'failed'));
   private readonly issueDepends = computed(() => this.issueChecks().some((c) => c.state === 'depends'));
   protected readonly accepted = computed(() => !this.issueFailure() && !this.issueDepends());
+  protected readonly action = computed(() => websiteAction(this.trip.step(), { photoid: !!this.photoid(), pass: !!this.pass(), accepted: this.accepted() }));
+  /** The same action as this screen's own button, for the trip map. */
+  protected readonly next = computed<NextAction | null>(() => {
+    switch (this.action()) {
+      case 'open': return { label: this.w.open, step: 'asked', opensWallet: true };
+      case 'add': return { label: this.w.add, step: 'passAdded', opensWallet: false };
+      case 'present': return { label: this.t.wallet.present, step: 'gateAsked', opensWallet: true };
+      default: return null;
+    }
+  });
 
   protected readonly title = computed(() => {
     if (!this.done()) return this.w.title;
@@ -178,7 +195,8 @@ export class CheckIn {
     if (!this.done()) return this.w.lede;
     const failure = this.issueFailure();
     if (failure) return fill(this.w.refusedLede, { reason: (this.t.reasons as Record<string, string>)[failure.result.key] });
-    return this.issueDepends() ? this.lean.decision.checkInLede : this.w.doneLede;
+    if (this.issueDepends()) return this.lean.decision.checkInLede;
+    return this.added() ? this.w.addedLede : this.w.doneLede;
   });
 
   protected readonly departure = computed(() => {
@@ -212,5 +230,9 @@ export class CheckIn {
 
   protected add(): void {
     this.trip.go('passAdded');
+  }
+
+  protected present(): void {
+    this.trip.go('gateAsked');
   }
 }

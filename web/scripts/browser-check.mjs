@@ -240,15 +240,20 @@ try {
   await page.goto(BASE + '/check-in', { waitUntil: 'networkidle' });
   const shot = async (p, name) => { if (shots) await p.screenshot({ path: join(shots, `${name}.png`), fullPage: true }); };
   const pageH1 = (p) => p.locator('h1').first().textContent();
+  // The trip map on a tab: the stop the trip waits at, and whether that stop is in this tab's app.
+  const mapAt = (p, stop, here) => p.locator(`[data-state="trip-map"][data-at="${stop}"][data-here="${here}"]`).waitFor({ timeout: 5000 }).then(() => true, () => false);
   const start = { h1: await pageH1(page), words: await hiddenWords(page), current: await page.locator('header.site nav a[aria-current]').textContent(), title: await page.title() };
   const siteLook = await page.evaluate(() => ({ accent: getComputedStyle(document.querySelector('.oid-button')).backgroundColor, font: getComputedStyle(document.body).fontFamily }));
   check('the website keeps its look', siteLook.accent === 'rgb(43, 58, 103)' && /Fira/.test(siteLook.font), JSON.stringify(siteLook));
   check('/check-in starts the trip with the model hidden', start.h1 === words.traveler.checkIn.title && start.words === null
     && start.current === 'Check in' && start.title === `${words.traveler.checkIn.documentTitle}: ${content.airline}`, JSON.stringify(start));
+  const firstStop = await page.locator('[data-state="trip-map"]').evaluate((m) => ({ stops: m.querySelectorAll('.oid-map-dot').length, pin: m.querySelector('.oid-map-pin')?.textContent, link: m.querySelector('[data-action="map-go"]') !== null, screen: m.querySelector('.this-screen')?.dataset.app }));
+  check('the trip map starts on the website, with no link away', await mapAt(page, 'openWallet', true) && firstStop.stops === 6 && firstStop.pin === words.traveler.map.here && !firstStop.link && firstStop.screen === 'website', JSON.stringify(firstStop));
   await shot(page, 'check-in-hidden');
 
   let wallet = await opensTab(ctx, page, '[data-action="open-wallet"]');
   await wallet.locator('[data-sheet="consent"]').waitFor();
+  check('the map moves to the wallet, and the website points there', await mapAt(wallet, 'share', true) && await mapAt(page, 'share', false) && await page.locator('[data-action="map-go"][href="/wallet"]').count() === 1);
   const consentText = await wallet.locator('[data-sheet="consent"]').innerText();
   const family = defaultScenario.credentials[0].mdoc.nameSpaces[0].elements[0].value.text;
   const sheet = { h1: await pageH1(wallet), words: await hiddenWords(wallet), hasName: consentText.includes(family), share: await wallet.locator('[data-action="share"]').textContent(),
@@ -258,6 +263,8 @@ try {
     font: getComputedStyle(document.querySelector('.surface-wallet')).fontFamily, title: document.title,
     accent: getComputedStyle(document.querySelector('.oid-button')).backgroundColor,
   }));
+  const walletMap = await wallet.evaluate(() => Object.fromEntries(['website', 'wallet', 'gate'].map((app) => [app, getComputedStyle(document.querySelector(`.oid-map-lane[data-app="${app}"] .oid-map-app`)).color])));
+  check("the wallet's map shows none of the airline's colors", walletMap.website !== 'rgb(43, 58, 103)' && walletMap.gate !== 'rgb(91, 42, 134)' && walletMap.website === walletMap.gate && walletMap.wallet !== walletMap.website, JSON.stringify(walletMap));
   check('the wallet is its own app, with no sign of the airline brand', !walletLook.brand && !walletLook.site && !/Fira/.test(walletLook.font) && walletLook.title === words.traveler.wallet.documentTitle && walletLook.accent !== 'rgb(43, 58, 103)', JSON.stringify(walletLook));
   check('the wallet is titled Demo wallet and asks for the items, each credential a specimen', sheet.h1 === 'Demo wallet' && sheet.words === null && sheet.hasName
     && /3/.test(sheet.share) && sheet.credentials > 0 && sheet.credentials === sheet.specimens, JSON.stringify(sheet));
@@ -268,33 +275,86 @@ try {
   await page.locator('[data-action="add-pass"]').waitFor();
   const done = { h1: await pageH1(page), words: await hiddenWords(page), credentials: await page.locator('[data-credential]').count(), specimens: await page.locator('.oid-specimen').count() };
   check('sharing in the wallet checks the traveler in on the website', /checked in/.test(done.h1) && done.words === null && done.credentials === 1 && done.specimens === 1, JSON.stringify(done));
+  check('the map comes back to the website for the boarding pass', await mapAt(page, 'addPass', true) && await mapAt(wallet, 'addPass', false));
   await shot(page, 'checked-in-hidden');
 
   await page.locator('[data-action="add-pass"]').click();
   await wallet.locator('[data-credential="boardingPass"]').waitFor();
   const held = { words: await hiddenWords(wallet), credentials: await wallet.locator('[data-credential]').count(), specimens: await wallet.locator('.oid-specimen').count(), check: await wallet.locator('[data-state="pass-check"]').textContent() };
   check('the boarding pass reaches the wallet and is checked there', held.words === null && held.credentials === 2 && held.specimens === 2 && held.check === words.traveler.wallet.passOk, JSON.stringify(held));
+  check('the map goes to the wallet to present at the gate', await mapAt(wallet, 'present', true));
+  const presentFirst = await wallet.evaluate(() => document.querySelector('[data-action="present"]').getBoundingClientRect().top < document.querySelector('[data-credential]').getBoundingClientRect().top);
+  check("the wallet's Present at the gate comes before the credentials", presentFirst);
+  check('the website says the pass is in the wallet once it is', await page.locator('.band .lede').textContent() === words.traveler.checkIn.addedLede);
+  const passAction = await page.locator('[data-action="present-from-pass"]').textContent();
+  check('the boarding pass on the website offers Present at the gate', passAction === words.traveler.wallet.present, passAction);
   await shot(wallet, 'wallet-home-hidden');
 
   await wallet.locator('[data-action="present"]').click();
   await wallet.locator('[data-sheet="consent"][data-for="gate"]').waitFor();
   const gateSheet = { words: await hiddenWords(wallet), share: await wallet.locator('[data-action="share-gate"]').textContent(), text: await wallet.locator('[data-sheet="consent"]').innerText() };
   check('the gate asks through a consent sheet before anything is presented', gateSheet.words === null && /4/.test(gateSheet.share) && gateSheet.text.includes('MARTIN / ALICE'), JSON.stringify({ words: gateSheet.words, share: gateSheet.share }));
+  check('the map stays in the wallet for the consent sheet', await mapAt(wallet, 'shareGate', true));
   await shot(wallet, 'wallet-gate-consent-hidden');
   let gate = await opensTab(ctx, wallet, '[data-action="share-gate"]');
   await gate.locator('[data-state="gate-result"]').waitFor();
   const gateLook = await gate.evaluate(() => ({
     bar: document.querySelector('.gate-bar .wordmark')?.textContent, h1: document.querySelector('h1')?.textContent, site: document.querySelector('header.site, footer.site, .chat-open') !== null,
     font: getComputedStyle(document.body).fontFamily, status: document.querySelector('.gate-bar [data-state="gate-status"]')?.textContent,
+    color: getComputedStyle(document.querySelector('.gate-bar')).backgroundColor, button: getComputedStyle(document.querySelector('.surface-gate')).getPropertyValue('--accent'),
   }));
+  check('the gate reader has its own color, plum', gateLook.color === 'rgb(58, 28, 85)' && /#5B2A86/.test(gateLook.button), JSON.stringify(gateLook));
+  check('the map ends at the gate, and the other apps point there', await mapAt(gate, 'answer', true) && await mapAt(page, 'answer', false) && await mapAt(wallet, 'answer', false)
+    && await gate.locator('.oid-map-cta').count() === 0 && await page.locator('[data-action="map-go"][href="/gate"]').count() === 1);
   check('the gate reader has its own header, in the airline design', gateLook.bar === content.airline && gateLook.h1 === words.traveler.gate.title && !gateLook.site && /Fira/.test(gateLook.font) && /VA 118/.test(gateLook.status), JSON.stringify(gateLook));
   const noPanel = !(await gate.locator('[data-panel="presenter"]').isVisible());
   check('the presenter panel does not show with the model hidden', noPanel);
   const result = { word: await gate.locator('.oid-banner-word').textContent(), words: await hiddenWords(gate), checks: await gate.locator('[data-check]').first().isVisible().catch(() => false), url: new URL(gate.url()).pathname };
   check('the trip from check-in reaches "Board" under the content security policy', result.word === words.traveler.gate.board && result.words === null && !result.checks && result.url === '/gate', JSON.stringify(result));
   await shot(gate, 'gate-hidden');
+  // On a phone the map keeps its route and its line, and nothing runs off the screen.
+  for (const [name, tab] of [['website', page], ['wallet', wallet], ['gate', gate]]) {
+    await tab.setViewportSize({ width: 390, height: 800 });
+    const narrow = await tab.evaluate(() => ({ wide: document.documentElement.scrollWidth, width: document.documentElement.clientWidth, dots: [...document.querySelectorAll('.oid-map-dot')].filter((d) => d.getBoundingClientRect().right <= document.documentElement.clientWidth).length }));
+    check(`on a phone the ${name} map fits the screen`, narrow.wide <= narrow.width && narrow.dots === 6, JSON.stringify(narrow));
+    await shot(tab, `${name}-map-narrow`);
+    await tab.setViewportSize({ width: 1280, height: 900 });
+  }
   const tripProblems = [page, wallet, gate].flatMap((p) => p.problems);
   check('the trip logs no console error', tripProblems.length === 0, tripProblems.join(' | '));
+  await ctx.close();
+
+  // The same trip driven from the map's button, which stops at each consent sheet.
+  ctx = await browser.newContext({ colorScheme: 'light', viewport: { width: 1280, height: 900 } });
+  page = await watched(ctx);
+  await page.goto(BASE + '/check-in', { waitUntil: 'networkidle' });
+  const mapNext = (p) => p.locator('[data-state="trip-map"] [data-action="map-next"]');
+  check('the map offers the website its next action', await mapNext(page).textContent() === words.traveler.checkIn.open && await page.locator('.oid-map-stop.current a').count() === 1);
+  wallet = await opensTab(ctx, page, '[data-state="trip-map"] [data-action="map-next"]');
+  await wallet.locator('[data-sheet="consent"]').waitFor();
+  check('at the check-in consent sheet the map offers no action', await mapNext(wallet).count() === 0 && await mapNext(page).count() === 0);
+  await wallet.locator('[data-action="share"]').click();
+  await page.locator('[data-action="add-pass"]').waitFor();
+  check('the map offers to add the boarding pass', await mapNext(page).textContent() === words.traveler.checkIn.add);
+  await mapNext(page).click();
+  await wallet.locator('[data-action="present"]').waitFor();
+  check('adding from the map puts the pass in the wallet', await mapAt(page, 'present', false) && await mapNext(page).textContent() === words.traveler.wallet.present);
+  const tabs = ctx.pages().length;
+  await mapNext(page).click();
+  await wallet.locator('[data-sheet="consent"][data-for="gate"]').waitFor();
+  check('presenting from the map reaches the gate sheet in the same wallet tab', ctx.pages().length === tabs && await mapNext(wallet).count() === 0 && await mapNext(page).count() === 0 && await mapAt(wallet, 'shareGate', true), JSON.stringify({ tabs, now: ctx.pages().length }));
+  const watching = await watched(ctx);
+  await watching.goto(BASE + '/gate', { waitUntil: 'networkidle' });
+  const stillWaiting = await mapAt(watching, 'shareGate', false) && await watching.locator('[data-state="gate-waiting"]').isVisible() && await watching.locator('[data-state="gate-result"]').count() === 0;
+  check('an open gate keeps waiting until the wallet shares', stillWaiting);
+  await watching.close();
+  await page.locator('[data-state="trip-map"] .oid-map-stop.current a').click();
+  check('the active stop on the map goes to the wallet', ctx.pages().length === tabs);
+  gate = await opensTab(ctx, wallet, '[data-action="share-gate"]');
+  await gate.locator('[data-state="gate-result"]').waitFor();
+  check('the trip from the map reaches the same answer', await gate.locator('.oid-banner-word').textContent() === words.traveler.gate.board);
+  const mapProblems = [page, wallet, gate].flatMap((p) => p.problems);
+  check('the trip from the map logs no console error', mapProblems.length === 0, mapProblems.join(' | '));
   await ctx.close();
 
   // The same trip with the model shown: markers on each check, their popovers
@@ -302,8 +362,13 @@ try {
   ctx = await browser.newContext({ colorScheme: 'light', viewport: { width: 1280, height: 900 } });
   page = await watched(ctx);
   await page.goto(BASE + '/check-in?lean=1', { waitUntil: 'networkidle' });
-  const requestMarker = page.locator('.heading-row button.lean-marker').first();
+  const requestMarker = page.locator('main .heading-row button.lean-marker').first();
   await shot(page, 'check-in-shown');
+  const mapMarker = page.locator('[data-state="trip-map"] button.lean-marker');
+  await mapMarker.click();
+  const mapPop = { grey: await mapMarker.evaluate((b) => b.classList.contains('partial')), text: await page.locator(`#${await mapMarker.getAttribute('aria-controls')}`).innerText() };
+  check("with the model shown the map says its route is not in the model yet", mapPop.grey && mapPop.text.includes(words.lean.grey.map.title), JSON.stringify(mapPop));
+  await page.keyboard.press('Escape');
   await requestMarker.click();
   const requestPop = await page.locator(`#${await requestMarker.getAttribute('aria-controls')}`).innerText();
   await shot(page, 'check-in-request-popover-shown');
@@ -354,6 +419,9 @@ try {
   const allSwitches = new Set([...oneIdReadings.readings, ...oneIdPresentationReadings.readings].map((r) => r.id)).size;
   check('the panel shows a traveler for each scenario and a switch for each reading', onPanel.visible && onPanel.travelers === oneIdScenarios.scenarios.length + oneIdPresentationScenarios.scenarios.length
     && onPanel.switches === allSwitches && onPanel.first === oneIdScenarios.scenarios[0].title, JSON.stringify(onPanel));
+
+  const clipped = await panel.locator('.oid-choice').evaluateAll((buttons) => buttons.filter((b) => { const r = document.createRange(); r.selectNodeContents(b); return r.getBoundingClientRect().height > b.getBoundingClientRect().height; }).map((b) => b.textContent));
+  check('every button on the panel shows its whole label', clipped.length === 0, clipped.join(' | '));
 
   // What the panel changes draws in one pass, so its pressed state says the reader has redrawn too.
   const pickTraveler = async (id) => {

@@ -13,6 +13,7 @@ import { ModelLegend } from './model-legend';
 import { gatePresentation } from './presentation-checks';
 import { Presenter } from './presenter';
 import { Trip } from './trip';
+import { TripMap } from './trip-map';
 
 interface Row {
   key: CheckKey;
@@ -35,11 +36,11 @@ interface Row {
  */
 @Component({
   selector: 'va-gate',
-  imports: [Brand, Decision, LeanToggle, Marker, ModelLegend, Presenter],
+  imports: [Brand, Decision, LeanToggle, Marker, ModelLegend, Presenter, TripMap],
   // The same events as the policy pages, so Angular writes the same inline script and the live policy's hash allows it.
   host: { '(submit)': '$event.preventDefault()' },
   template: `
-    <div class="one-id">
+    <div class="one-id surface-gate">
       <header class="gate-bar"><div class="wrap">
         <va-brand />
         <h1>{{ w.title }}</h1>
@@ -47,6 +48,7 @@ interface Row {
         <va-lean-toggle />
       </div></header>
       <va-model-legend />
+      <div class="oid-map-band"><div class="wrap"><va-trip-map surface="gate" /></div></div>
       <div class="wrap oid-gate" id="content">
         <main class="oid-main">
           @if (!presented()) {

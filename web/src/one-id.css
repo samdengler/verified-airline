@@ -2,7 +2,7 @@
    components are in assets/design/components.css.  No inline styles: the content
    security policy allows none. */
 
-va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, va-lean-toggle, va-model-legend { display: contents; }
+va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, va-lean-toggle, va-model-legend, va-trip-map { display: contents; }
 .one-id h2 { margin: 0; font-size: 22px; font-weight: 700; }
 .one-id h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted); }
 .one-id p { margin: 0; }
@@ -40,6 +40,11 @@ va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, v
   --pop-line: light-dark(#D4D4D8, #52525B);
   --accent: light-dark(#0F766E, #5EEAD4);
   --on-accent: light-dark(#FFFFFF, #042F2E);
+  --on-app: light-dark(#FFFFFF, #18181B);
+  /* The wallet's own map keeps the airline's colors out: only its own lane has a color. */
+  --app-website: var(--muted);
+  --app-wallet: var(--accent);
+  --app-gate: var(--muted);
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --radius-control: 12px;
   --radius-card: 16px;
@@ -49,6 +54,33 @@ va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, v
   color: var(--ink);
 }
 .surface-wallet .lean-toggle { background: var(--surface); border-color: var(--field); }
+
+/* The gate reader is the airline's own tool for its staff, so it keeps the airline's
+   brand and type and takes its own color, plum.  Board takes the accent, as it does
+   everywhere, so it is plum here; Refer and a stop stay amber. */
+.surface-gate {
+  --page: light-dark(#F7F4FB, #140F1C);
+  --surface: light-dark(#FFFFFF, #1F1829);
+  --band: light-dark(#EFE9F7, #1A1423);
+  --ink: light-dark(#21152E, #EEE9F5);
+  --body: light-dark(#40354F, #CFC7DB);
+  --muted: light-dark(#5A4E6B, #A89DB8);
+  --line: light-dark(#E0D8EC, #352B45);
+  --field: light-dark(#C4B8D6, #4A3D5E);
+  --pop-line: light-dark(#CDBFE0, #4A3D5E);
+  --legend: light-dark(#EDE5F7, #1D1529);
+  --legend-line: light-dark(#DCCFEC, #33274A);
+  --foot: light-dark(#F3EEF9, #181220);
+  --accent: light-dark(#5B2A86, #C9A9EE);
+  --on-accent: light-dark(#FFFFFF, #1D1029);
+  --selected: light-dark(#EDE3F8, #2E2140);
+  --bar: light-dark(#3A1C55, #2A1640);
+  --on-bar: #FFFFFF;
+  --bar-line: light-dark(#7A5C96, #5E4780);
+  min-height: 100vh;
+  background: var(--page);
+  color: var(--ink);
+}
 
 /* The wallet: one phone-sized column. */
 .oid-wallet { max-width: 460px; margin: 0 auto; padding: 28px 20px 0; display: flex; flex-direction: column; gap: 20px; }
@@ -67,7 +99,7 @@ va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, v
 .oid-presenter { flex: 1 1 400px; min-width: 0; padding: 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--band); display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px; }
 .oid-choice { min-height: 44px; padding: 8px 14px; border: 2px solid var(--field); border-radius: var(--radius-panel); background: var(--surface); color: var(--ink); font: inherit; font-weight: 600; font-size: 15px; line-height: 1.35; text-align: left; cursor: pointer; }
 .oid-choice:hover { border-color: var(--accent); }
-.oid-choice[aria-pressed="true"] { border-color: var(--accent); background: var(--proven-bg); }
+.oid-choice[aria-pressed="true"] { border-color: var(--accent); background: var(--selected); }
 .oid-choice.small { font-size: 14px; font-weight: 500; flex: 1 1 auto; }
 .oid-truth { padding: 14px 16px; border: 1px solid var(--pop-line); border-radius: var(--radius-card); background: var(--surface); display: flex; flex-direction: column; gap: 4px; }
 .oid-truth-line { font-size: 17px; font-weight: 600; line-height: 1.35; }
@@ -84,6 +116,8 @@ va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, v
 .oid-group { border-top: 1px solid var(--line); padding-top: 10px; }
 .oid-group > summary { font-size: 14px; font-weight: 600; cursor: pointer; padding: 4px 0 10px; }
 .oid-pickers { max-height: 340px; overflow-y: auto; padding: 2px; }
+/* The list scrolls, so a button keeps its height and shows its whole label. */
+.oid-pickers > * { flex: none; }
 .oid-sheet .oid-row .oid-id { flex-basis: 100%; }
 
 /* A point the trip stops at. */
@@ -105,12 +139,79 @@ va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, v
 .oid-trail .oid-link { padding: 0; font-size: 14px; }
 
 /* The gate reader's header: the airline's brand, for its own staff. */
-.gate-bar { border-bottom: 1px solid var(--line); background: var(--surface); }
+.gate-bar { background: var(--bar); color: var(--on-bar); }
 .gate-bar .wrap { min-height: 72px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+.gate-bar .brand { color: var(--on-bar); }
 .gate-bar .wordmark { font-size: 20px; }
 .gate-bar .brand .mark { width: 26px; height: 26px; }
-.one-id .gate-bar h1 { font-size: 20px; line-height: 1.2; padding-left: 20px; border-left: 1px solid var(--line); }
-.one-id .gate-status { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--body); }
+.one-id .gate-bar h1 { font-size: 20px; line-height: 1.2; padding-left: 20px; border-left: 1px solid var(--bar-line); }
+.one-id .gate-status { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--on-bar); }
+.gate-bar .lean-toggle, .gate-bar .lean-toggle:hover { background: transparent; color: var(--on-bar); border-color: var(--bar-line); }
+.gate-bar .lean-toggle:hover { border-color: var(--on-bar); }
+
+/* The trip map: a route across one lane per app, with a numbered stop for each step.
+   Each stop takes its lane's color, and the line shows how far the trip has come. */
+.oid-map-band { padding: 16px 0 18px; border-bottom: 1px solid var(--line); background: var(--band); }
+.oid-map { container-type: inline-size; position: relative; z-index: 6; display: flex; flex-direction: column; gap: 10px; }
+.surface-wallet .oid-map { padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); }
+.one-id .oid-map h2 { font-size: 17px; }
+.oid-map-grid { display: grid; grid-template-columns: 8rem repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(3, 88px); margin-top: 4px; }
+.oid-map [data-app="website"] { --app: var(--app-website); grid-row: 1; }
+.oid-map [data-app="wallet"] { --app: var(--app-wallet); grid-row: 2; }
+.oid-map [data-app="gate"] { --app: var(--app-gate); grid-row: 3; }
+.oid-map-lane { grid-column: 1 / -1; display: flex; flex-direction: column; justify-content: center; padding-left: 12px; border-top: 1px solid var(--line); }
+.oid-map-lane[data-app="gate"] { border-bottom: 1px solid var(--line); }
+.oid-map-lane.this-screen { background: color-mix(in srgb, var(--app) 9%, transparent); }
+.oid-map-app { font-size: 14px; font-weight: 600; color: var(--app); }
+.this-screen .oid-map-app { font-weight: 700; }
+.oid-map-tag { font-size: 12px; color: var(--muted); }
+.oid-map-route { grid-column: 2 / -1; grid-row: 1 / -1; width: 100%; height: 100%; overflow: visible; }
+.oid-map-route path { fill: none; stroke: var(--field); stroke-width: 2; stroke-dasharray: 5 5; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.oid-map-route path.done { stroke: var(--ink); stroke-width: 3; stroke-dasharray: none; }
+.oid-map-stops { display: contents; margin: 0; padding: 0; list-style: none; }
+.oid-map-stop { position: relative; min-width: 0; padding-top: 32px; display: flex; flex-direction: column; align-items: center; }
+.oid-map-stop[data-col="1"] { grid-column: 2; }
+.oid-map-stop[data-col="2"] { grid-column: 3; }
+.oid-map-stop[data-col="3"] { grid-column: 4; }
+.oid-map-stop[data-col="4"] { grid-column: 5; }
+.oid-map-stop[data-col="5"] { grid-column: 6; }
+.oid-map-stop[data-col="6"] { grid-column: 7; }
+.oid-map-dot { flex: none; width: 24px; height: 24px; display: grid; place-items: center; border: 2px solid var(--app); border-radius: var(--radius-pill); background: var(--surface); color: var(--ink); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.done .oid-map-dot, .current .oid-map-dot { background: var(--app); color: var(--on-app); }
+.current .oid-map-dot { box-shadow: 0 0 0 4px color-mix(in srgb, var(--app) 28%, transparent); }
+.oid-map-name { margin-top: 4px; font-size: 13.500px; line-height: 17px; color: var(--muted); white-space: nowrap; }
+.done .oid-map-name { color: var(--body); }
+.current .oid-map-name { font-weight: 700; color: var(--ink); }
+.oid-map-pin { position: absolute; top: 3px; left: 50%; transform: translateX(-50%); padding: 2px 8px; border-radius: var(--radius-pill); background: var(--app); color: var(--on-app); font-size: 12px; font-weight: 600; line-height: 16px; white-space: nowrap; }
+.oid-map-pin::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -4px; border: 4px solid transparent; border-top-color: var(--app); }
+.oid-map-next { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; }
+.oid-map-next .oid-map-line { flex-basis: 320px; }
+.one-id .oid-map-line { font-size: 15px; line-height: 1.45; }
+.oid-map-cta { flex: none; }
+/* The stop the trip waits at: a link, its target as wide as a finger on a phone. */
+.oid-map-stop-link { display: flex; flex-direction: column; align-items: center; color: inherit; text-decoration: none; }
+.oid-map-stop-link::after { content: ""; position: absolute; inset: 0; }
+.oid-map-stop-link .oid-map-name { text-decoration: underline; }
+.oid-map-stop-link:hover .oid-map-dot { box-shadow: 0 0 0 6px color-mix(in srgb, var(--app) 40%, transparent); }
+.oid-map-pin { pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .current .oid-map-dot { animation: oid-map-pulse 1.6s ease-out 3; }
+}
+@keyframes oid-map-pulse {
+  from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--app) 60%, transparent); }
+  to { box-shadow: 0 0 0 10px transparent; }
+}
+/* Too narrow for the names: the numbered route stays, and the line under it names the step. */
+@container (max-width: 979px) {
+  .oid-map-grid { grid-template-columns: 5.500rem repeat(6, minmax(0, 1fr)); grid-template-rows: repeat(3, 46px); }
+  .oid-map-lane { padding-left: 8px; }
+  .oid-map-app { font-size: 13px; }
+  .oid-map-tag, .oid-map-pin { display: none; }
+  .oid-map-stop { padding-top: 11px; }
+  .oid-map-stop-link::after { inset: 0 -4px; }
+  .oid-map-cta { flex: 1 1 100%; }
+  .oid-map-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+}
 
 /* Band and legend */
 .oid-legend { display: flex; flex-direction: column; gap: 8px; }

@@ -273,12 +273,24 @@ with the gate reader. It has nothing to do with any other project's.
 | `assets/design/components.css` | Cards, rows, buttons, labels and the result banner |
 
 Components take their look from the tokens and type no color, so a surface with its own
-look sets its own values. The website and the gate reader use the airline's. The gate
-reader has its own header for staff, with the airline's brand and no site navigation,
-chat or footer. The demo wallet stands in for another company's app, so it sets neutral
+look sets its own values. The website uses the airline's. The gate reader has its own
+header for staff, with the airline's brand and no site navigation, chat or footer, and
+sets plum tokens in `.surface-gate`, so its accent and its Board banner are plum. The
+demo wallet stands in for another company's app, so it sets neutral
 colors and the system's fonts in `.surface-wallet`, and shows no sign of the airline's
 brand. The colors of the Lean model's markers mean the same everywhere, so a theme
 leaves them alone.
+
+### The trip map
+
+Check-in and boarding move between three apps, so each app shows a map of the trip: one
+lane per app, a numbered stop per step and a pin at the stop the trip waits at. That stop
+and a button under the map run the next action if the screen offers one, and otherwise
+go to the app where the stop is. Neither ever shares anything: sharing happens only on
+the wallet's consent sheet. Each lane has its app's color, except in the wallet,
+where only its own lane does. The route is ordinary code in `one-id/trip-route.ts`, so
+the map's marker is grey. A model of the trip would export the route, and the map would
+read that file instead.
 
 ### The three screens
 

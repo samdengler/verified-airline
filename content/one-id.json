@@ -8,6 +8,24 @@
    "hide": "Hide the Lean model"
   },
   "startAgain": "Start again",
+  "map": {
+    "title": "Where you are in the trip",
+    "lede": "Check-in and boarding move between three apps: the airline's website, the wallet and the gate reader. The wallet asks before it shares anything.",
+    "here": "You are here",
+    "next": "Next step",
+    "thisScreen": "This screen",
+    "apps": { "website": "Website", "wallet": "Wallet", "gate": "Gate reader" },
+    "inApp": { "website": "Next step, on the website.", "wallet": "Next step, in the wallet.", "gate": "Next step, at the gate reader." },
+    "go": { "website": "Go to the website", "wallet": "Go to the wallet", "gate": "Go to the gate reader" },
+    "stops": {
+      "openWallet": { "name": "Open the wallet", "line": "Open the wallet from the check-in page, so the airline can ask for your photoid." },
+      "share": { "name": "Share your details", "line": "The wallet shows what the airline asks for. Share it or decline." },
+      "addPass": { "name": "Add the boarding pass", "line": "See what the website found. If it checked you in, add the boarding pass to the wallet." },
+      "present": { "name": "Present at the gate", "line": "Your boarding pass is in the wallet. Present it at the gate." },
+      "shareGate": { "name": "Share with the gate", "line": "The wallet shows what the gate asks for. Share it or decline." },
+      "answer": { "name": "See the gate's answer", "line": "The gate reader gives its answer." }
+    }
+  },
   "flight": {
    "number": "VA 118",
    "route": "Utopia City to Port Verity",
@@ -60,6 +78,7 @@
    "noPhotoid": "This traveler's wallet holds no photoid, so there is nothing to share.",
    "doneTitle": "You're checked in, {name}",
    "doneLede": "We checked the photoid your wallet shared. Your boarding pass is ready to add to the same wallet.",
+   "addedLede": "We checked the photoid your wallet shared. Your boarding pass is in your wallet.",
    "refusedTitle": "We could not check you in",
    "refusedLede": "Please see an agent at the airport. {reason}",
    "checked": "What we checked",
@@ -157,6 +176,10 @@
    }
   },
   "grey": {
+    "map": {
+      "title": "Not in the model yet",
+      "text": "The order of these steps runs on ordinary code, and no proof covers it yet. The model decides what each check says and what a wallet may send."
+    },
    "decision": {
     "title": "Not in the model yet",
     "text": "The model decides each check below, and its rule for a pair. Combining the pair's result with the checks of each credential's content into Board or Refer runs on ordinary code here."

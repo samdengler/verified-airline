@@ -35,6 +35,12 @@
   --amber-line: light-dark(#F3D58A, #6B4F17);
   --amber-edge: light-dark(#D97706, #F59E0B);
   --amber-ink: light-dark(#92400E, #FCD38A);
+  /* The app a step of the trip happens in, on the trip map. */
+  --app-website: light-dark(#2B3A67, #A9B9EC);
+  --app-wallet: light-dark(#0F766E, #5EEAD4);
+  --app-gate: light-dark(#5B2A86, #C9A9EE);
+  --on-app: light-dark(#FFFFFF, #10131F);
+  --selected: var(--proven-bg);
   /* Fira Sans stands in for Whitney, which needs a paid web license. */
   --sans: "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --serif: "DM Serif Display", Georgia, serif;

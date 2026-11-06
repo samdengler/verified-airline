@@ -9,11 +9,12 @@ import { checkInPresentation, gatePresentation } from './presentation-checks';
 import { hasRef, mdocRefs } from './rules/support/exchange';
 import { bcbpStringId } from './rules/support/identifiers';
 import { PASS_HELD, Trip } from './trip';
+import { TripMap } from './trip-map';
 
 /** /wallet: a demo of a wallet, which in real life is a separate app from a separate party. */
 @Component({
   selector: 'va-wallet',
-  imports: [CredentialCard, LeanToggle, Marker],
+  imports: [CredentialCard, LeanToggle, Marker, TripMap],
   // The same events as the policy pages, so Angular writes the same inline script and the live policy's hash allows it.
   host: { '(submit)': '$event.preventDefault()' },
   template: `
@@ -26,6 +27,8 @@ import { PASS_HELD, Trip } from './trip';
           </div>
           <va-lean-toggle />
         </header>
+
+        <va-trip-map surface="wallet" />
 
         @if (sheet(); as s) {
           <section class="oid-sheet" data-sheet="consent" [attr.data-for]="s.forGate ? 'gate' : 'check-in'">
@@ -73,6 +76,14 @@ import { PASS_HELD, Trip } from './trip';
           </section>
         }
 
+        @if (trip.step() === 'gateDeclined') { <p data-state="gate-declined">{{ w.gateDeclined }}</p> }
+        @if (presented()) {
+          <p class="oid-strong" data-state="presented">{{ w.presented }}</p>
+          <a class="oid-button secondary" href="/gate" target="va-gate">{{ gateTitle }}</a>
+        } @else if (showPass() && !sheet()) {
+          <button type="button" class="oid-button" data-action="present" (click)="trip.go('gateAsked')">{{ w.present }}</button>
+        }
+
         <section class="oid-stack">
           <h2>{{ w.credentials }}</h2>
           @if (photoid(); as p) {
@@ -104,13 +115,6 @@ import { PASS_HELD, Trip } from './trip';
           }
         </section>
 
-        @if (trip.step() === 'gateDeclined') { <p data-state="gate-declined">{{ w.gateDeclined }}</p> }
-        @if (presented()) {
-          <p class="oid-strong" data-state="presented">{{ w.presented }}</p>
-          <a class="oid-button secondary" href="/gate" target="va-gate">{{ gateTitle }}</a>
-        } @else if (showPass() && !sheet()) {
-          <button type="button" class="oid-button" data-action="present" (click)="trip.go('gateAsked')">{{ w.present }}</button>
-        }
         @if (!sheet() && !showPass()) {
           <p class="oid-small" data-state="wallet-idle">{{ w.empty }}</p>
         }
