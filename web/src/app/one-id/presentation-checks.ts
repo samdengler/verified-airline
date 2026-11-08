@@ -15,6 +15,7 @@ import { pairRefusals } from './rules/pair-refusals';
 import { proximitySessionFindings } from './rules/proximity-session-findings';
 import { refusals } from './rules/refusals';
 import type { ElementRef, Held, PresentationRequest, Profile, WalletResponse } from './rules/support/exchange';
+import type { AuthorizationRequest } from './rules/support/openid4vp';
 import { boardingPassDocType, photoidDocType } from './rules/support/identifiers';
 import { acceptanceReading, consentReading, expiryReading, pairReading, requestReading, walletReading } from './rules/support/readings';
 import { exampleResolution792, ISO_TRANSCRIPTS } from './rules/support/stand-ins';
@@ -89,12 +90,26 @@ function respondToAll(base: PresentationScenario, held: Held[], seen: Presentati
 
 const asksForPhotoid = (ref: ElementRef): boolean => ref.docType === photoidDocType;
 
+/**
+ * What one device received from the other through the relay (relay.ts), used in
+ * place of what it would compute on one device: the wallet takes the request it
+ * received as the request it saw, and the relying party takes the response it
+ * received.  The same checks then run on them, so a request or a response changed
+ * on the way is the checks' to refuse.
+ */
+export interface Relayed {
+  seen?: PresentationRequest;
+  authorization?: AuthorizationRequest | null;
+  response?: WalletResponse;
+}
+
 /** What the website asks of this traveler's wallet at check-in: the default OpenID4VP presentation, for the photoid alone. */
-export function checkInPresentation(scenario: Scenario): PresentationScenario {
+export function checkInPresentation(scenario: Scenario, relayed: Relayed = {}): PresentationScenario {
   const base = defaultPresentation('openid4vp');
   const narrow = (q: PresentationRequest): PresentationRequest => ({ ...q, elements: q.elements.filter(asksForPhotoid) });
-  const seen = narrow(base.seen!);
+  const seen = relayed.seen ?? narrow(base.seen!);
   const held = heldFor(scenario, base).filter((h) => h.mdoc.docType === photoidDocType);
+  const authorization = base.authorization && { ...base.authorization, credentials: base.authorization.credentials.filter((c) => c.docType === photoidDocType) };
   return {
     ...base,
     id: `check-in ${scenario.id}`,
@@ -102,16 +117,22 @@ export function checkInPresentation(scenario: Scenario): PresentationScenario {
     seen,
     consent: { approved: seen.elements },
     request: narrow(base.request!),
-    response: respondToAll(base, held, seen),
-    authorization: base.authorization && { ...base.authorization, credentials: base.authorization.credentials.filter((c) => c.docType === photoidDocType) },
+    response: relayed.response ?? respondToAll(base, held, seen),
+    authorization: relayed.authorization !== undefined ? relayed.authorization : authorization,
   };
 }
 
 /** What the gate reader asks of this traveler's wallet: the default proximity presentation, with what this traveler holds. */
-export function gatePresentation(scenario: Scenario): PresentationScenario {
+export function gatePresentation(scenario: Scenario, relayed: Relayed = {}): PresentationScenario {
   const base = defaultPresentation('proximity');
   const held = heldFor(scenario, base);
-  return { ...base, held, consent: { approved: base.seen!.elements }, response: respondToAll(base, held, base.seen!) };
+  const seen = relayed.seen ?? base.seen!;
+  return { ...base, held, seen, consent: { approved: seen.elements }, response: relayed.response ?? respondToAll(base, held, seen) };
+}
+
+/** The request a screen sends to a wallet on another device: the relying party's own, and for OpenID4VP its authorization request. */
+export function requestToSend(p: PresentationScenario): { request: PresentationRequest; authorization: AuthorizationRequest | null } {
+  return { request: p.request!, authorization: p.authorization };
 }
 
 /** Whether a scenario's traveler holds a credential of a kind. */

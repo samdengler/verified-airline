@@ -11,6 +11,7 @@ from verified_airline_infra.stack import GITHUB_SUBJECT, HOST, VerifiedAirlineSt
 
 ACCOUNT = "123456789012"
 SCRIPT = "document.documentElement.className = 'js';"
+RELAY = "https://abc123.execute-api.us-east-1.amazonaws.com"
 
 
 @pytest.fixture(scope="module")
@@ -29,7 +30,7 @@ def template(tmp_path_factory):
         }
     )
     stack = VerifiedAirlineStack(
-        app, "VerifiedAirline", site_dir=site, env=cdk.Environment(account=ACCOUNT, region="us-east-1")
+        app, "VerifiedAirline", site_dir=site, relay_url=RELAY, env=cdk.Environment(account=ACCOUNT, region="us-east-1")
     )
     return Template.from_stack(stack)
 
@@ -59,13 +60,16 @@ def test_a_path_with_no_page_gets_the_shell_and_404(template):
     )
 
 
-def test_the_policy_allows_the_inline_script_by_hash_and_nothing_else_inline(template):
-    digest = base64.b64encode(hashlib.sha256(SCRIPT.encode()).digest()).decode()
-    policies = template.find_resources("AWS::CloudFront::ResponseHeadersPolicy")
-    (policy,) = policies.values()
-    csp = policy["Properties"]["ResponseHeadersPolicyConfig"]["SecurityHeadersConfig"]["ContentSecurityPolicy"][
+def policy_of(template):
+    (policy,) = template.find_resources("AWS::CloudFront::ResponseHeadersPolicy").values()
+    return policy["Properties"]["ResponseHeadersPolicyConfig"]["SecurityHeadersConfig"]["ContentSecurityPolicy"][
         "ContentSecurityPolicy"
     ]
+
+
+def test_the_policy_allows_the_inline_script_by_hash_and_nothing_else_inline(template):
+    digest = base64.b64encode(hashlib.sha256(SCRIPT.encode()).digest()).decode()
+    csp = policy_of(template)
     script_src = next(d for d in csp.split(";") if d.strip().startswith("script-src")).split()
     assert script_src == ["script-src", "'self'", f"'sha256-{digest}'"]
     assert "unsafe-inline" not in csp
@@ -123,3 +127,18 @@ def test_one_address_may_start_only_so_many_chats(template):
     assert rate["ScopeDownStatement"]["ByteMatchStatement"]["SearchString"] == "/api/chat/start"
     (dist,) = template.find_resources("AWS::CloudFront::Distribution").values()
     assert "ChatLimit" in json.dumps(dist["Properties"]["DistributionConfig"]["WebACLId"])
+
+
+def test_the_policy_lets_the_app_reach_the_relay_and_publishing_can_find_it(template):
+    connect = next(d for d in policy_of(template).split(";") if d.strip().startswith("connect-src")).split()
+    assert connect[:3] == ["connect-src", "'self'", RELAY]
+    assert template.find_outputs("OneIdRelayUrl")["OneIdRelayUrl"]["Value"] == RELAY
+
+
+def test_with_no_relay_the_policy_names_none(tmp_path):
+    from verified_airline_infra.csp import connect_sources, content_security_policy
+
+    (tmp_path / "index.html").write_text(f"<script>{SCRIPT}</script>")
+    connect = connect_sources(content_security_policy(tmp_path))
+    assert connect[0] == "'self'" and connect[1].startswith("https://participant.connect.")
+    assert connect_sources(content_security_policy(tmp_path, RELAY + "/"))[1] == RELAY

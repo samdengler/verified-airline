@@ -93,7 +93,7 @@ site's content security policy and fails on any console error.
 | `model/` | `facts.json` and `model.json` from verified-air, committed; `model/one-id/` from verified-id; `model/trip/` from `trip-model/` |
 | `trip-model/` | The trip's Lean model, with no Mathlib: the steps, what the gate may show, their proofs, and the export the site reads |
 | `web/` | The Angular app: the header and footer, the page component that shows the renderer's pages, the One ID screens in `src/app/one-id/`, the browser check |
-| `infra/` | The `VerifiedAirline` CDK stack (Python): the site at air.dengler.io and its publish role |
+| `infra/` | The CDK stacks (Python): `VerifiedAirline`, the site at air.dengler.io and its publish role; `VerifiedAirlineChat`, the support chat; `VerifiedAirlineOneId`, the One ID relay between devices |
 | `scripts/render_airline.py` | The pages and their checks, written to `build/`, and with `--content` for the app |
 | `scripts/update-model.sh` | Copies new model files into `model/`, and with `--one-id` into `model/one-id/` |
 | `scripts/check_one_id.py` | Checks the One ID screens against a build of the One ID model |
@@ -114,6 +114,7 @@ for the account that holds the dengler.io zone.
 ```sh
 scripts/preview.sh                                          # the static pages, http://localhost:8001
 npm --prefix web start                                      # the app, http://localhost:4200
+ONE_ID_RELAY_URL=<the stack's RelayUrl> npm --prefix web start   # the app with the deployed One ID relay
 npm --prefix web test                                       # the app's unit tests
 npm --prefix web run build && npm --prefix web run check    # the build, checked in Chrome
 (cd infra && uv run --dev pytest -q)                        # the stack's tests
@@ -125,8 +126,8 @@ python3 scripts/check_one_id.py                             # the One ID checks,
 
 ## Hosting
 
-`scripts/deploy.sh` builds the app, deploys the `VerifiedAirline` stack to
-us-east-1, and publishes the site. The stack serves the app's build from a
+`scripts/deploy.sh` builds the app, deploys the `VerifiedAirlineOneId` and
+`VerifiedAirline` stacks to us-east-1, and publishes the site. The site's stack serves the app's build from a
 private S3 bucket through CloudFront at air.dengler.io, as guppi-gpt serves
 chat.dengler.io. A CloudFront Function serves each page from its prerendered
 `index.html`; a path with no page gets the app's shell, which shows its
@@ -137,6 +138,25 @@ script in the build, so it allows no other inline script and no inline style,
 and every font is served from the site. Because the hashes come from the
 build, a change to an inline script needs `scripts/deploy.sh`;
 `scripts/publish-site.sh` refuses a build whose scripts the live policy lacks.
+The policy's `connect-src` also lists the One ID relay's origin, which the site's
+stack imports from `VerifiedAirlineOneId`, so a new relay address needs
+`scripts/deploy.sh` too, and `scripts/publish-site.sh` refuses to publish while
+the live policy lacks it. It writes the relay's address into the build's
+`one-id-relay.json`, from the site stack's `OneIdRelayUrl` output, before the
+upload.
+
+The relay answers on its own address, the stack's `RelayUrl` output. A session
+round-trips with curl:
+
+```sh
+relay="$(aws cloudformation describe-stacks --stack-name VerifiedAirlineOneId \
+  --query "Stacks[0].Outputs[?OutputKey=='RelayUrl'].OutputValue" --output text)"
+id="$(curl -sS -X POST "$relay/sessions" -d '{"for":"check-in"}' | python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])')"
+curl -sS "$relay/sessions/$id/request"                                  # {"for":"check-in"}
+curl -sS -o /dev/null -w '%{http_code}\n' "$relay/sessions/$id/response"   # 204, not answered yet
+curl -sS -X POST "$relay/sessions/$id/response" -d '{"answer":"declined"}'
+curl -sS "$relay/sessions/$id/response"                                 # {"answer":"declined"}
+```
 
 On a push to `main`, CI publishes the site with the stack's publish role,
 which may only write to the site bucket and invalidate its distribution. The
@@ -328,9 +348,10 @@ and needs no Lean, so `render_airline.py` and verified-air's CI are unaffected.
 
 Three things stay outside these proofs. The presenter's picks go straight to the gate:
 they are no part of a traveler's trip, and they happen only with the model shown. Tabs
-pass the step to each other through a BroadcastChannel, unchecked. And in one browser no
-credential travels, so "sent" says what a real wallet would have sent; the relay in
-package 5 is the first place anything is sent.
+pass the step to each other through a BroadcastChannel, unchecked, and devices pass it
+through the relay the same way. And in one browser no credential travels, so "sent"
+says what a real wallet would have sent; between devices, the relay is where the
+response is sent.
 
 ### The home page's tours
 
@@ -431,6 +452,56 @@ setting or a question. The same spec shows that test failing on a reading
 added, a reading removed and a setting changed. The browser check runs each traveler
 that holds both credentials under both matching settings, and every scenario under
 the panel's settings, against the model's answers.
+
+### The relay between devices
+
+The demo can span three devices: a laptop on the check-in page, a phone running the
+wallet, a tablet running the gate reader. The check-in page and the gate reader each
+have a "Present from your phone" panel. Show a code starts a session on the relay
+with the screen's request and draws a QR code of `/wallet?session=<id>`, with the same
+address as a link. The phone's camera opens the wallet, which reads the request and
+shows the usual consent sheet. Share sends the wallet's response back, and the asking
+screen, which polls every two seconds, goes on as it does when the wallet shares from
+another tab. Open the demo wallet still works on one device, beside the code.
+
+The relay only carries. The wallet's checks run on the request it received, so its
+sheet lists what `Wallet.respond` would send for that request, and the relying
+party's checks run on the response it received (`Relayed` in
+`one-id/presentation-checks.ts`). A response changed on the way is refused by the same
+`refusals` check, and `one-id/relay.spec.ts` shows one. With the model shown, the
+panels carry a grey marker, "Not in the model yet": transport is outside the Lean
+model.
+
+A session carries one exchange:
+
+| Part | Written by | Holds |
+| --- | --- | --- |
+| `request` | The asking screen, when it shows the code | The relying party's request, its OpenID4VP authorization request at check-in, and the trip |
+| `response` | The wallet, once | The response `Wallet.respond` computed and the trip, or a decline and the trip |
+| `pass` | The website, after a share at check-in | The trip, at the step where the boarding pass was added |
+
+The trip is what tabs pass each other: the step, the traveler and the decisions. A
+device takes the other's trip as a tab does, when it is newer; the asking screen
+takes the wallet's trip whole if its own has not moved since it showed the code, and
+the wallet takes a check-in's trip whole, since check-in is where a trip starts. The
+asking screen does not move the trip when it shows a code; the phone's wallet opens.
+After a share from a phone, adding the boarding pass, by the button or the map, sends
+the `pass` part, so the phone's wallet holds the pass at the gate. A phone's camera
+opens each code in a new tab, so the wallet keeps the last trip the relay moved in
+`localStorage` for the length of a session, and a tab opened by the gate's code finds
+the boarding pass there.
+
+Nothing in a session is secret: the credentials are specimens, and keys, nonces and
+signatures are named values the model compares. A decline carries no credential. The
+relay authenticates no one, and the wallet takes the origin the default presentation
+names, as it does on one device.
+
+With no relay set up, the panel says presenting from a phone is not set up, and the
+wallet on the same device works as before. `web/scripts/browser-check.mjs` runs the
+whole trip across a laptop, a phone and a tablet, three browser contexts that share
+nothing, through a stand-in relay at the stand-in origin the local policy lists. It
+checks that no screen keeps polling once its exchange is answered, and with
+`--url` it uses the live relay when the site has one.
 
 ### The seeded error
 
@@ -551,3 +622,38 @@ shows is unproved and is labelled that way.
     build it. Its table holds every input, because a table of paths could never be
     complete. The design rules stayed out of Lean: they are a fixed list that a script
     can check whole, so "proven" would have claimed more than it does here.
+15. **The One ID relay is a stack of its own.** `VerifiedAirlineOneId` has its own
+    lifecycle and costs, and deploying or removing it leaves the site's distribution
+    alone. The chat reaches its functions through the site's own origin, by
+    CloudFront with signed function URLs, where every POST must carry the hash of
+    its body. The relay is called on its own origin with CORS for air.dengler.io and
+    the local dev server instead, so the distribution keeps no behavior for it. The
+    price is one origin in `connect-src`, which the site's stack imports, and a full
+    deploy when that origin changes.
+16. **One HTTP API with two functions, polled.** Function URLs would have been free,
+    but two functions would have meant two origins in the policy and two addresses
+    for the app. An API Gateway HTTP API gives one origin, its routes, CORS and
+    throttling on the stage (20 requests a second, bursts of 40), for $1 per million
+    requests. One function writes and may only put and update items; the other reads
+    and may only get one. No route lists sessions, and an id is 128 random bits.
+    Every request is a simple request, a text body and no headers, so none needs a
+    preflight. The asking screen polls every two seconds: a function that held a
+    request open would be billed for waiting, and a poll takes milliseconds.
+17. **A session lasts ten minutes and carries one exchange.** That is long enough to
+    walk from the laptop to the gate and short enough that nothing lingers. DynamoDB's
+    TTL can take hours to delete an item, so the functions treat a session past its
+    time as gone. Each part is a JSON object of at most 16 KB, written once by a
+    conditional write, so two wallets cannot both answer. The relay reads nothing
+    inside a part.
+18. **The relay's address reaches the app at run time.** `scripts/publish-site.sh`
+    writes `/one-id-relay.json` from the site stack's `OneIdRelayUrl` output, the same
+    value its policy lists, so the app and the policy cannot disagree, a deploy needs
+    no commit afterwards, and CI's publish keeps the address. A build ships
+    `{"url": null}`, which the panels show as not set up, and `ONE_ID_RELAY_URL`
+    sets it under `npm start`.
+19. **The QR code comes from uqr.** [uqr](https://github.com/unjs/uqr) 0.1.3 is MIT
+    licensed, has no dependencies, uses no eval, and encodes with Project Nayuki's
+    algorithm. The panel draws its modules as one SVG path bound as an attribute, so
+    the code needs no inline style or script under the policy. The browser check's
+    screenshots of both codes were decoded with jsQR, outside the repository, back to
+    their session links.

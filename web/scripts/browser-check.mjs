@@ -11,7 +11,9 @@
 // Served locally, a path ending in / or with no extension gets its
 // index.html, an unknown path gets index.csr.html with status 404, and every
 // response carries the policy in ../infra/csp.txt with the hashes of the
-// build's inline scripts, as infra/ sets them.
+// build's inline scripts, as infra/ sets them.  The policy lists a stand-in
+// One ID relay, which this script answers for, where infra/ lists the deployed
+// relay's origin.
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
@@ -40,7 +42,7 @@ function htmlFiles(dir) {
   });
 }
 
-/** The policy in infra/csp.txt with the hash of every inline script in the build. */
+/** The policy in infra/csp.txt with the hash of every inline script in the build and the stand-in relay's origin. */
 function contentSecurityPolicy(dist = DIST) {
   const hashes = new Set();
   for (const f of htmlFiles(dist)) {
@@ -49,7 +51,52 @@ function contentSecurityPolicy(dist = DIST) {
     }
   }
   const template = readFileSync(new URL('../../infra/csp.txt', import.meta.url), 'utf8').trim();
-  return template.replace('{script_hashes}', [...hashes].sort().join(' '));
+  return template.replace('{script_hashes}', [...hashes].sort().join(' ')).replace('{relay_origin}', STAND_IN_RELAY);
+}
+
+/** Where the stand-in relay answers when the build is served locally.  .test never resolves. */
+const STAND_IN_RELAY = 'https://one-id-relay.test';
+
+/**
+ * A stand-in for the One ID relay, kept in this script, with the routes and
+ * answers of infra/verified_airline_infra/functions/relay/relay.py.  A context it
+ * is attached to reads its address from /one-id-relay.json, which a build ships
+ * empty, as scripts/publish-site.sh fills it from the stack.
+ */
+function standInRelay() {
+  const sessions = new Map();
+  const seen = { requests: 0 };
+  let next = 0;
+  const reply = (route, status, body = null) => route.fulfill({
+    status, body: body ?? '',
+    headers: { 'access-control-allow-origin': route.request().headers()['origin'] ?? '*', 'cache-control': 'no-store', ...(body ? { 'content-type': 'application/json' } : {}) },
+  });
+  async function answer(route) {
+    seen.requests++;
+    const request = route.request();
+    const [, id, part] = new URL(request.url()).pathname.split('/').filter(Boolean);
+    if (request.method() === 'POST' && !id) {
+      const created = `standin${String(next++).padStart(15, '0')}`;
+      sessions.set(created, { request: request.postData() });
+      return reply(route, 201, JSON.stringify({ id: created }));
+    }
+    const session = sessions.get(id);
+    if (!session) return reply(route, 404, '{"error":"no such session"}');
+    if (request.method() === 'POST') {
+      if (part === 'request' || part in session || (part === 'pass' && !('response' in session))) return reply(route, 409, '{"error":"cannot be written now"}');
+      session[part] = request.postData();
+      return reply(route, 204);
+    }
+    return part in session ? reply(route, 200, session[part]) : reply(route, 204);
+  }
+  return {
+    sessions,
+    seen,
+    async attach(context) {
+      await context.route(`${STAND_IN_RELAY}/**`, answer);
+      await context.route('**/one-id-relay.json', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ url: STAND_IN_RELAY }) }));
+    },
+  };
 }
 
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.woff2': 'font/woff2', '.woff': 'font/woff', '.txt': 'text/plain' };
@@ -605,6 +652,107 @@ try {
   check('hiding the model hides the panel and returns to the default trip', returned && !hiddenAgain.panel && hiddenAgain.words === null && hiddenAgain.word === words.traveler.gate.board, JSON.stringify(hiddenAgain));
   const shownProblems = [page, wallet, gate].flatMap((p) => p.problems);
   check('the trip with the model shown logs no console error', shownProblems.length === 0, shownProblems.join(' | '));
+  await ctx.close();
+
+  // The trip across three devices through the relay: a laptop on the check-in page,
+  // a phone running the wallet, a tablet running the gate reader, each a context of
+  // its own with nothing shared but the relay.  Served locally, the relay is the
+  // stand-in; with --url, the live relay answers if the site has one.
+  const relayUrl = server ? STAND_IN_RELAY : (await (await fetch(`${BASE}/one-id-relay.json`)).json()).url;
+  const standIn = standInRelay();
+  const devices = [];
+  const device = async (viewport, deviceScaleFactor = 1) => {
+    const context = await browser.newContext({ colorScheme: 'light', viewport, deviceScaleFactor });
+    if (server) await standIn.attach(context);
+    devices.push(context);
+    return watched(context);
+  };
+  if (relayUrl) {
+    const laptop = await device({ width: 1280, height: 900 });
+    let phone = await device({ width: 390, height: 844 }, 2);
+    const tablet = await device({ width: 1024, height: 768 });
+    await laptop.goto(BASE + '/check-in', { waitUntil: 'networkidle' });
+    await laptop.locator('[data-panel="relay"] [data-action="show-code"]').click();
+    await laptop.locator('[data-panel="relay"] [data-qr]').waitFor();
+    const link = await laptop.locator('[data-relay-link]').getAttribute('href');
+    const codeShown = { link, words: await hiddenWords(laptop), sameDevice: await laptop.locator('[data-action="open-wallet"]').count(), marker: await laptop.locator('[data-panel="relay"] button.lean-marker').isVisible() };
+    check('the check-in page shows a code and its link for a phone, and keeps the wallet on this device', /\/wallet\?session=[A-Za-z0-9_-]{22}$/.test(link) && link.startsWith(BASE)
+      && codeShown.words === null && codeShown.sameDevice === 1 && !codeShown.marker, JSON.stringify(codeShown));
+    await shot(laptop, 'relay-check-in-code');
+
+    await phone.goto(link, { waitUntil: 'networkidle' });
+    await phone.locator('[data-sheet="consent"][data-relayed="true"]').waitFor();
+    const phoneSheet = { words: await hiddenWords(phone), share: await phone.locator('[data-action="share"]').textContent(), note: await phone.locator('[data-panel="relay-wallet"]').getAttribute('data-state'), text: await phone.locator('[data-sheet="consent"]').innerText() };
+    check("the phone's wallet opens the website's request on its consent sheet", phoneSheet.words === null && /3/.test(phoneSheet.share) && phoneSheet.note === 'open' && phoneSheet.text.includes('MARTIN'), JSON.stringify({ ...phoneSheet, text: undefined }));
+    await shot(phone, 'relay-wallet-consent');
+    await phone.locator('[data-action="share"]').click();
+    await laptop.locator('[data-action="add-pass"]').waitFor();
+    await phone.locator('[data-panel="relay-wallet"][data-state="sent"]').waitFor();
+    check('sharing on the phone checks the traveler in on the laptop', /checked in/.test(await pageH1(laptop)) && await hiddenWords(laptop) === null);
+    await shot(laptop, 'relay-checked-in');
+    await laptop.locator('[data-action="add-pass"]').click();
+    await phone.locator('[data-credential="boardingPass"]').waitFor();
+    check('the boarding pass the website adds reaches the phone', await phone.locator('[data-panel="relay-wallet"]').getAttribute('data-state') === 'passAdded' && await phone.locator('[data-credential]').count() === 2);
+    await shot(phone, 'relay-wallet-pass');
+
+    await tablet.goto(BASE + '/gate', { waitUntil: 'networkidle' });
+    await tablet.locator('[data-panel="relay"] [data-action="show-code"]').click();
+    await tablet.locator('[data-panel="relay"] [data-qr]').waitFor();
+    const gateLink = await tablet.locator('[data-relay-link]').getAttribute('href');
+    await shot(tablet, 'relay-gate-code');
+    // A phone's camera opens a code in a new tab; the old tab is gone, so the trip comes from what the wallet kept.
+    const problems = phone.problems;
+    await phone.close();
+    phone = watch(await phone.context().newPage());
+    phone.problems.push(...problems);
+    await phone.goto(gateLink, { waitUntil: 'networkidle' });
+    await phone.locator('[data-sheet="consent"][data-for="gate"][data-relayed="true"]').waitFor();
+    check("the gate's request reaches the phone's wallet, which holds the boarding pass", /4/.test(await phone.locator('[data-action="share-gate"]').textContent()) && await hiddenWords(phone) === null);
+    await shot(phone, 'relay-wallet-gate-consent');
+    await phone.locator('[data-action="share-gate"]').click();
+    await tablet.locator('[data-state="gate-result"]').waitFor();
+    const answered = { word: await tablet.locator('.oid-banner-word').textContent(), words: await hiddenWords(tablet), phone: await phone.locator('[data-panel="relay-wallet"]').getAttribute('data-state'), tabs: phone.context().pages().length };
+    check('presenting from the phone reaches "Board" on the tablet', answered.word === words.traveler.gate.board && answered.words === null && answered.phone === 'sent' && answered.tabs === 1, JSON.stringify(answered));
+    await shot(tablet, 'relay-gate-board');
+    if (server) {
+      // Once both exchanges are answered, no screen asks the relay for anything more.
+      const before = standIn.seen.requests;
+      await tablet.waitForTimeout(5000);
+      check('no screen keeps asking the relay once its exchange is answered', standIn.seen.requests === before, `${standIn.seen.requests - before} requests in 5 s`);
+    }
+
+    // With the model shown, the relay's marker is grey: transport is outside the model.
+    await laptop.goto(BASE + '/check-in?lean=1', { waitUntil: 'networkidle' });
+    const relayMarker = laptop.locator('[data-panel="relay"] button.lean-marker');
+    await relayMarker.waitFor();
+    await relayMarker.click();
+    const relayPop = { grey: await relayMarker.evaluate((b) => b.classList.contains('partial')), text: await laptop.locator(`#${await relayMarker.getAttribute('aria-controls')}`).innerText(), legend: await laptop.locator('.lean-legend .lean-marker.partial').count() };
+    check('with the model shown the relay carries a grey marker: not in the model yet', relayPop.grey && relayPop.text.includes(words.lean.relay.grey.title) && relayPop.text.includes(words.lean.relay.grey.text) && relayPop.legend === 1, JSON.stringify(relayPop));
+    await shot(laptop, 'relay-check-in-marker-shown');
+    await laptop.keyboard.press('Escape');
+
+    // A code that has expired, or was never made.
+    const stale = await watched(phone.context());
+    await stale.goto(`${BASE}/wallet?session=${'Z'.repeat(22)}`);
+    await stale.locator('[data-panel="relay-wallet"][data-state="expired"]').waitFor();
+    check('an unknown code says it has expired', await stale.locator('[data-panel="relay-wallet"]').innerText().then((t) => t.includes(words.traveler.relay.wallet.expired)));
+    const relayProblems = [laptop, phone, tablet, stale].flatMap((p) => p.problems).filter((m) => !/status of 404/.test(m));
+    check('the trip across devices logs no console error', relayProblems.length === 0, relayProblems.join(' | '));
+  }
+  for (const context of devices) await context.close();
+
+  // With no relay set up, the panel says so and the wallet on this device still works.
+  ctx = await browser.newContext({ colorScheme: 'light', viewport: { width: 1280, height: 900 } });
+  if (server) await ctx.route('**/one-id-relay.json', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"url":null}' }));
+  page = await watched(ctx);
+  if (server || !relayUrl) {
+    await page.goto(BASE + '/check-in', { waitUntil: 'networkidle' });
+    await page.locator('[data-panel="relay"] [data-action="show-code"]').click();
+    await page.locator('[data-state="relay-unconfigured"]').waitFor();
+    const unconfigured = { text: await page.locator('[data-state="relay-unconfigured"]').textContent(), sameDevice: await page.locator('[data-action="open-wallet"]').count(), problems: page.problems };
+    check('with no relay set up the panel says so, and the wallet on this device stays', unconfigured.text === words.traveler.relay.notConfigured && unconfigured.sameDevice === 1 && unconfigured.problems.length === 0, JSON.stringify(unconfigured));
+    await shot(page, 'relay-not-configured');
+  }
   await ctx.close();
 
   // The wallet on a phone, in dark mode.

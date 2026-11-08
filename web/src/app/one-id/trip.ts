@@ -11,7 +11,7 @@ export type { Action, Step } from './trip-steps';
 /** The steps at which the wallet holds the boarding pass. */
 export const PASS_HELD: readonly Step[] = ['passAdded', 'gateAsked', 'gateDeclined', 'presented'];
 
-interface TripState {
+export interface TripState {
   /** Grows with each change, so a surface takes only news. */
   rev: number;
   step: Step;
@@ -72,6 +72,24 @@ export class Trip implements OnDestroy {
     const next = { ...this.state(), ...part, rev: Math.max(this.state().rev + 1, Date.now()) };
     this.state.set(next);
     this.post({ type: 'state', state: next });
+  }
+
+  /** Where the trip stands, for the relay to carry to another device. */
+  snapshot(): TripState {
+    return this.state();
+  }
+
+  /**
+   * A trip another device sent through the relay.  It is taken as a tab takes one
+   * from the BroadcastChannel, when it is newer, or always with `force`, and the
+   * other tabs follow.  Like the tabs' messages, it is outside the trip's proofs.
+   */
+  adopt(state: TripState, force = false): boolean {
+    if (!force && state.rev <= this.state().rev) return false;
+    const next = { ...state, rev: Math.max(state.rev, this.state().rev + 1) };
+    this.state.set(next);
+    this.post({ type: 'state', state: next });
+    return true;
   }
 
   /** A traveler's action, by the model's steps.  One the current step does not allow changes nothing. */

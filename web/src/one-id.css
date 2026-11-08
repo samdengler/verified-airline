@@ -2,7 +2,7 @@
    components are in assets/design/components.css.  No inline styles: the content
    security policy allows none. */
 
-va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, va-lean-toggle, va-model-legend, va-trip-map { display: contents; }
+va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, va-lean-toggle, va-model-legend, va-trip-map, va-relay-panel { display: contents; }
 .one-id h2 { margin: 0; font-size: 22px; font-weight: 700; }
 .one-id h3 { margin: 0; font-size: 14px; font-weight: 600; color: var(--muted); }
 .one-id p { margin: 0; }
@@ -88,6 +88,13 @@ va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, v
 .oid-wallet-head .oid-grow { flex: 1 1 260px; }
 .oid-wallet-head h1 { font-size: 30px; margin-bottom: 6px; }
 .oid-sheet { padding: 20px; border: 1px solid var(--pop-line); border-radius: var(--radius-large); background: var(--band); box-shadow: 0 8px 24px var(--shadow); display: flex; flex-direction: column; gap: 12px; }
+
+/* A code for the wallet on a phone, and the same address as a link.  The code is dark
+   on light in either theme, inside its quiet zone, so a camera reads it. */
+.oid-qr { display: block; width: min(232px, 100%); height: auto; aspect-ratio: 1; align-self: center; border-radius: var(--radius-small); }
+.oid-qr rect { fill: var(--qr-paper); }
+.oid-qr path { fill: var(--qr-ink); }
+.oid-relay-link { font: 13px var(--mono); color: var(--accent); overflow-wrap: anywhere; }
 
 /* The gate reader. */
 .oid-gate { padding-top: 28px; padding-bottom: 0; display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }

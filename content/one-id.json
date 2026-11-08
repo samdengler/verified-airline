@@ -150,12 +150,48 @@
     "element": "bcbpStringId",
     "label": "Boarding pass"
    }
-  ]
+  ],
+  "relay": {
+   "show": "Show a code",
+   "again": "Show a new code",
+   "starting": "Making a code for your phone.",
+   "codeLabel": "Code that opens the wallet on a phone",
+   "expired": "That code has expired.",
+   "failed": "The link to a phone is not working right now. Try again, or use the wallet on this device.",
+   "notConfigured": "Presenting from a phone is not set up on this copy of the site. Use the wallet on this device instead.",
+   "checkIn": {
+    "title": "Present from your phone",
+    "line": "Use the wallet on your phone instead. This page shows a code to scan with the phone's camera.",
+    "scan": "Scan the code with your phone's camera, or open this link on the phone:",
+    "waiting": "Waiting for your phone"
+   },
+   "gate": {
+    "title": "Present from a phone",
+    "line": "A traveler can present from the wallet on their phone. The reader shows a code to scan with the phone's camera.",
+    "scan": "Scan the code with the phone's camera, or open this link on the phone:",
+    "waiting": "Waiting for the traveler's phone"
+   },
+   "wallet": {
+    "title": "From your other screen",
+    "loading": "Getting the request from your other screen.",
+    "openCheckIn": "The {airline} check-in page on your other screen asks for the items below.",
+    "openGate": "The gate reader asks for the items below.",
+    "sentCheckIn": "Sent to the check-in page. When the website adds your boarding pass, it appears here.",
+    "passAdded": "Your boarding pass is in this wallet. At the gate, scan the gate reader's code with this phone.",
+    "sentGate": "Sent to the gate reader. Its answer is on its screen.",
+    "declined": "You declined, so nothing was shared. Your other screen knows.",
+    "answered": "This request was answered already.",
+    "expired": "This code has expired. Show a new one on your other screen.",
+    "failed": "The link to your other screen is not working right now.",
+    "noPass": "This wallet holds no boarding pass yet. Check in from this phone first."
+   }
+  }
  },
  "lean": {
   "legend": {
    "proven": "Every criterion proven",
    "open": "A criterion is an open question",
+   "grey": "Not in the model yet",
    "text": "Each check runs as TypeScript in this browser. The tests compare it with the model's answer on every row of the model's table. That is a test of those cases; the proofs are about the Lean model. No signature or protocol is checked, because the model holds no cryptography."
   },
   "popover": {
@@ -177,7 +213,7 @@
   },
   "trip": {
     "mapMarker": { "requirements": ["TRIP-001", "TRIP-002"] },
-    "note": "These proofs cover a traveler's own actions. The presenter's picks go straight to the gate, and they show only with the model. Tabs pass the step to each other unchecked, and in one browser no credential travels.",
+    "note": "These proofs cover a traveler's own actions. The presenter's picks go straight to the gate, and they show only with the model. Tabs pass the step to each other unchecked, and so do devices through the relay. In one browser no credential travels.",
     "source": "https://github.com/samdengler/verified-airline/tree/main/trip-model",
     "sourceText": "The trip's model is in this site's repository."
   },
@@ -476,6 +512,12 @@
     "ConsentReading": [
      "This demo offers all or nothing. Under one setting a traveler who declines the portrait still sends the rest, and under the other the wallet sends nothing of that credential."
     ]
+   }
+  },
+  "relay": {
+   "grey": {
+    "title": "Not in the model yet",
+    "text": "Transport between devices is outside the Lean model: the relay carries the request to the wallet and the answer back, and the checks on each screen decide."
    }
   },
   "presentation": {

@@ -152,5 +152,13 @@ describe('the One ID screens', () => {
     expect(button.classList.contains('open')).toBe(false);
     expect(el.querySelector('.lean-req')?.textContent).toContain('TRIP-003');
     expect(el.querySelector('.lean-pop a')?.getAttribute('href')).toBe(wording.lean.trip.source);
+
+    // The relay is outside the model: its marker is grey and says so.
+    fixture.componentRef.setInput('requirements', []);
+    fixture.componentRef.setInput('grey', wording.lean.relay.grey);
+    await fixture.whenStable();
+    expect(button.classList.contains('partial')).toBe(true);
+    expect(el.querySelector('.lean-req')?.textContent).toContain(wording.lean.relay.grey.title);
+    expect(el.querySelector('.lean-pop')?.textContent).not.toContain(wording.lean.popover.noLink);
   });
 });

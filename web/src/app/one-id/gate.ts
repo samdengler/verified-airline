@@ -10,8 +10,10 @@ import { Decision } from './decision';
 import { LeanToggle } from './lean-toggle';
 import { Marker } from './marker';
 import { ModelLegend } from './model-legend';
-import { gatePresentation } from './presentation-checks';
+import { gatePresentation, requestToSend } from './presentation-checks';
 import { Presenter } from './presenter';
+import { Relay } from './relay';
+import { RelayPanel } from './relay-panel';
 import { Trip, startFromTourLink } from './trip';
 import { TripMap } from './trip-map';
 import { gateShows } from './trip-steps';
@@ -37,7 +39,7 @@ interface Row {
  */
 @Component({
   selector: 'va-gate',
-  imports: [Brand, Decision, LeanToggle, Marker, ModelLegend, Presenter, TripMap],
+  imports: [Brand, Decision, LeanToggle, Marker, ModelLegend, Presenter, RelayPanel, TripMap],
   // The same events as the policy pages, so Angular writes the same inline script and the live policy's hash allows it.
   host: { '(submit)': '$event.preventDefault()' },
   template: `
@@ -54,6 +56,7 @@ interface Row {
         <main class="oid-main">
           @if (shows() === 'waiting') {
             <p class="oid-card oid-waiting" data-state="gate-waiting">{{ w.waiting }}</p>
+            <va-relay-panel kind="gate" (show)="showCode()" />
           } @else {
             @if (shows() === 'decide') {
               <div class="oid-banner decide" data-state="gate-decide" role="status">
@@ -135,6 +138,7 @@ interface Row {
 })
 export class Gate {
   protected readonly trip = inject(Trip);
+  private readonly relay = inject(Relay);
   private readonly leanModel = inject(LeanModel);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   protected readonly t = wording.traveler;
@@ -148,10 +152,10 @@ export class Gate {
   private loading = false;
 
   private readonly subject = computed<Subject>(() => this.trip.subject());
-  /** The default trip also presents at this gate, under the model's proximity rules. */
+  /** The default trip also presents at this gate, under the model's proximity rules.  A response from a phone is the one checked. */
   private readonly presentation = computed(() => {
     const s = this.subject();
-    return !isPresentation(s) && s.default ? gatePresentation(s) : null;
+    return !isPresentation(s) && s.default ? gatePresentation(s, { response: this.relay.received().gate }) : null;
   });
   private readonly presentationView = computed(() => {
     const p = this.presentation();
@@ -207,6 +211,11 @@ export class Gate {
           .catch(() => undefined);
       }
     });
+  }
+
+  /** A code for a traveler's phone.  The phone's wallet presents when it reads the request. */
+  protected showCode(): void {
+    void this.relay.ask('gate', requestToSend(gatePresentation(this.trip.scenario())));
   }
 
   private row(c: CheckView, subject: Subject): Row {

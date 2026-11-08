@@ -40,6 +40,9 @@
   --app-wallet: light-dark(#0F766E, #5EEAD4);
   --app-gate: light-dark(#5B2A86, #C9A9EE);
   --on-app: light-dark(#FFFFFF, #10131F);
+  /* A code for a phone's camera: dark on light in either theme, which every scanner reads. */
+  --qr-ink: #000000;
+  --qr-paper: #FFFFFF;
   --selected: var(--proven-bg);
   /* Fira Sans stands in for Whitney, which needs a paid web license. */
   --sans: "Fira Sans", system-ui, -apple-system, "Segoe UI", sans-serif;

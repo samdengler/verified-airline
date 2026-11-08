@@ -7,7 +7,7 @@ Verified Airline, a fictional airline's site written from the Verified Air Lean 
 - The site is the Angular app in `web/`, at https://air.dengler.io/. `npm --prefix web start` serves it at http://localhost:4200; `scripts/preview.sh` serves the static pages at http://localhost:8001. The app needs Node 24.15 or later.
 - `npm --prefix web run build && npm --prefix web run check` builds the app and checks every page in Chrome under the site's content security policy. Run it, `npm --prefix web test`, and `(cd infra && uv run --dev pytest -q)` before pushing.
 - For a visual change, take screenshots (the browser check's `--shots DIR` saves some) and show them before pushing.
-- `scripts/deploy.sh` deploys the `VerifiedAirline` stack and publishes the site; `--site-only` publishes only. It needs AWS credentials for the account with the dengler.io zone. A change to an inline script needs the full deploy, since the policy allows inline scripts by hash.
+- `scripts/deploy.sh` deploys the `VerifiedAirlineOneId` and `VerifiedAirline` stacks and publishes the site; `--site-only` publishes only. It needs AWS credentials for the account with the dengler.io zone. A change to an inline script needs the full deploy, since the policy allows inline scripts by hash.
 - Push straight to `main`. No pull requests, no merge commits.
 
 ## The model's files
@@ -33,6 +33,9 @@ Verified Airline, a fictional airline's site written from the Verified Air Lean 
 - The home page's tours are in `content/index.md`. A link with `?traveler=<scenario>` starts a fresh trip with nothing decided, and the renderer checks the scenario exists. A settled question can leave the decision tour with nothing to stop at; the browser check fails then, so rewrite that tour.
 - The presenter panel on `/gate` shows only with the model. Its pickers come from the two `scenarios.json` files and its switches from the two `readings.json` files; `one-id/presenter.spec.ts` fails if they disagree. When an expert settles a question, remove the point from `rules/support/readings.ts` and from the check that reads it.
 - `render_airline.py` must keep working when given only verified-air's model: One ID's checks are skipped when `model/one-id/` or `content/one-id.json` is missing.
+- The relay between devices is the `VerifiedAirlineOneId` stack (`infra/verified_airline_infra/one_id_stack.py`, its functions in `functions/relay/relay.py`) and `one-id/relay.ts`. It is transport, outside the Lean model: it only carries the request and the answer, the checks in `rules/` decide on each device, and its markers are grey. Never let it decide or change what it carries.
+- The app reads the relay's address at run time from `/one-id-relay.json`, which `scripts/publish-site.sh` writes from the `VerifiedAirline` stack's `OneIdRelayUrl` output; a build ships `{"url": null}`, and `ONE_ID_RELAY_URL` sets it under `npm start`. Never type the address in a component.
+- The site's policy lists the relay's origin in `connect-src` (`{relay_origin}` in `infra/csp.txt`, imported from the relay's stack), so a new relay address needs the full `scripts/deploy.sh`; `publish-site.sh` refuses to publish while the live policy lacks it.
 
 ## Wording
 

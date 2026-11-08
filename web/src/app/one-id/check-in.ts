@@ -4,15 +4,21 @@ import { CredentialCard, passNameLine, photoidNames } from './credential-card';
 import { credentialOf, fill, formatInstant, requestedItems, titleCase, wording } from './data';
 import { type CheckView, viewChecks } from './decide';
 import { Marker } from './marker';
-import { checkInPresentation } from './presentation-checks';
+import { checkInPresentation, requestToSend } from './presentation-checks';
+import { Relay } from './relay';
+import { RelayPanel } from './relay-panel';
 import { PASS_HELD, Trip, startFromTourLink } from './trip';
 import { type NextAction, TripMap } from './trip-map';
 import { websiteAction } from './trip-route';
 
-/** /check-in: the airline's website.  It asks the wallet for three items, checks the photoid, and issues the boarding pass. */
+/**
+ * /check-in: the airline's website.  It asks the wallet for three items, checks the
+ * photoid, and issues the boarding pass.  The wallet can be on this device or, through
+ * the relay, on a phone; the checks run on the answer either way.
+ */
 @Component({
   selector: 'va-check-in',
-  imports: [Band, CredentialCard, Marker, TripMap],
+  imports: [Band, CredentialCard, Marker, RelayPanel, TripMap],
   // The same events as the policy pages, so Angular writes the same inline script and the live policy's hash allows it.
   host: { '(submit)': '$event.preventDefault()' },
   template: `
@@ -99,6 +105,7 @@ import { websiteAction } from './trip-route';
               }
               <p class="oid-small">{{ w.noWallet }}</p>
             </section>
+            @if (photoid()) { <va-relay-panel kind="check-in" (show)="showCode()" /> }
           } @else if (pass(); as p) {
             <va-credential role="boardingPass" [mdoc]="p">
               <div class="oid-between">
@@ -139,6 +146,7 @@ import { websiteAction } from './trip-route';
 })
 export class CheckIn {
   protected readonly trip = inject(Trip);
+  private readonly relay = inject(Relay);
   protected readonly t = wording.traveler;
   protected readonly w = wording.traveler.checkIn;
   protected readonly labels = wording.traveler.labels;
@@ -160,8 +168,9 @@ export class CheckIn {
     return state === 'depends' ? this.lean.decision.needs : state === 'passed' ? this.w.photoidOk : this.w.photoidFailed;
   });
   protected readonly fromPassport = computed(() => this.trip.scenario().sourceDocument?.kind === 'passport');
-  /** The website's request and the wallet's answer, from the model's presentation rules. */
-  private readonly presentationChecks = computed(() => viewChecks(checkInPresentation(this.trip.scenario()), this.trip.decisions()));
+  /** The website's request and the wallet's answer, from the model's presentation rules.  An answer from a phone is the one checked. */
+  private readonly presentationChecks = computed(() =>
+    viewChecks(checkInPresentation(this.trip.scenario(), { response: this.relay.received()['check-in'] }), this.trip.decisions()));
   protected readonly presentationRows = computed(() =>
     this.presentationChecks()
       .filter((c: CheckView) => c.result.blocks)
@@ -230,6 +239,11 @@ export class CheckIn {
 
   protected ask(): void {
     this.trip.act('openWallet');
+  }
+
+  /** A code for the wallet on a phone, which opens the wallet there when it reads the request. */
+  protected showCode(): void {
+    void this.relay.ask('check-in', requestToSend(checkInPresentation(this.trip.scenario())));
   }
 
   protected add(): void {

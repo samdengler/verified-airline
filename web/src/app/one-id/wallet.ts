@@ -6,12 +6,32 @@ import { viewChecks } from './decide';
 import { LeanToggle } from './lean-toggle';
 import { Marker } from './marker';
 import { checkInPresentation, gatePresentation } from './presentation-checks';
-import { hasRef, mdocRefs } from './rules/support/exchange';
+import { Relay, joinFromLink } from './relay';
+import { hasRef, mdocRefs, type WalletResponse } from './rules/support/exchange';
 import { bcbpStringId } from './rules/support/identifiers';
 import { PASS_HELD, Trip } from './trip';
 import { TripMap } from './trip-map';
 
-/** /wallet: a demo of a wallet, which in real life is a separate app from a separate party. */
+/** A consent sheet: what the request in front of the holder asks, and what the wallet would send. */
+interface Sheet {
+  forGate: boolean;
+  /** The request came from another device, through the relay, and the answer goes back there. */
+  relayed: boolean;
+  items: { nameSpace: string; identifier: string; label: string; text: string | null }[];
+  kept: string[];
+  asks: string;
+  why: string;
+  share: string;
+  response: WalletResponse;
+  requestState: string;
+  requestWord: string;
+}
+
+/**
+ * /wallet: a demo of a wallet, which in real life is a separate app from a separate
+ * party.  Opened from a code's link, /wallet?session=<id>, it answers a request from
+ * another device through the relay, with the same consent sheet.
+ */
 @Component({
   selector: 'va-wallet',
   imports: [CredentialCard, LeanToggle, Marker, TripMap],
@@ -30,8 +50,15 @@ import { TripMap } from './trip-map';
 
         <va-trip-map surface="wallet" />
 
+        @if (relay.joined(); as j) {
+          <section class="oid-card oid-stack oid-relay" data-panel="relay-wallet" [attr.data-state]="j.state" [attr.data-for]="j.request?.for">
+            <div class="heading-row"><h2>{{ rw.title }}</h2><va-marker key="relay-wallet" [grey]="relayGrey" /></div>
+            <p>{{ relayLine() }}</p>
+          </section>
+        }
+
         @if (sheet(); as s) {
-          <section class="oid-sheet" data-sheet="consent" [attr.data-for]="s.forGate ? 'gate' : 'check-in'">
+          <section class="oid-sheet" data-sheet="consent" [attr.data-for]="s.forGate ? 'gate' : 'check-in'" [attr.data-relayed]="s.relayed">
             <h2>{{ s.asks }}</h2>
             <p>{{ s.why }}</p>
             <div class="oid-row marked oid-plain" data-lean data-check="walletFindings" [attr.data-status]="s.requestState">
@@ -66,13 +93,13 @@ import { TripMap } from './trip-map';
               </div>
             }
             @if (s.items.length) {
-              @if (s.forGate) {
+              @if (s.forGate && !s.relayed) {
                 <a class="oid-button" href="/gate" target="va-gate" data-action="share-gate" (click)="trip.act('shareGate')">{{ s.share }}</a>
               } @else {
-                <button type="button" class="oid-button" data-action="share" (click)="trip.act('share')">{{ s.share }}</button>
+                <button type="button" class="oid-button" [attr.data-action]="s.forGate ? 'share-gate' : 'share'" (click)="share(s)">{{ s.share }}</button>
               }
             }
-            <button type="button" class="oid-button secondary" data-action="decline" (click)="trip.act(s.forGate ? 'declineGate' : 'decline')">{{ w.decline }}</button>
+            <button type="button" class="oid-button secondary" data-action="decline" (click)="decline(s)">{{ w.decline }}</button>
           </section>
         }
 
@@ -125,8 +152,11 @@ import { TripMap } from './trip-map';
 })
 export class Wallet {
   protected readonly trip = inject(Trip);
+  protected readonly relay = inject(Relay);
   protected readonly t = wording.traveler;
   protected readonly w = wording.traveler.wallet;
+  protected readonly rw = wording.traveler.relay.wallet;
+  protected readonly relayGrey = wording.lean.relay.grey;
   protected readonly leanWords = wording.lean;
   protected readonly checks = wording.lean.checks;
   protected readonly airline = site.airline;
@@ -155,12 +185,33 @@ export class Wallet {
     return { photoid: of(this.photoid()), boardingPass: of(this.pass()) };
   });
 
-  /** The sheet for the request in front of the holder.  Its lists are what the model's Wallet.respond would send if they agree. */
-  protected readonly sheet = computed(() => {
+  /** What the wallet says about a request from another device. */
+  protected readonly relayLine = computed(() => {
+    const j = this.relay.joined();
+    if (!j) return '';
+    const gate = j.request?.for === 'gate';
+    switch (j.state) {
+      case 'open': return gate ? this.rw.openGate : fill(this.rw.openCheckIn, { airline: this.airline });
+      case 'sent': return gate ? this.rw.sentGate : this.rw.sentCheckIn;
+      case 'unconfigured': return wording.traveler.relay.notConfigured;
+      default: return this.rw[j.state];
+    }
+  });
+
+  /**
+   * The sheet for the request in front of the holder.  Its lists are what the model's
+   * Wallet.respond would send if they agree.  A request from another device is the
+   * one the wallet received, and its checks run on it.
+   */
+  protected readonly sheet = computed<Sheet | null>(() => {
     const step = this.trip.step();
     if ((step !== 'asked' || !this.photoid()) && step !== 'gateAsked') return null;
     const forGate = step === 'gateAsked';
-    const presentation = forGate ? gatePresentation(this.trip.scenario()) : checkInPresentation(this.trip.scenario());
+    const joined = this.relay.joined();
+    const received = joined?.state === 'open' && joined.request?.for === (forGate ? 'gate' : 'check-in') ? joined.request : null;
+    const presentation = forGate
+      ? gatePresentation(this.trip.scenario(), received ? { seen: received.request } : {})
+      : checkInPresentation(this.trip.scenario(), received ? { seen: received.request, authorization: received.authorization } : {});
     const items = this.itemsOf(presentation);
     const heldRefs = presentation.held.flatMap((h) => mdocRefs(h.mdoc));
     const sharedRefs = presentation.response!.documents.flatMap((d) => mdocRefs(d.mdoc));
@@ -168,15 +219,33 @@ export class Wallet {
     const requestState = request?.state ?? 'passed';
     return {
       forGate,
+      relayed: !!received,
       items,
       kept: heldRefs.filter((r) => !hasRef(sharedRefs, r)).map((r) => `${r.nameSpace} / ${r.identifier}`),
       asks: forGate ? fill(this.w.asksGate, { count: items.length }) : fill(this.w.asks, { airline: this.airline, count: items.length }),
       why: fill(forGate ? this.w.forGate : this.w.forCheckIn, { flight: this.t.flight.number }),
       share: fill(this.w.share, { count: items.length }),
+      response: presentation.response!,
       requestState,
       requestWord: wording.lean.gate.status[requestState === 'depends' ? 'decide' : requestState],
     };
   });
+
+  constructor() {
+    joinFromLink();
+  }
+
+  /** Share, by the trip's step; a request from another device gets the wallet's response back. */
+  protected share(s: Sheet): void {
+    this.trip.act(s.forGate ? 'shareGate' : 'share');
+    if (s.relayed) void this.relay.answer('shared', s.response);
+  }
+
+  /** Decline, which sends no credential; the other device only learns of the decline. */
+  protected decline(s: Sheet): void {
+    this.trip.act(s.forGate ? 'declineGate' : 'decline');
+    if (s.relayed) void this.relay.answer('declined', null);
+  }
 
   private itemsOf(p: PresentationScenario) {
     return p.response!.documents.flatMap((d) =>

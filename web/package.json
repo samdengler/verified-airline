@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "content": "mkdir -p public && python3 ../scripts/render_airline.py --content src/generated/content.json && python3 ../scripts/check_one_id.py --static --decisions public/one-id-decisions.json && cp ../model/facts.json ../model/model.json public/",
+    "content": "mkdir -p public && python3 ../scripts/render_airline.py --content src/generated/content.json && python3 ../scripts/check_one_id.py --static --decisions public/one-id-decisions.json && cp ../model/facts.json ../model/model.json public/ && node scripts/relay-config.mjs",
     "prestart": "npm run content",
     "start": "ng serve",
     "prebuild": "npm run content",
@@ -28,7 +28,8 @@
     "@fontsource/jetbrains-mono": "^5.3.0",
     "amazon-connect-chatjs": "^5.2.0",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "uqr": "0.1.3"
   },
   "devDependencies": {
     "@angular/build": "^22.2.4",

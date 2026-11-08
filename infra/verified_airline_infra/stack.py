@@ -19,6 +19,11 @@ go to the chat start and the turn records' read in the VerifiedAirlineChat
 stack, through function URLs that only this distribution can call.  A WAF web
 ACL limits how many chats one address can start.  The chat stack deploys
 first; this stack finds its functions by name.
+
+The One ID relay (the VerifiedAirlineOneId stack) has an origin of its own, so
+the policy lists it in connect-src and this stack deploys after that one.  Its
+address is an output here too, so scripts/publish-site.sh can write it into
+one-id-relay.json for the app with the publish role alone.
 """
 
 from __future__ import annotations
@@ -80,7 +85,7 @@ FUNCTIONS_DIR = Path(__file__).resolve().parent / "functions"
 
 
 class VerifiedAirlineStack(cdk.Stack):
-    def __init__(self, scope: Construct, construct_id: str, *, site_dir: Path, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, *, site_dir: Path, relay_url: str | None = None, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         zone = route53.HostedZone.from_lookup(self, "Zone", domain_name=ZONE_NAME)
@@ -106,7 +111,7 @@ class VerifiedAirlineStack(cdk.Stack):
             comment="CSP and security headers for Verified Airline",
             security_headers_behavior=cloudfront.ResponseSecurityHeadersBehavior(
                 content_security_policy=cloudfront.ResponseHeadersContentSecurityPolicy(
-                    content_security_policy=content_security_policy(site_dir),
+                    content_security_policy=content_security_policy(site_dir, relay_url or ""),
                     override=True,
                 ),
                 strict_transport_security=cloudfront.ResponseHeadersStrictTransportSecurity(
@@ -214,6 +219,8 @@ class VerifiedAirlineStack(cdk.Stack):
         # The distribution's own address, which answers before air.dengler.io resolves.
         cdk.CfnOutput(self, "DistributionDomainName", value=distribution.distribution_domain_name)
         cdk.CfnOutput(self, "PublishRoleArn", value=publish_role.role_arn)
+        if relay_url:
+            cdk.CfnOutput(self, "OneIdRelayUrl", value=relay_url)
         cdk.CfnOutput(self, "GitHubOidcProviderArn", value=github.oidc_provider_arn)
 
     def chat_routes(self, headers_policy):
