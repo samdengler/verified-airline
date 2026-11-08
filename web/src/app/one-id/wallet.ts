@@ -7,6 +7,7 @@ import { LeanToggle } from './lean-toggle';
 import { Marker } from './marker';
 import { checkInPresentation, gatePresentation } from './presentation-checks';
 import { Relay, joinFromLink } from './relay';
+import { latest, Signatures } from './signatures';
 import { hasRef, mdocRefs, type WalletResponse } from './rules/support/exchange';
 import { bcbpStringId } from './rules/support/identifiers';
 import { PASS_HELD, Trip } from './trip';
@@ -114,7 +115,7 @@ interface Sheet {
         <section class="oid-stack">
           <h2>{{ w.credentials }}</h2>
           @if (photoid(); as p) {
-            <va-credential role="photoid" [mdoc]="p" [issuer]="issuers().photoid">
+            <va-credential role="photoid" [mdoc]="p" [issuer]="issuers().photoid" [signature]="photoidSignature()">
               <div class="oid-person">
                 <svg class="oid-portrait" viewBox="0 0 24 24" role="img" [attr.aria-label]="t.labels.portraitPlaceholder"><circle cx="12" cy="9" r="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4.5 21c1-4 4-6 7.500-6s6.500 2 7.500 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
                 <div>
@@ -126,7 +127,7 @@ interface Sheet {
             </va-credential>
           }
           @if (showPass(); as b) {
-            <va-credential role="boardingPass" [mdoc]="b" [issuer]="issuers().boardingPass">
+            <va-credential role="boardingPass" [mdoc]="b" [issuer]="issuers().boardingPass" [signature]="passSignature()">
               <div class="oid-between">
                 <div><p class="oid-label">{{ airline }}</p><p class="oid-big">{{ t.flight.number }}</p></div>
                 @if (departs(); as d) { <div class="oid-right"><p class="oid-label">{{ t.labels.departs }}</p><p class="oid-big">{{ d }}</p></div> }
@@ -153,6 +154,7 @@ interface Sheet {
 export class Wallet {
   protected readonly trip = inject(Trip);
   protected readonly relay = inject(Relay);
+  private readonly signatures = inject(Signatures);
   protected readonly t = wording.traveler;
   protected readonly w = wording.traveler.wallet;
   protected readonly rw = wording.traveler.relay.wallet;
@@ -178,6 +180,15 @@ export class Wallet {
     const state = viewChecks(this.trip.scenario(), this.trip.decisions()).find((c) => c.result.key === 'boardingPass')?.state;
     return state === 'depends' ? wording.lean.decision.walletDepends : state === 'passed' ? this.w.passOk : this.w.passFailed;
   });
+  /** Each credential's signature, checked by the wallet when it holds it. */
+  protected readonly photoidSignature = latest(
+    () => (this.photoid() ? { scenario: this.trip.scenario() } : undefined),
+    ({ scenario }) => this.signatures.checkHeld(scenario, 'photoid'),
+  );
+  protected readonly passSignature = latest(
+    () => (this.showPass() ? { scenario: this.trip.scenario() } : undefined),
+    ({ scenario }) => this.signatures.checkHeld(scenario, 'boardingPass'),
+  );
   /** Who issued each credential, from the default presentation. */
   protected readonly issuers = computed(() => {
     const held = gatePresentation(this.trip.scenario()).held;
@@ -235,10 +246,16 @@ export class Wallet {
     joinFromLink();
   }
 
-  /** Share, by the trip's step; a request from another device gets the wallet's response back. */
+  /** Share, by the trip's step; a request from another device gets the wallet's response back, with the signed credentials. */
   protected share(s: Sheet): void {
+    const scenario = this.trip.scenario();
     this.trip.act(s.forGate ? 'shareGate' : 'share');
-    if (s.relayed) void this.relay.answer('shared', s.response);
+    if (s.relayed) {
+      void this.signatures
+        .present(scenario, s.response)
+        .catch(() => s.response.documents.map(() => null))
+        .then((credentials) => this.relay.answer('shared', s.response, credentials));
+    }
   }
 
   /** Decline, which sends no credential; the other device only learns of the decline. */

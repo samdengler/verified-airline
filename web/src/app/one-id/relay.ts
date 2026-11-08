@@ -7,8 +7,10 @@
 //
 // With the request and the answer travels what tabs pass each other through the
 // BroadcastChannel: the step, the traveler and the decisions, taken unchecked.
-// After a share at check-in the website also sends word that it added the
-// boarding pass, so the phone's wallet holds it at the gate.
+// After a share at check-in the website also sends the boarding pass it signed,
+// so the phone's wallet holds it at the gate.  The answer carries the signed
+// credentials the wallet presents, and the asking screen checks their signatures
+// before its checks run (signatures.ts).
 //
 // The server is the VerifiedAirlineOneId stack in infra/.  Its address comes from
 // /one-id-relay.json, which scripts/publish-site.sh writes from the stack's output;
@@ -17,6 +19,8 @@ import { Location, isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, type WritableSignal, afterNextRender, effect, inject, signal, untracked } from '@angular/core';
 import type { PresentationRequest, WalletResponse } from './rules/support/exchange';
 import type { AuthorizationRequest } from './rules/support/openid4vp';
+import { Signatures } from './signatures';
+import { fromBase64Url } from './signing/credential';
 import { Trip, type TripState } from './trip';
 import { stopIndex } from './trip-route';
 import type { Step } from './trip-steps';
@@ -31,8 +35,18 @@ export interface RelayedRequest {
   trip: TripState;
 }
 
-/** What the wallet sends back.  A decline carries no credential. */
-export type RelayedAnswer = { answer: 'shared'; response: WalletResponse; trip: TripState } | { answer: 'declined'; trip: TripState };
+/**
+ * What the wallet sends back.  A share carries the response and, for each of its
+ * documents, the signed credential narrowed to what it holds, as base64url.  A
+ * decline carries no credential.
+ */
+export type RelayedAnswer = { answer: 'shared'; response: WalletResponse; credentials: (string | null)[]; trip: TripState } | { answer: 'declined'; trip: TripState };
+
+/** A response this device received, with the signed credentials that came with it; null when none came, which the signature check refuses. */
+export interface Received {
+  response: WalletResponse;
+  credentials: (string | null)[] | null;
+}
 
 export type AskState = 'idle' | 'starting' | 'waiting' | 'answered' | 'declined' | 'expired' | 'failed' | 'unconfigured';
 
@@ -81,6 +95,10 @@ const isAnswer = (v: unknown): v is RelayedAnswer =>
   isObject(v) && isTripState(v['trip'])
   && (v['answer'] === 'declined' || (v['answer'] === 'shared' && isObject(v['response']) && Array.isArray(v['response']['documents'])));
 
+/** The signed credentials an answer carries, or null when it carries none in the expected form. */
+const credentialsOf = (v: Record<string, unknown>): (string | null)[] | null =>
+  Array.isArray(v['credentials']) && v['credentials'].every((c) => c === null || typeof c === 'string') ? (v['credentials'] as (string | null)[]) : null;
+
 function remember(trip: TripState): void {
   try {
     localStorage.setItem(HANDOFF, JSON.stringify({ trip, at: Date.now() }));
@@ -101,6 +119,7 @@ function recall(): TripState | null {
 @Injectable({ providedIn: 'root' })
 export class Relay {
   private readonly trip = inject(Trip);
+  private readonly signatures = inject(Signatures);
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
   private config: Promise<string | null> | null = null;
   /** How often a screen asks the relay for news. */
@@ -108,8 +127,8 @@ export class Relay {
 
   /** Each asking screen's session on this device. */
   readonly asking: Readonly<Record<RelayFor, WritableSignal<Asking>>> = { 'check-in': signal(IDLE), gate: signal(IDLE) };
-  /** The responses this device received, by the screen that asked.  That screen's checks run on them. */
-  readonly received = signal<Partial<Record<RelayFor, WalletResponse>>>({});
+  /** The responses this device received, by the screen that asked.  That screen checks their signatures, and its checks run on them. */
+  readonly received = signal<Partial<Record<RelayFor, Received>>>({});
   readonly joined = signal<Joined | null>(null);
 
   constructor() {
@@ -172,7 +191,7 @@ export class Relay {
     if (got.kind === 'gone') return s.update((a) => ({ ...a, state: 'expired' }));
     if (got.kind !== 'part' || !isAnswer(got.value)) return this.later(() => this.awaitAnswer(kind, url, id));
     const answer = got.value;
-    if (answer.answer === 'shared') this.received.update((r) => ({ ...r, [kind]: answer.response }));
+    if (answer.answer === 'shared') this.received.update((r) => ({ ...r, [kind]: { response: answer.response, credentials: credentialsOf(answer) } }));
     // Taken whole if this trip has not moved since the code was shown, and otherwise only if newer, as a tab's.
     if (!this.trip.adopt(answer.trip, this.trip.snapshot().rev === s().sentRev)) {
       this.received.update(({ [kind]: _stale, ...rest }) => rest);
@@ -181,15 +200,17 @@ export class Relay {
     s.update((a) => ({ ...a, state: answer.answer === 'shared' ? 'answered' : 'declined', passDue: answer.answer === 'shared' && kind === 'check-in' }));
   }
 
-  /** After a share from a phone at check-in, tells that phone's wallet the boarding pass was added. */
+  /** After a share from a phone at check-in, sends that phone's wallet the boarding pass the website signed. */
   private async sendPass(): Promise<void> {
     const a = this.asking['check-in']();
     if (!a.passDue || !a.id) return;
     this.asking['check-in'].update((x) => ({ ...x, passDue: false }));
+    const trip = this.trip.snapshot();
     const url = await this.url();
     if (!url) return;
     try {
-      await fetch(`${url}/sessions/${a.id}/pass`, { method: 'POST', body: JSON.stringify({ trip: this.trip.snapshot() }) });
+      const credential = await this.signatures.held64(this.trip.scenario(), 'boardingPass');
+      await fetch(`${url}/sessions/${a.id}/pass`, { method: 'POST', body: JSON.stringify({ trip, credential }) });
     } catch {
       // The phone keeps the trip it has.
     }
@@ -235,8 +256,8 @@ export class Relay {
     set('open', request);
   }
 
-  /** The wallet's answer, once the traveler has chosen on the consent sheet and the trip has moved. */
-  async answer(answer: 'shared' | 'declined', response: WalletResponse | null): Promise<void> {
+  /** The wallet's answer, once the traveler has chosen on the consent sheet and the trip has moved.  A share carries the signed credentials. */
+  async answer(answer: 'shared' | 'declined', response: WalletResponse | null, credentials: (string | null)[] = []): Promise<void> {
     const j = this.joined();
     if (!j?.request || j.state !== 'open') return;
     const trip = this.trip.snapshot();
@@ -244,7 +265,7 @@ export class Relay {
     const url = await this.url();
     if (!url) return this.joined.set({ ...j, state: 'failed' });
     try {
-      const res = await fetch(`${url}/sessions/${j.id}/response`, { method: 'POST', body: JSON.stringify(answer === 'shared' ? { answer, response, trip } : { answer, trip }) });
+      const res = await fetch(`${url}/sessions/${j.id}/response`, { method: 'POST', body: JSON.stringify(answer === 'shared' ? { answer, response, credentials, trip } : { answer, trip }) });
       if (res.status === 404) return this.joined.set({ ...j, state: 'expired' });
       if (res.status === 409) return this.joined.set({ ...j, state: 'answered' });
       if (!res.ok) throw new Error(`the relay answered ${res.status}`);
@@ -261,6 +282,8 @@ export class Relay {
     const got = await this.get(url, id, 'pass');
     if (!current() || got.kind === 'gone') return;
     if (got.kind === 'part' && isObject(got.value) && isTripState(got.value['trip'])) {
+      const pass = typeof got.value['credential'] === 'string' ? fromBase64Url(got.value['credential']) : null;
+      if (pass) this.signatures.keep(got.value['trip'].scenarioId, 'boardingPass', pass);
       this.trip.adopt(got.value['trip']);
       remember(this.trip.snapshot());
       return this.joined.update((j) => j && { ...j, state: 'passAdded' });

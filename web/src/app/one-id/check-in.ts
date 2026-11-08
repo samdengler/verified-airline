@@ -7,14 +7,17 @@ import { Marker } from './marker';
 import { checkInPresentation, requestToSend } from './presentation-checks';
 import { Relay } from './relay';
 import { RelayPanel } from './relay-panel';
+import { latest, Signatures, signatureReason, signatureWords } from './signatures';
+import { demoIssuers } from './signing/issuers';
 import { PASS_HELD, Trip, startFromTourLink } from './trip';
 import { type NextAction, TripMap } from './trip-map';
 import { websiteAction } from './trip-route';
 
 /**
  * /check-in: the airline's website.  It asks the wallet for three items, checks the
- * photoid, and issues the boarding pass.  The wallet can be on this device or, through
- * the relay, on a phone; the checks run on the answer either way.
+ * photoid's signature and then the photoid, and issues the boarding pass, signed with
+ * the airline's demo key.  The wallet can be on this device or, through the relay, on
+ * a phone; the checks run on the answer either way.
  */
 @Component({
   selector: 'va-check-in',
@@ -55,6 +58,15 @@ import { websiteAction } from './trip-route';
             <section class="oid-section">
               <h2>{{ w.checked }}</h2>
               <div class="oid-card oid-list">
+                @if (signature(); as sig) {
+                  <div class="oid-row marked" data-check="signature" [attr.data-status]="sig.state">
+                    <span class="oid-grow"><span class="oid-strong">{{ sig.text }}</span>@if (sig.signer) { <br><span class="oid-small">{{ sig.signer }}</span> }</span>
+                    <code class="oid-id" data-lean>{{ checks.refusals.requirements[0] }}</code>
+                    <va-marker key="signature" [requirements]="checks.refusals.requirements" />
+                  </div>
+                } @else if (signaturePending()) {
+                  <div class="oid-row" data-check="signature" data-status="checking"><span class="oid-small oid-grow">{{ sigWords.checking }}</span></div>
+                }
                 <div class="oid-row marked" data-check="photoid">
                   <span class="oid-strong oid-grow">{{ photoidLine() }}</span>
                   <code class="oid-id" data-lean>{{ checks.photoid.requirements[0] }}</code>
@@ -85,6 +97,15 @@ import { websiteAction } from './trip-route';
                   }
                 </div>
               </div>
+              <div class="oid-section" data-lean data-panel="trust-list">
+                <div class="heading-row"><h3>{{ lean.signature.trustTitle }}</h3><va-marker key="trust-list" [grey]="lean.signature.grey" /></div>
+                <div class="oid-card oid-list">
+                  @for (k of trusted; track k.kid) {
+                    <div class="oid-row"><span class="oid-grow">{{ k.name }} <span class="oid-small">({{ lean.signature.demoKey }})</span></span><code class="oid-id">{{ k.kid }}</code></div>
+                  }
+                </div>
+                <p class="oid-small">{{ lean.signature.outside }}</p>
+              </div>
               <p class="oid-small" data-lean>{{ lean.checkIn.standIns }}</p>
             </section>
           }
@@ -107,7 +128,7 @@ import { websiteAction } from './trip-route';
             </section>
             @if (photoid()) { <va-relay-panel kind="check-in" (show)="showCode()" /> }
           } @else if (pass(); as p) {
-            <va-credential role="boardingPass" [mdoc]="p">
+            <va-credential role="boardingPass" [mdoc]="p" [signature]="passSignature()">
               <div class="oid-between">
                 <div><p class="oid-label">{{ labels.flight }}</p><p class="oid-big">{{ flight.number }}</p></div>
                 @if (departureTime(); as t) { <div class="oid-right"><p class="oid-label">{{ labels.departs }}</p><p class="oid-big">{{ t }}</p></div> }
@@ -147,7 +168,11 @@ import { websiteAction } from './trip-route';
 export class CheckIn {
   protected readonly trip = inject(Trip);
   private readonly relay = inject(Relay);
+  private readonly signatures = inject(Signatures);
   protected readonly t = wording.traveler;
+  protected readonly sigWords = wording.traveler.signature;
+  /** The relying party's list of trusted keys: the public half of each demo key. */
+  protected readonly trusted = demoIssuers.map((i) => ({ kid: i.kid, name: i.name }));
   protected readonly w = wording.traveler.checkIn;
   protected readonly labels = wording.traveler.labels;
   protected readonly flight = wording.traveler.flight;
@@ -169,8 +194,39 @@ export class CheckIn {
   });
   protected readonly fromPassport = computed(() => this.trip.scenario().sourceDocument?.kind === 'passport');
   /** The website's request and the wallet's answer, from the model's presentation rules.  An answer from a phone is the one checked. */
-  private readonly presentationChecks = computed(() =>
-    viewChecks(checkInPresentation(this.trip.scenario(), { response: this.relay.received()['check-in'] }), this.trip.decisions()));
+  private readonly received = computed(() => this.relay.received()['check-in']);
+  private readonly presentation = computed(() => checkInPresentation(this.trip.scenario(), { response: this.received()?.response }));
+  /**
+   * The photoid's signature, checked when the answer arrives and before the checks run.
+   * An answer from a phone brings its signed credential; on this device the website
+   * checks what the wallet would send.
+   */
+  private readonly checked = latest(
+    () => (this.done() ? { scenario: this.trip.scenario(), presentation: this.presentation(), received: this.received() } : undefined),
+    async ({ scenario, presentation, received }) => {
+      const response = presentation.response!;
+      const credentials = received ? received.credentials : await this.signatures.present(scenario, response).catch(() => null);
+      return this.signatures.check(response, credentials);
+    },
+  );
+  /** Waiting for the signature check, which comes before the checks. */
+  protected readonly signaturePending = computed(() => this.done() && this.checked() === null);
+  protected readonly signature = computed(() => {
+    const c = this.checked();
+    const s = c?.signatures.find((x) => x.role === 'photoid') ?? c?.signatures[0];
+    if (!s) return null;
+    const words = signatureWords(s);
+    return { state: s.state, text: words.state, signer: words.signer };
+  });
+  /** The boarding pass this website signs with the airline's demo key, checked as the wallet will check it. */
+  protected readonly passSignature = latest(
+    () => (this.done() && this.pass() ? { scenario: this.trip.scenario() } : undefined),
+    ({ scenario }) => this.signatures.checkHeld(scenario, 'boardingPass'),
+  );
+  private readonly presentationChecks = computed(() => {
+    const c = this.checked();
+    return c ? viewChecks({ ...this.presentation(), response: c.response }, this.trip.decisions()) : [];
+  });
   protected readonly presentationRows = computed(() =>
     this.presentationChecks()
       .filter((c: CheckView) => c.result.blocks)
@@ -182,7 +238,7 @@ export class CheckIn {
   private readonly issueChecks = computed(() => [...this.checksFor().filter((c) => ['photoid', 'source', 'passValidity'].includes(c.result.key)), ...this.presentationChecks().filter((c: CheckView) => c.result.blocks)]);
   private readonly issueFailure = computed(() => this.issueChecks().find((c) => c.state === 'failed'));
   private readonly issueDepends = computed(() => this.issueChecks().some((c) => c.state === 'depends'));
-  protected readonly accepted = computed(() => !this.issueFailure() && !this.issueDepends());
+  protected readonly accepted = computed(() => !this.signaturePending() && !this.issueFailure() && !this.issueDepends());
   protected readonly action = computed(() => websiteAction(this.trip.step(), { photoid: !!this.photoid(), pass: !!this.pass(), accepted: this.accepted() }));
   /** The same action as this screen's own button, for the trip map. */
   protected readonly next = computed<NextAction | null>(() => {
@@ -195,15 +251,17 @@ export class CheckIn {
   });
 
   protected readonly title = computed(() => {
-    if (!this.done()) return this.w.title;
+    if (!this.done() || this.signaturePending()) return this.w.title;
     if (this.issueFailure()) return this.w.refusedTitle;
     if (this.issueDepends()) return this.lean.decision.checkInTitle;
     return fill(this.w.doneTitle, { name: titleCase(photoidNames(this.photoid()!).given ?? '') });
   });
   protected readonly lede = computed(() => {
     if (!this.done()) return this.w.lede;
+    if (this.signaturePending()) return this.sigWords.checkingLede;
     const failure = this.issueFailure();
-    if (failure) return fill(this.w.refusedLede, { reason: (this.t.reasons as Record<string, string>)[failure.result.key] });
+    const signed = this.checked()?.signatures ?? [];
+    if (failure) return fill(this.w.refusedLede, { reason: (failure.result.key === 'refusals' && signatureReason(signed)) || (this.t.reasons as Record<string, string>)[failure.result.key] });
     if (this.issueDepends()) return this.lean.decision.checkInLede;
     return this.added() ? this.w.addedLede : this.w.doneLede;
   });

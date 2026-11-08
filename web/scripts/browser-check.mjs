@@ -321,8 +321,10 @@ try {
 
   await wallet.locator('[data-action="share"]').click();
   await page.locator('[data-action="add-pass"]').waitFor();
-  const done = { h1: await pageH1(page), words: await hiddenWords(page), credentials: await page.locator('[data-credential]').count(), specimens: await page.locator('.oid-specimen').count() };
+  const done = { h1: await pageH1(page), words: await hiddenWords(page), credentials: await page.locator('[data-credential]').count(), specimens: await page.locator('.oid-specimen').count(),
+    signature: await page.locator('[data-check="signature"]').getAttribute('data-status'), signer: await page.locator('[data-check="signature"]').innerText() };
   check('sharing in the wallet checks the traveler in on the website', /checked in/.test(done.h1) && done.words === null && done.credentials === 1 && done.specimens === 1, JSON.stringify(done));
+  check("the website checks the photoid's signature before its checks", done.signature === 'checked' && done.signer.includes(words.traveler.signature.states.checked) && done.signer.includes('Signed by Utopia passport office (demo key)'), JSON.stringify(done));
   check('the map comes back to the website for the boarding pass', await mapAt(page, 'addPass', true) && await mapAt(wallet, 'addPass', false));
   await shot(page, 'checked-in-hidden');
 
@@ -333,6 +335,12 @@ try {
   check('the map goes to the wallet to present at the gate', await mapAt(wallet, 'present', true));
   const presentFirst = await wallet.evaluate(() => document.querySelector('[data-action="present"]').getBoundingClientRect().top < document.querySelector('[data-credential]').getBoundingClientRect().top);
   check("the wallet's Present at the gate comes before the credentials", presentFirst);
+  await wallet.locator('[data-credential="boardingPass"] [data-signature="checked"]').waitFor();
+  const signedHeld = await wallet.locator('[data-signature]').evaluateAll((els) => els.map((e) => [e.closest('[data-credential]')?.getAttribute('data-credential'), e.getAttribute('data-signature'), e.textContent.trim()]));
+  check('the wallet shows who signed each credential, and that each signature checked', signedHeld.length === 2
+    && signedHeld.some(([role, state, text]) => role === 'photoid' && state === 'checked' && text.includes('Signed by Utopia passport office (demo key)'))
+    && signedHeld.some(([role, state, text]) => role === 'boardingPass' && state === 'checked' && text.includes('Signed by Verified Airline (demo key)') && text.includes(words.traveler.signature.states.checked)), JSON.stringify(signedHeld));
+  await shot(wallet, 'wallet-signed-hidden');
   check('the website says the pass is in the wallet once it is', await page.locator('.band .lede').textContent() === words.traveler.checkIn.addedLede);
   const passAction = await page.locator('[data-action="present-from-pass"]').textContent();
   check('the boarding pass on the website offers Present at the gate', passAction === words.traveler.wallet.present, passAction);
@@ -359,6 +367,9 @@ try {
   check('the presenter panel does not show with the model hidden', noPanel);
   const result = { word: await gate.locator('.oid-banner-word').textContent(), words: await hiddenWords(gate), checks: await gate.locator('[data-check]').first().isVisible().catch(() => false), url: new URL(gate.url()).pathname };
   check('the trip from check-in reaches "Board" under the content security policy', result.word === words.traveler.gate.board && result.words === null && !result.checks && result.url === '/gate', JSON.stringify(result));
+  const gateSigned = { checked: await gate.locator('[data-panel="signatures"] [data-signature="checked"]').count(), text: await gate.locator('[data-panel="signatures"]').innerText(), trust: await gate.locator('[data-panel="trust-list"]').isVisible() };
+  check('the gate reader checks both signatures before its checks, and shows who signed', gateSigned.checked === 2 && gateSigned.text.includes('Verified Airline (demo key)') && gateSigned.text.includes('Utopia passport office (demo key)') && !gateSigned.trust
+    && !/\bmdoc\b|\bISO\b/i.test(gateSigned.text), JSON.stringify(gateSigned));
   await shot(gate, 'gate-hidden');
   // On a phone the map keeps its route and its line, and nothing runs off the screen.
   for (const [name, tab] of [['website', page], ['wallet', wallet], ['gate', gate]]) {
@@ -505,6 +516,29 @@ try {
   const shownGate = { word: await gate.locator('.oid-banner-word').textContent(), rows: await rows.count(), same, visible: await rows.first().isVisible() };
   check('with the model shown the gate lists the checks that ran, each agreeing with the model', shownGate.word === words.traveler.gate.board && shownGate.rows === 13 && shownGate.same === 13 && shownGate.visible, JSON.stringify(shownGate));
   await shot(gate, 'gate-shown');
+
+  // The issuer's signatures, checked on receipt and outside the model: the list of
+  // trusted keys carries a grey marker, and the presenter's tamper control refuses the trip.
+  const trustMarker = gate.locator('[data-panel="trust-list"] button.lean-marker');
+  await trustMarker.click();
+  const trustPop = { grey: await trustMarker.evaluate((b) => b.classList.contains('partial')), text: await gate.locator(`#${await trustMarker.getAttribute('aria-controls')}`).innerText(),
+    keys: await gate.locator('[data-panel="trust-list"] .oid-row').count(), checked: await gate.locator('[data-panel="signatures"] [data-signature="checked"]').count() };
+  check('with the model shown the list of trusted keys carries a grey marker that points at C-01 and C-15', trustPop.grey && trustPop.text.includes(words.lean.signature.grey.text) && /C-01/.test(trustPop.text) && /C-15/.test(trustPop.text)
+    && trustPop.keys === 2 && trustPop.checked === 2, JSON.stringify(trustPop));
+  await gate.keyboard.press('Escape');
+  await gate.locator('[data-panel="signatures"]').scrollIntoViewIfNeeded();
+  await shot(gate, 'gate-signatures-shown');
+  const tamper = gate.locator('[data-panel="tamper"] [data-action="tamper"]');
+  await tamper.click();
+  await gate.locator('[data-panel="signatures"] [data-credential="boardingPass"][data-signature="mismatch"]').waitFor();
+  const tampered = { word: await gate.locator('.oid-banner-word').textContent(), line: await gate.locator('.oid-banner-line').textContent(), refusals: await gate.locator('[data-check="refusals"]').getAttribute('data-status'),
+    photoid: await gate.locator('[data-panel="signatures"] [data-credential="photoid"]').getAttribute('data-signature'), noModel: await gate.locator('[data-state="no-model-answer"]').count(), pressed: await tamper.getAttribute('aria-pressed') };
+  check("the presenter's tamper control flips a byte of the boarding pass, and the gate refuses its signature", tampered.word === words.traveler.gate.refer
+    && tampered.line === words.traveler.signature.reasons.mismatch.replace('{credential}', 'boarding pass') && tampered.refusals === 'failed' && tampered.photoid === 'checked' && tampered.noModel === 1 && tampered.pressed === 'true', JSON.stringify(tampered));
+  await shot(gate, 'gate-tampered-shown');
+  await tamper.click();
+  await gate.locator('[data-panel="signatures"] [data-credential="boardingPass"][data-signature="checked"]').waitFor();
+  check('putting the byte back boards the traveler again', (await gate.locator('.oid-banner-word').textContent()) === words.traveler.gate.board && (await gate.locator('[data-model-answer][data-same="true"]').count()) === 13);
 
   // The presenter's panel: its travelers and switches, from the model's files.
   const panel = gate.locator('[data-panel="presenter"]');
@@ -713,6 +747,11 @@ try {
     await tablet.locator('[data-state="gate-result"]').waitFor();
     const answered = { word: await tablet.locator('.oid-banner-word').textContent(), words: await hiddenWords(tablet), phone: await phone.locator('[data-panel="relay-wallet"]').getAttribute('data-state'), tabs: phone.context().pages().length };
     check('presenting from the phone reaches "Board" on the tablet', answered.word === words.traveler.gate.board && answered.words === null && answered.phone === 'sent' && answered.tabs === 1, JSON.stringify(answered));
+    const relayedSigned = await tablet.locator('[data-panel="signatures"] [data-signature="checked"]').count();
+    const parts = server ? [...standIn.sessions.values()].flatMap((session) => Object.entries(session).map(([part, body]) => ({ part, bytes: Buffer.byteLength(body ?? '') }))) : [];
+    const largest = parts.reduce((a, b) => (b.bytes > a.bytes ? b : a), { part: null, bytes: 0 });
+    check('the tablet checks the signatures of the credentials the phone sent, and every part stays under the relay cap of 16 KB', relayedSigned === 2 && (!server || (largest.bytes > 0 && largest.bytes < 16 * 1024)),
+      JSON.stringify({ relayedSigned, parts }));
     await shot(tablet, 'relay-gate-board');
     if (server) {
       // Once both exchanges are answered, no screen asks the relay for anything more.

@@ -9,6 +9,10 @@ import { viewChecks } from './decide';
 import { checkInPresentation, gatePresentation, requestToSend } from './presentation-checks';
 import { qrCode } from './qr';
 import { Relay, type RelayedAnswer, type RelayedRequest, SESSION_ID } from './relay';
+import { Signatures } from './signatures';
+import type { WalletResponse } from './rules/support/exchange';
+import { check, fromBase64Url, issue, presentAll, toBase64Url } from './signing/credential';
+import { signingIssuer, trustList } from './signing/issuers';
 import { Trip } from './trip';
 import { Wallet } from './wallet';
 
@@ -65,6 +69,7 @@ describe('the relay between devices', () => {
   let memory: MemoryRelay;
   let relay: Relay;
   let trip: Trip;
+  let signatures: Signatures;
   const realFetch = globalThis.fetch;
 
   beforeEach(async () => {
@@ -76,7 +81,11 @@ describe('the relay between devices', () => {
     relay = TestBed.inject(Relay);
     relay.pollMs = 5;
     trip = TestBed.inject(Trip);
+    signatures = TestBed.inject(Signatures);
   });
+
+  /** What a wallet presents with a response, signed by the demo issuers. */
+  const signedFor = (response: WalletResponse) => signatures.present(defaultScenario, response);
 
   afterEach(() => {
     globalThis.fetch = realFetch;
@@ -100,17 +109,22 @@ describe('the relay between devices', () => {
     expect(sent.request).toEqual(checkInPresentation(defaultScenario).request);
     expect(trip.step()).toBe('start');
 
-    // The phone opens the wallet and shares.
+    // The phone opens the wallet and shares, with the signed photoid.
     const response = checkInPresentation(defaultScenario).response!;
+    const credentials = await signedFor(response);
     const phoneTrip = { ...sent.trip, step: 'shared' as const, rev: sent.trip.rev + 2 };
-    memory.sessions.get(asking.id!)!['response'] = JSON.stringify({ answer: 'shared', response, trip: phoneTrip } satisfies RelayedAnswer);
+    memory.sessions.get(asking.id!)!['response'] = JSON.stringify({ answer: 'shared', response, credentials, trip: phoneTrip } satisfies RelayedAnswer);
     await until(() => trip.step() === 'shared');
-    expect(relay.received()['check-in']).toEqual(response);
+    expect(relay.received()['check-in']).toEqual({ response, credentials });
 
-    // Adding the boarding pass, from the button or the map, sends it to the phone.
+    // Adding the boarding pass, from the button or the map, sends it to the phone, signed by the airline.
     trip.act('addPass');
     await until(() => memory.part(asking.id!, 'pass') !== undefined);
-    expect(memory.part<{ trip: { step: string } }>(asking.id!, 'pass')!.trip.step).toBe('passAdded');
+    const pass = memory.part<{ trip: { step: string }; credential: string }>(asking.id!, 'pass')!;
+    expect(pass.trip.step).toBe('passAdded');
+    const signed = await check(presentAll(fromBase64Url(pass.credential)!), await trustList());
+    expect({ state: signed.state, issuer: signed.issuer }).toEqual({ state: 'checked', issuer: 'Verified Airline' });
+    expect(signed.mdoc).toEqual(defaultScenario.credentials.find((c) => c.role === 'boardingPass')!.mdoc);
 
     trip.act('startAgain');
     await until(() => relay.asking['check-in']().state === 'idle');
@@ -126,18 +140,41 @@ describe('the relay between devices', () => {
     expect(state({ documents: [] })).toBe('failed');
   });
 
-  it('the check-in page checks the answer it received', async () => {
+  it('the check-in page checks the signature and the answer it received', async () => {
     const checkIn = TestBed.createComponent(CheckIn);
     await checkIn.whenStable();
+    const el = checkIn.nativeElement as HTMLElement;
+    const h1 = () => {
+      checkIn.detectChanges();
+      return el.querySelector('h1')?.textContent;
+    };
     const honest = checkInPresentation(defaultScenario).response!;
-    relay.received.set({ 'check-in': { documents: [] } });
+    const credentials = await signedFor(honest);
+    relay.received.set({ 'check-in': { response: { documents: [] }, credentials: [] } });
     trip.act('openWallet');
     trip.act('share');
-    await checkIn.whenStable();
-    expect((checkIn.nativeElement as HTMLElement).querySelector('h1')?.textContent).toBe(wording.traveler.checkIn.refusedTitle);
-    relay.received.set({ 'check-in': honest });
-    await checkIn.whenStable();
-    expect((checkIn.nativeElement as HTMLElement).querySelector('h1')?.textContent).toMatch(/checked in/);
+    await until(() => h1() === wording.traveler.checkIn.refusedTitle);
+    relay.received.set({ 'check-in': { response: honest, credentials } });
+    await until(() => /checked in/.test(h1() ?? ''));
+    expect(el.querySelector('[data-check="signature"]')?.getAttribute('data-status')).toBe('checked');
+    expect(el.querySelector('[data-check="signature"]')?.textContent).toContain('Signed by Utopia passport office (demo key)');
+    // The same answer with no signature, or with a byte changed on the way, is refused.
+    relay.received.set({ 'check-in': { response: honest, credentials: null } });
+    await until(() => h1() === wording.traveler.checkIn.refusedTitle);
+    expect(el.textContent).toContain('The photoid came with no signature.');
+    const changed = fromBase64Url(credentials[0]!)!;
+    changed[changed.length - 1] ^= 0x01;
+    relay.received.set({ 'check-in': { response: honest, credentials: [toBase64Url(changed)] } });
+    await until(() => el.querySelector('[data-check="signature"]')?.getAttribute('data-status') === 'mismatch');
+    expect(h1()).toBe(wording.traveler.checkIn.refusedTitle);
+  });
+
+  it('a response part with both signed credentials stays well under the relay cap of 16 KB', async () => {
+    const response = gatePresentation(defaultScenario).response!;
+    const credentials = await signedFor(response);
+    const part = JSON.stringify({ answer: 'shared', response, credentials, trip: trip.snapshot() } satisfies RelayedAnswer);
+    expect(credentials.every((c) => typeof c === 'string')).toBe(true);
+    expect(new TextEncoder().encode(part).length).toBeLessThan(16 * 1024 / 2);
   });
 
   it("the phone's wallet opens the website's request, shares, and waits for the boarding pass", async () => {
@@ -160,10 +197,23 @@ describe('the relay between devices', () => {
     expect(answer.answer === 'shared' && answer.response).toEqual(checkInPresentation(defaultScenario).response);
     expect(answer.trip.step).toBe('shared');
     expect(answer.trip.rev).toBeGreaterThan(other.rev);
+    // The photoid goes with its signature, and the receiving page can check it.
+    const sent = answer.answer === 'shared' ? answer.credentials : [];
+    expect(sent.length).toBe(1);
+    expect((await check(fromBase64Url(sent[0]!), await trustList())).state).toBe('checked');
 
-    memory.sessions.get(id)!['pass'] = JSON.stringify({ trip: { ...answer.trip, step: 'passAdded', rev: answer.trip.rev + 1 } });
+    // The website's boarding pass arrives signed, and the wallet holds that one.
+    const passMdoc = defaultScenario.credentials.find((c) => c.role === 'boardingPass')!.mdoc;
+    const fromWebsite = toBase64Url(await issue(passMdoc, await signingIssuer('boardingPass')));
+    memory.sessions.get(id)!['pass'] = JSON.stringify({ trip: { ...answer.trip, step: 'passAdded', rev: answer.trip.rev + 1 }, credential: fromWebsite });
     await until(() => relay.joined()?.state === 'passAdded');
     expect(trip.step()).toBe('passAdded');
+    expect(await signatures.held64(defaultScenario, 'boardingPass')).toBe(fromWebsite);
+    await until(() => {
+      wallet.detectChanges();
+      return el.querySelector('[data-credential="boardingPass"] [data-signature]')?.getAttribute('data-signature') === 'checked';
+    });
+    expect(el.querySelector('[data-credential="boardingPass"] [data-signature]')?.textContent).toContain('Signed by Verified Airline (demo key)');
   });
 
   it('a decline sends no credential', async () => {
@@ -172,6 +222,7 @@ describe('the relay between devices', () => {
     trip.act('decline');
     await relay.answer('declined', null);
     expect(memory.part<Record<string, unknown>>(id, 'response')).toEqual({ answer: 'declined', trip: trip.snapshot() });
+    expect(JSON.stringify(memory.part(id, 'response'))).not.toContain('credentials');
   });
 
   it("the gate's request finds the boarding pass the phone holds, and a phone with none says so", async () => {

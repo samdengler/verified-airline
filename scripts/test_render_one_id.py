@@ -61,6 +61,11 @@ class Wording(unittest.TestCase):
             self.words["traveler"]["gate"]["lede"] = f"This mentions {word} by mistake."
             self.fails("never reads")
 
+    def test_a_traveler_never_reads_mdoc_or_iso(self):
+        for text in ("Your mdoc is signed.", "Two mdocs.", "An ISO credential."):
+            self.words["traveler"]["signature"]["checking"] = text
+            self.fails("mdoc or ISO")
+
     def test_a_traveler_reads_no_typed_amount(self):
         self.words["traveler"]["gate"]["lede"] = "A change costs $75."
         self.fails("types an amount")

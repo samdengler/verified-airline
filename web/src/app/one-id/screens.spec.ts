@@ -5,6 +5,7 @@ import { CheckIn } from './check-in';
 import { defaultScenario, requirements, scenarios, wording } from './data';
 import { Gate } from './gate';
 import { Marker } from './marker';
+import { Signatures } from './signatures';
 import { Trip } from './trip';
 import { Wallet } from './wallet';
 
@@ -21,6 +22,16 @@ async function render<T>(component: new () => T) {
   const fixture = TestBed.createComponent(component);
   await fixture.whenStable();
   return { fixture, el: fixture.nativeElement as HTMLElement };
+}
+
+/** Waits for a screen to draw what a signature check, which WebCrypto answers asynchronously, leads to. */
+async function until(fixture: { detectChanges(): void }, done: () => boolean): Promise<void> {
+  for (let i = 0; i < 200 && !done(); i++) {
+    TestBed.tick();
+    fixture.detectChanges();
+    await new Promise((r) => setTimeout(r, 5));
+  }
+  expect(done()).toBe(true);
 }
 
 describe('the One ID screens', () => {
@@ -43,14 +54,16 @@ describe('the One ID screens', () => {
     expect(hiddenText(wallet.el)).not.toMatch(BANNED);
 
     trip.act('share');
-    await checkIn.fixture.whenStable();
-    expect(checkIn.el.querySelector('h1')?.textContent).toMatch(/checked in, Alice/);
+    await until(checkIn.fixture, () => /checked in, Alice/.test(checkIn.el.querySelector('h1')?.textContent ?? ''));
+    expect(checkIn.el.querySelector('[data-check="signature"]')?.textContent).toContain('Signed by Utopia passport office (demo key)');
     expect(hiddenText(checkIn.el)).not.toMatch(BANNED);
 
     trip.act('addPass');
-    await wallet.fixture.whenStable();
+    await until(wallet.fixture, () => wallet.el.querySelectorAll('[data-signature="checked"]').length === 2);
     expect(wallet.el.querySelectorAll('[data-credential]').length).toBe(2);
     expect(wallet.el.querySelectorAll('.oid-specimen').length).toBe(2);
+    expect(wallet.el.querySelector('[data-credential="boardingPass"] [data-signature]')?.textContent).toContain('Signed by Verified Airline (demo key)');
+    expect(wallet.el.querySelector('[data-credential="photoid"] [data-signature]')?.textContent).toContain('Signature checked');
     expect(hiddenText(wallet.el)).not.toMatch(BANNED);
 
     trip.act('present');
@@ -62,9 +75,50 @@ describe('the One ID screens', () => {
     const gate = await render(Gate);
     expect(gate.el.querySelector('[data-state="gate-waiting"]')).not.toBeNull();
     trip.act('shareGate');
+    await until(gate.fixture, () => gate.el.querySelector('[data-state="gate-result"]') !== null);
+    expect(gate.el.querySelector('.oid-banner-word')?.textContent).toBe(wording.traveler.gate.board);
+    expect(gate.el.querySelectorAll('[data-panel="signatures"] [data-signature="checked"]').length).toBe(2);
+    expect(hiddenText(gate.el)).not.toMatch(BANNED);
+    expect(hiddenText(gate.el)).not.toMatch(/\bmdoc\b|\bISO\b/i);
+
+    // The tamper control is the presenter's, behind the model toggle: with the model hidden it changes nothing.
+    TestBed.inject(Signatures).setTampered(true);
     await gate.fixture.whenStable();
     expect(gate.el.querySelector('.oid-banner-word')?.textContent).toBe(wording.traveler.gate.board);
-    expect(hiddenText(gate.el)).not.toMatch(BANNED);
+  });
+
+  it("refuses the default trip at the gate once the presenter's tamper control flips a byte of the boarding pass", async () => {
+    document.documentElement.classList.add('lean-on');
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({ providers: [provideRouter([])] }).compileComponents();
+    const trip = TestBed.inject(Trip);
+    const gate = await render(Gate);
+    trip.pick(defaultScenario.id);
+    const banner = () => gate.el.querySelector('[data-state="gate-result"] .oid-banner-word')?.textContent;
+    await until(gate.fixture, () => banner() === wording.traveler.gate.board);
+    const tamper = gate.el.querySelector<HTMLButtonElement>('[data-panel="tamper"] [data-action="tamper"]')!;
+    expect(tamper.disabled).toBe(false);
+    tamper.click();
+    await until(gate.fixture, () => banner() === wording.traveler.gate.refer);
+    expect(gate.el.querySelector('[data-state="gate-result"] .oid-banner-line')?.textContent).toBe('The signature on the boarding pass does not match.');
+    expect(gate.el.querySelector('[data-panel="signatures"] [data-credential="boardingPass"]')?.getAttribute('data-signature')).toBe('mismatch');
+    expect(gate.el.querySelector('[data-panel="signatures"] [data-credential="photoid"]')?.getAttribute('data-signature')).toBe('checked');
+    expect(gate.el.querySelector('[data-check="refusals"]')?.getAttribute('data-status')).toBe('failed');
+    expect(gate.el.querySelector('[data-check="refusals"] code')?.textContent).toContain('issuerSignatureInvalid');
+    // Putting the byte back boards the traveler again; another pick puts it back too.
+    tamper.click();
+    await until(gate.fixture, () => banner() === wording.traveler.gate.board);
+    tamper.click();
+    await until(gate.fixture, () => banner() === wording.traveler.gate.refer);
+    trip.pick('two-john-smiths');
+    await gate.fixture.whenStable();
+    trip.pick(defaultScenario.id);
+    await until(gate.fixture, () => banner() === wording.traveler.gate.board);
+    // Another traveler's presentation is not checked at the gate, so the control is off for them.
+    trip.pick('accented-name');
+    await gate.fixture.whenStable();
+    expect(gate.el.querySelector<HTMLButtonElement>('[data-panel="tamper"] [data-action="tamper"]')!.disabled).toBe(true);
+    document.documentElement.classList.remove('lean-on');
   });
 
   it('shows the wallet as its own app, with no sign of the airline brand', async () => {

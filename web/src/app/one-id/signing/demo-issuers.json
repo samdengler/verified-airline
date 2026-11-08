@@ -1,0 +1,43 @@
+{
+  "about": "Demo keys for the One ID demo. They are specimens and hold no secret: both private keys are public in this repository and in the site's script, so anyone can sign with them. Each key signs one kind of credential in this project's own signed format. The relying party's list of trusted keys, which stands in for the trust list the guide leaves out, is the public half of each. Never use these keys for anything real.",
+  "issuers": [
+    {
+      "kid": "utopia-passport-office-demo-1",
+      "name": "Utopia passport office",
+      "modelIssuer": "Utopia passport office",
+      "signs": "photoid",
+      "publicKey": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "QOWcEF0Sa_kNVJ_hSv3g-kFPLxjrAVbpWsCXJm6INLo",
+        "y": "yqzyA2Lwkrgydyl_1yafcOL9TJdE9ZMDyeNhDyAprrw"
+      },
+      "privateKey": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "QOWcEF0Sa_kNVJ_hSv3g-kFPLxjrAVbpWsCXJm6INLo",
+        "y": "yqzyA2Lwkrgydyl_1yafcOL9TJdE9ZMDyeNhDyAprrw",
+        "d": "aFA2MKwJ7oCjZxFubPKcNylw5YyJMAia6rhWbN_RMWk"
+      }
+    },
+    {
+      "kid": "verified-airline-demo-1",
+      "name": "Verified Airline",
+      "modelIssuer": "Example Air",
+      "signs": "boardingPass",
+      "publicKey": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "PWmoOEksI8JW2CrOLFm0eJsGREYSFjE2JEpd5ZT1WwU",
+        "y": "3IAK12rMHR9EIS7E5o7mQaz9B1D3H94_BTE06ICuFsg"
+      },
+      "privateKey": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "PWmoOEksI8JW2CrOLFm0eJsGREYSFjE2JEpd5ZT1WwU",
+        "y": "3IAK12rMHR9EIS7E5o7mQaz9B1D3H94_BTE06ICuFsg",
+        "d": "0PXNR63z2ee0rj8GdWR3Asg4R3EjLWMNO-Y7LTldJ7g"
+      }
+    }
+  ]
+}

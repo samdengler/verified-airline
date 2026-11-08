@@ -1,5 +1,5 @@
 import { isPlatformBrowser } from '@angular/common';
-import { Component, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
+import { Component, PLATFORM_ID, computed, effect, inject, signal, untracked } from '@angular/core';
 import { Brand } from '../brand';
 import { LeanModel } from '../lean-model';
 import { type CheckKey, decisionName, describeFinding, sameAnswer } from './checks';
@@ -14,6 +14,8 @@ import { gatePresentation, requestToSend } from './presentation-checks';
 import { Presenter } from './presenter';
 import { Relay } from './relay';
 import { RelayPanel } from './relay-panel';
+import { latest, Signatures, signatureReason, signatureWords } from './signatures';
+import { demoIssuers } from './signing/issuers';
 import { Trip, startFromTourLink } from './trip';
 import { TripMap } from './trip-map';
 import { gateShows } from './trip-steps';
@@ -57,6 +59,8 @@ interface Row {
           @if (shows() === 'waiting') {
             <p class="oid-card oid-waiting" data-state="gate-waiting">{{ w.waiting }}</p>
             <va-relay-panel kind="gate" (show)="showCode()" />
+          } @else if (signaturePending()) {
+            <p class="oid-card oid-waiting" data-state="gate-checking">{{ sigWords.checking }}</p>
           } @else {
             @if (shows() === 'decide') {
               <div class="oid-banner decide" data-state="gate-decide" role="status">
@@ -106,6 +110,29 @@ interface Row {
               @if (photoidName(); as n) { <div class="oid-card"><p class="oid-label">{{ labels.nameInPhotoid }}</p><p class="oid-name">{{ n }}</p></div> }
               @if (passName(); as n) { <div class="oid-card"><p class="oid-label">{{ labels.nameInPass }}</p><p class="oid-name">{{ n }}</p></div> }
             </div>
+            @if (signatureRows().length) {
+              <section class="oid-section" data-panel="signatures">
+                <div class="heading-row"><h2>{{ sigWords.title }}</h2><va-marker key="signatures" [requirements]="lean.checks.refusals.requirements" /></div>
+                <div class="oid-card oid-list">
+                  @for (row of signatureRows(); track $index) {
+                    <div class="oid-row" [attr.data-signature]="row.state" [attr.data-credential]="row.role">
+                      <span class="oid-grow"><span class="oid-strong">{{ row.label }}</span><br><span class="oid-small">@if (row.signer) { {{ row.signer }} · }{{ row.text }}</span></span>
+                      @if (row.kid) { <code class="oid-id" data-lean>{{ row.kid }}</code> }
+                    </div>
+                  }
+                </div>
+                <div class="oid-stack" data-lean data-panel="trust-list">
+                  <div class="heading-row"><h3>{{ lean.signature.trustTitle }}</h3><va-marker key="trust-list" [grey]="lean.signature.grey" /></div>
+                  <div class="oid-card oid-list">
+                    @for (k of trusted; track k.kid) {
+                      <div class="oid-row"><span class="oid-grow">{{ k.name }} <span class="oid-small">({{ lean.signature.demoKey }})</span>@if (k.modelIssuer !== k.name) { <br><span class="oid-small">{{ k.modelLine }}</span> }</span><code class="oid-id">{{ k.kid }}</code></div>
+                    }
+                  </div>
+                  <p class="oid-small">{{ lean.signature.outside }}</p>
+                  @if (signatureFailed()) { <p class="oid-small" data-state="no-model-answer">{{ lean.signature.noModelAnswer }}</p> }
+                </div>
+              </section>
+            }
             <section class="oid-section" data-lean>
               <h2>{{ lean.gate.checks }}</h2>
               @for (note of missing(); track note) { <p class="oid-small">{{ note }}</p> }
@@ -139,6 +166,7 @@ interface Row {
 export class Gate {
   protected readonly trip = inject(Trip);
   private readonly relay = inject(Relay);
+  private readonly signatures = inject(Signatures);
   private readonly leanModel = inject(LeanModel);
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   protected readonly t = wording.traveler;
@@ -146,6 +174,9 @@ export class Gate {
   protected readonly labels = wording.traveler.labels;
   protected readonly lean = wording.lean;
   protected readonly d = wording.lean.decision;
+  protected readonly sigWords = wording.traveler.signature;
+  /** The relying party's list of trusted keys, and the issuer the model names for each. */
+  protected readonly trusted = demoIssuers.map((i) => ({ kid: i.kid, name: i.name, modelIssuer: i.modelIssuer, modelLine: fill(wording.lean.signature.modelIssuer, { name: i.modelIssuer }) }));
 
   /** The model's answers, by decision name: a display beside the computed result, loaded only with the model shown. */
   private readonly decisions = signal<Record<string, unknown> | null>(null);
@@ -153,10 +184,43 @@ export class Gate {
 
   private readonly subject = computed<Subject>(() => this.trip.subject());
   /** The default trip also presents at this gate, under the model's proximity rules.  A response from a phone is the one checked. */
-  private readonly presentation = computed(() => {
+  private readonly received = computed(() => this.relay.received().gate);
+  private readonly asked = computed(() => {
     const s = this.subject();
-    return !isPresentation(s) && s.default ? gatePresentation(s, { response: this.relay.received().gate }) : null;
+    return !isPresentation(s) && s.default ? gatePresentation(s, { response: this.received()?.response }) : null;
   });
+  /**
+   * The signatures on what the traveler presented, checked on receipt and before the
+   * checks run.  A response from a phone brings its signed credentials; on this device
+   * the reader checks what the wallet would send.  The presenter's tamper control
+   * flips one byte of the boarding pass first.
+   */
+  private readonly checked = latest(
+    () => {
+      const p = this.asked();
+      return p && this.trip.step() === 'presented' ? { scenario: this.trip.scenario(), p, received: this.received(), tampered: this.signatures.tampered() } : undefined;
+    },
+    async ({ scenario, p, received, tampered }) => {
+      const response = p.response!;
+      const credentials = received ? received.credentials : await this.signatures.present(scenario, response).catch(() => null);
+      return this.signatures.check(response, credentials, tampered ? 'boardingPass' : null);
+    },
+  );
+  /** Waiting for the signature check, which comes before the checks. */
+  protected readonly signaturePending = computed(() => this.asked() !== null && this.trip.step() === 'presented' && this.checked() === null);
+  protected readonly signatureFailed = computed(() => !!this.checked()?.signatures.some((s) => s.state !== 'checked'));
+  private readonly presentation = computed(() => {
+    const p = this.asked();
+    const c = this.checked();
+    return p && c ? { ...p, response: c.response } : null;
+  });
+  protected readonly signatureRows = computed(() =>
+    (this.checked()?.signatures ?? []).map((s) => {
+      const words = signatureWords(s);
+      const label = s.role === 'photoid' ? this.labels.photoid : s.role === 'boardingPass' ? this.labels.boardingPass : s.docType;
+      return { role: s.role, state: s.state, label, signer: words.signer, text: words.state, kid: s.kid };
+    }),
+  );
   private readonly presentationView = computed(() => {
     const p = this.presentation();
     return p && viewGate(p, this.trip.decisions());
@@ -169,7 +233,8 @@ export class Gate {
   protected readonly statusLine = computed(() => fill(this.w.status, { flight: this.t.flight.number, time: formatTime(this.subject().checkedAt) }));
   protected readonly bannerLine = computed(() => {
     const f = this.view().failure ?? this.presentationView()?.failure;
-    return f ? (this.t.reasons as Record<string, string>)[f] : fill(this.w.boardLine, { flight: this.t.flight.number, destination: this.t.flight.destination });
+    const signed = !this.view().failure && f ? signatureReason(this.checked()?.signatures ?? []) : null;
+    return signed ?? (f ? (this.t.reasons as Record<string, string>)[f] : fill(this.w.boardLine, { flight: this.t.flight.number, destination: this.t.flight.destination }));
   });
   protected readonly credentialLine = computed(() => {
     const held = mdocOf(this.subject(), 'photoid') ? this.labels.photoid : this.labels.boardingPass;
@@ -197,11 +262,21 @@ export class Gate {
 
   protected readonly rows = computed<Row[]>(() => [
     ...this.view().checks.map((c) => this.row(c, this.subject())),
-    ...(this.presentationView()?.checks ?? []).map((c) => this.row(c, this.presentation()!)),
+    // The model's table answers for the model's inputs: a changed credential makes another response.
+    ...(this.presentationView()?.checks ?? []).map((c) => this.row(c, this.presentation()!, !this.signatureFailed())),
   ]);
 
   constructor() {
     startFromTourLink('presented');
+    // The tamper control is for one traveler at a time: a new pick or a new trip puts the byte back.
+    effect(() => {
+      const picked = this.trip.pickedId();
+      const fresh = this.trip.step() === 'start';
+      untracked(() => {
+        if (fresh || picked !== this.tamperFor) this.signatures.setTampered(false);
+        this.tamperFor = picked;
+      });
+    });
     effect(() => {
       if (this.isBrowser && this.leanModel.shown() && !this.decisions() && !this.loading) {
         this.loading = true;
@@ -218,7 +293,9 @@ export class Gate {
     void this.relay.ask('gate', requestToSend(gatePresentation(this.trip.scenario())));
   }
 
-  private row(c: CheckView, subject: Subject): Row {
+  private tamperFor: string | null = null;
+
+  private row(c: CheckView, subject: Subject, withModel = true): Row {
     const r = c.result;
     const words = this.lean.checks[r.key];
     const status = this.statusOf(c);
@@ -230,7 +307,7 @@ export class Gate {
       status,
       statusWord: this.lean.gate.status[status],
       found: c.state !== 'depends' && Array.isArray(r.answer) ? r.answer.map(describeFinding).join(', ') : '',
-      model: c.state === 'depends' ? null : this.modelAnswer(c, subject),
+      model: c.state === 'depends' || !withModel ? null : this.modelAnswer(c, subject),
     };
   }
 

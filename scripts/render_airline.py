@@ -97,6 +97,9 @@ SUN_SVG = ('<svg class="sun" viewBox="0 0 24 24" aria-hidden="true"><g fill="non
 # The words a traveler never reads, and requirement IDs.  Both may appear only
 # in the parts of a page shown with the Lean model.
 BANNED = re.compile(r"\b(rules?|theorems?|criterion|criteria)\b|\b(?:ONE|OO|OID|TRIP)-\d{3}(?:\.\d+)?\b|\bG-\d{2}\b", re.I)
+# The One ID credentials are this project's own signed format, which follows no ISO
+# document, so a traveler never reads that one is an mdoc or that anything is ISO.
+NOT_ISO = re.compile(r"(?i:\bmdocs?\b)|\bISO\b")
 TYPED_AMOUNT = re.compile(r"[$€£]\s*\d|\b\d+(?:[.,]\d+)?\s*(?:dollars?|cents?|USD|EUR|GBP|euros?)\b", re.I)
 PLACEHOLDER = re.compile(r"\{\{\s*([\w.]+)\s*\}\}")
 MARK = re.compile(r"\s*\{(model|open):\s*([^}]*)\}\s*$")
@@ -162,7 +165,9 @@ def load_one_id(directory):
     must name criteria that are still open: wording that calls a point still
     being decided stops the build once the point is proven.  `element` names an
     identifier constant of the model.  Wording that calls something a stand-in
-    stops the build once the scenarios no longer use invented stand-ins."""
+    stops the build once the scenarios no longer use invented stand-ins.  No
+    string under traveler says mdoc or ISO: the credentials are signed in this
+    project's own format."""
     path = CONTENT / "one-id.json"
     if not path.exists() or not (directory / "model.json").exists():
         return None
@@ -178,6 +183,9 @@ def load_one_id(directory):
     criteria = {c["id"]: c for r in requirements.values() for c in r["criteria"]}
     elements = {e["name"] for e in model["identifiers"]["dataElements"]}
     check_traveler_wording(words["traveler"], where)
+    for key, text in strings(words["traveler"]):
+        if NOT_ISO.search(text):
+            fail(where, f"traveler.{key} says mdoc or ISO, and the credentials are this project's own format: {text!r}")
     for key, value, at in fields({"traveler": words["traveler"], "lean": words["lean"]}):
         if key == "requirements" and isinstance(value, list):
             for r in value:

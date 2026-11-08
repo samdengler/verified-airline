@@ -185,6 +185,26 @@
     "failed": "The link to your other screen is not working right now.",
     "noPass": "This wallet holds no boarding pass yet. Check in from this phone first."
    }
+  },
+  "signature": {
+   "signedBy": "Signed by {issuer} (demo key)",
+   "names": "Names {issuer} as its signer",
+   "checking": "Checking the signature",
+   "checkingLede": "We are checking the signature on the photoid your wallet shared.",
+   "title": "Signatures",
+   "states": {
+    "checked": "Signature checked",
+    "mismatch": "Signature does not match",
+    "unknownKey": "Signed with a key not on the trusted list",
+    "unreadable": "The signature cannot be read",
+    "missing": "No signature came with it"
+   },
+   "reasons": {
+    "mismatch": "The signature on the {credential} does not match.",
+    "unknownKey": "The {credential} is signed with a key not on the trusted list.",
+    "unreadable": "The signature on the {credential} cannot be read.",
+    "missing": "The {credential} came with no signature."
+   }
   }
  },
  "lean": {
@@ -192,7 +212,27 @@
    "proven": "Every criterion proven",
    "open": "A criterion is an open question",
    "grey": "Not in the model yet",
-   "text": "Each check runs as TypeScript in this browser. The tests compare it with the model's answer on every row of the model's table. That is a test of those cases; the proofs are about the Lean model. No signature or protocol is checked, because the model holds no cryptography."
+   "text": "Each check runs as TypeScript in this browser. The tests compare it with the model's answer on every row of the model's table. That is a test of those cases; the proofs are about the Lean model. The model holds no cryptography. The site checks each issuer's signature with WebCrypto, outside the model, and device signatures and session transcripts stay named values that the model compares."
+  },
+  "signature": {
+   "grey": {
+    "title": "Not in the model yet",
+    "text": "The guide leaves the trust model out of scope (survey entries C-01 and C-15 of the model), so the model has no list of trusted keys and takes an issuer's signature as valid or not. Two demo keys stand in for that list here, and the site checks each signature against them with WebCrypto."
+   },
+   "trustTitle": "Trusted issuer keys",
+   "demoKey": "demo key, no secret",
+   "outside": "The site checks each issuer's signature, a COSE_Sign1 message signed with ES256 over this project's own credential format, outside the model. Its outcome is the model's field for a valid issuer signature, which the relying party's checks read. Device signatures, nonces and session transcripts stay named values that the model compares.",
+   "key": "Signing key",
+   "modelIssuer": "The model names this issuer {name}.",
+   "noModelAnswer": "A credential changed on the way, so the model's table has no answer for this response.",
+   "tamper": {
+    "eyebrow": "Demo control, outside the model",
+    "title": "Tamper with the boarding pass",
+    "note": "Flips one byte of the boarding pass the gate receives, so its signature no longer matches. The model has no cryptography, so this control is outside it, as the picks above are.",
+    "do": "Flip one byte",
+    "undo": "Put the byte back",
+    "onlyDefault": "This works on the default trip, whose presentation the gate checks."
+   }
   },
   "popover": {
    "requirement": "Lean requirement",
@@ -429,7 +469,7 @@
    "single": "This traveler holds one credential, so there is no pair to compare.",
    "example": "An example in the model shows this case:",
    "noExample": "The default trip, which every reading accepts.",
-   "standIns": "Invented stand-ins: the tables of photoid data elements, the boarding pass format and the ISO session transcripts. Keys, nonces and signatures are named values here: the model compares them and does no cryptography.",
+   "standIns": "Invented stand-ins: the tables of photoid data elements, the boarding pass format and the ISO session transcripts. Device keys, nonces and device signatures are named values here: the model compares them and does no cryptography. The site checks each issuer's signature, outside the model.",
    "undecided": "Undecided",
    "trail": "Decisions so far",
    "noTrail": "Nothing is decided yet.",
@@ -480,7 +520,7 @@
      "No face step: this demo has no camera, so the portrait goes unused here. A touchpoint would match a face against it."
     ],
     "ValidityReading.departure": [
-     "After a refusal: this demo cannot reissue a boarding pass, so a traveler on a delayed flight ends at an agent."
+     "After a refusal: the airline can sign a new boarding pass after a delay, as the traveler whose pass was signed again shows. This demo does not do that for the delayed flight, so that traveler ends at an agent."
     ],
     "ValidityReading.soonAfter": [
      "A long window leaves a boarding pass valid after the journey, and nothing in the guide ends it sooner."

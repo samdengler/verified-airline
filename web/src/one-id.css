@@ -24,6 +24,10 @@ va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, v
 .oid-portrait.small { width: 40px; height: 48px; padding: 8px 6px; }
 .oid-lean-ids { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; font-size: 13px; color: var(--muted); }
 .oid-lean-ids dd { margin: 0; display: flex; flex-wrap: wrap; gap: 2px 10px; }
+/* Who signed a credential, once its signature is checked. */
+.oid-signed { align-items: center; padding-top: 12px; border-top: 1px solid var(--line); }
+.oid-signed[data-signature]:not([data-signature="checked"]) .oid-strong { color: var(--amber-ink); }
+[data-signature]:not([data-signature="checked"]) > .oid-grow .oid-small { color: var(--amber-ink); }
 
 /* The demo wallet stands in for another company's app, so it sets its own tokens:
    neutral colors, the system's fonts, and no sign of the airline's brand.  The Lean
@@ -111,6 +115,11 @@ va-marker, va-one-id-band, va-credential, va-presenter, va-decision, va-brand, v
 .oid-truth { padding: 14px 16px; border: 1px solid var(--pop-line); border-radius: var(--radius-card); background: var(--surface); display: flex; flex-direction: column; gap: 4px; }
 .oid-truth-line { font-size: 17px; font-weight: 600; line-height: 1.35; }
 .oid-truth code { font-size: 12px; overflow-wrap: anywhere; }
+/* The tamper control: a demo control outside the model, as the picks are. */
+.oid-tamper { padding: 14px 16px; border: 1px dashed var(--field); border-radius: var(--radius-card); }
+.oid-tamper .oid-choice { align-self: flex-start; }
+.oid-choice:disabled { cursor: not-allowed; opacity: 0.6; }
+.oid-choice:disabled:hover { border-color: var(--field); }
 .oid-switch { position: relative; margin: 0; padding: 12px 14px 14px; border: 1px solid var(--line); border-radius: var(--radius-card); background: var(--surface); min-width: 0; display: flex; flex-direction: column; gap: 10px; }
 .oid-switch.affects { border-color: var(--amber-edge); }
 .oid-switch legend { padding: 0 6px; font-size: 14px; font-weight: 600; line-height: 1.4; }

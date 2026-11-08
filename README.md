@@ -92,7 +92,7 @@ site's content security policy and fails on any console error.
 | `assets/` | The stylesheet and the design system in `assets/design/`, shared by the static pages and the app, and the static pages' script |
 | `model/` | `facts.json` and `model.json` from verified-air, committed; `model/one-id/` from verified-id; `model/trip/` from `trip-model/` |
 | `trip-model/` | The trip's Lean model, with no Mathlib: the steps, what the gate may show, their proofs, and the export the site reads |
-| `web/` | The Angular app: the header and footer, the page component that shows the renderer's pages, the One ID screens in `src/app/one-id/`, the browser check |
+| `web/` | The Angular app: the header and footer, the page component that shows the renderer's pages, the One ID screens in `src/app/one-id/` with the signing of credentials in `src/app/one-id/signing/`, the browser check |
 | `infra/` | The CDK stacks (Python): `VerifiedAirline`, the site at air.dengler.io and its publish role; `VerifiedAirlineChat`, the support chat; `VerifiedAirlineOneId`, the One ID relay between devices |
 | `scripts/render_airline.py` | The pages and their checks, written to `build/`, and with `--content` for the app |
 | `scripts/update-model.sh` | Copies new model files into `model/`, and with `--one-id` into `model/one-id/` |
@@ -370,7 +370,7 @@ the gate agent's reader. They are Angular components in `web/src/app/one-id/`,
 since the flows need state, and every page is still prerendered. The words are in
 `content/one-id.json`. `render_airline.py` checks them as it checks
 `content/chat.json`: no rule, theorem or criterion and no requirement ID under
-`traveler`; under `lean`, each cited requirement and criterion must be in the
+`traveler`, and in `content/one-id.json` no mdoc or ISO either; under `lean`, each cited requirement and criterion must be in the
 model, and wording that calls a point still being decided must cite criteria that
 are still open. `scripts/test_render_one_id.py` shows each of these failing.
 
@@ -477,8 +477,8 @@ A session carries one exchange:
 | Part | Written by | Holds |
 | --- | --- | --- |
 | `request` | The asking screen, when it shows the code | The relying party's request, its OpenID4VP authorization request at check-in, and the trip |
-| `response` | The wallet, once | The response `Wallet.respond` computed and the trip, or a decline and the trip |
-| `pass` | The website, after a share at check-in | The trip, at the step where the boarding pass was added |
+| `response` | The wallet, once | The response `Wallet.respond` computed, the signed credential behind each of its documents, and the trip; or a decline and the trip |
+| `pass` | The website, after a share at check-in | The boarding pass the website signed, and the trip at the step where it was added |
 
 The trip is what tabs pass each other: the step, the traveler and the decisions. A
 device takes the other's trip as a tab does, when it is newer; the asking screen
@@ -491,10 +491,12 @@ opens each code in a new tab, so the wallet keeps the last trip the relay moved 
 `localStorage` for the length of a session, and a tab opened by the gate's code finds
 the boarding pass there.
 
-Nothing in a session is secret: the credentials are specimens, and keys, nonces and
-signatures are named values the model compares. A decline carries no credential. The
-relay authenticates no one, and the wallet takes the origin the default presentation
-names, as it does on one device.
+Nothing in a session is secret: the credentials are specimens signed with demo keys,
+and device keys, nonces and device signatures are named values the model compares. A
+decline carries no credential. The relay authenticates no one, and the wallet takes
+the origin the default presentation names, as it does on one device. The receiving
+screen checks each credential's signature, so a credential changed on the way is
+refused (see "Signed credentials").
 
 With no relay set up, the panel says presenting from a phone is not set up, and the
 wallet on the same device works as before. `web/scripts/browser-check.mjs` runs the
@@ -502,6 +504,65 @@ whole trip across a laptop, a phone and a tablet, three browser contexts that sh
 nothing, through a stand-in relay at the stand-in origin the local policy lists. It
 checks that no screen keeps polling once its exchange is answered, and with
 `--url` it uses the live relay when the site has one.
+
+### Signed credentials
+
+The Lean model has no cryptography: whether an issuer's signature is valid is a field of
+what a relying party receives (`Presented.issuerSignatureValid`). The site now fills that
+field from a real check. Each credential is signed with an issuer's demo key and checked
+with WebCrypto on receipt, before the model's checks run. The check is the site's own and
+is outside the model.
+
+The format is this project's own. Its data is the stand-in credential of
+`scenarios.json` as it stands; the signing around it follows two public RFCs, read at
+rfc-editor.org and cited by section in `web/src/app/one-id/signing/`:
+
+- Each data element is encoded on its own as a CBOR map of a random 16-byte salt, its
+  identifier and its value (RFC 8949 §3.1). Its digest is the SHA-256 of those bytes.
+- The issuer signs a CBOR map of the document type, the end of validity and, for each
+  namespace in order, its name and the digests of its elements. The signature is a
+  COSE_Sign1 message (RFC 9052 §4.2), tag 18 (§2), with ES256 (RFC 9053 §2.1) over the
+  Sig_structure (RFC 9052 §4.4), encoded deterministically (RFC 9052 §9, RFC 8949
+  §4.2.1). Its protected header holds `alg` and `kid` (RFC 9052 §3.1) and the issuer's
+  name under the text label `issuer`, which is this project's own (§1.5 allows text
+  labels). The unprotected header is empty.
+- The wallet holds the signed message and every encoded element, and presents the
+  message with only the elements it shares. The relying party verifies the signature,
+  hashes each element it received, finds the digest in order, and rebuilds exactly what
+  the model's `Mdoc.disclose` keeps. The digests let a wallet send part of a credential
+  and keep the rest, as the consent sheet promises, and the salts keep a digest from
+  giving away a value that is easy to guess.
+
+| Where | What is checked | What the checks then read |
+| --- | --- | --- |
+| The wallet | Each credential it holds, when it holds it | Nothing in the model: the card says who signed it, with a grey marker |
+| `/check-in` | The photoid the wallet presents | `issuerSignatureValid` in `refusals` (OID-202) |
+| `/gate` | Both credentials of the default trip | `issuerSignatureValid` in `refusals` and `pairRefusals` (OID-202, OID-207) |
+
+When a signature checks, the model's checks read the data rebuilt from the signed
+credential. When it does not, they read what the wallet sent with the field false, so
+the only new refusal is `issuerSignatureInvalid`. A screen shows "Checking the
+signature" until the check is done, and no result before it. On one device only the trip
+passes between tabs, so each screen signs the traveler's credentials with the demo keys,
+as the issuers would have, and checks what the wallet would send. Between devices the
+relay carries the signed credentials: the website sends the boarding pass it signed, the
+phone's wallet keeps it for a session's length, and the wallet's response carries each
+credential it presents.
+
+Traveler-facing words say what is true: "Signed by Verified Airline (demo key)",
+"Signature checked", "Signature does not match". With the model shown, the relying
+party's list of trusted keys appears with a grey marker that points at survey entries
+C-01 and C-15 of verified-id, and the signature rows carry the marker of the check they
+feed. The presenter panel has a tamper control, outside the model like the picks, that
+flips one byte of the boarding pass the gate receives; the gate then refers the traveler
+and says the signature on the boarding pass does not match.
+
+`signing/signing.spec.ts` verifies RFC 9052's own ECDSA example (Appendix C.2.1, with its
+key from C.7.1), signs and checks every credential in the scenarios, rebuilds what
+`Mdoc.disclose` keeps from a partial presentation, refuses a credential with any one
+byte flipped (every byte, two bits each), refuses one signed by a key not on the list,
+and holds a credential with the placeholder portrait under a kilobyte. `relay.spec.ts`
+and the browser check carry signed credentials through the relay and measure each part.
 
 ### The seeded error
 
@@ -657,3 +718,63 @@ shows is unproved and is labelled that way.
     the code needs no inline style or script under the policy. The browser check's
     screenshots of both codes were decoded with jsQR, outside the repository, back to
     their session links.
+20. **The credentials are signed, and the site checks the signatures.** Sam's delegate
+    set the scope on 8 November 2026: sign the stand-in credentials as COSE_Sign1 (RFC
+    9052) over CBOR (RFC 8949) with ES256 through WebCrypto, and verify them in the
+    browser at check-in and at the gate. The result reaches the model only as the field
+    it already takes, `issuerSignatureValid`; no reading point is added, since
+    `readings.json` is the only source of them. No library that claims to implement
+    ISO/IEC 18013-5 or its session transcript is used, traveler-facing text never calls
+    a credential an mdoc, and nothing claims ISO conformance: this project has not read
+    the ISO documents. The renderer refuses mdoc and ISO under `traveler` in
+    `content/one-id.json`. Device signatures, nonces and session transcripts stay named
+    values that the model compares.
+21. **The format signs salted digests.** One signature over the whole credential would
+    have made the wallet send every data element to be checked, which breaks the
+    consent sheet's promise and the check-in page's "nothing else". A digest per
+    element, signed once, lets the wallet send what the holder approved. The protected
+    header names the issuer, so the signature covers the name the wallet shows; the
+    header's `issuer` label is our own, since RFC 9052 §3.1 defines none for a name.
+    RFC 9053 §2.1 recommends deterministic ECDSA, and WebCrypto has only the randomized
+    form, so each signing gives different bytes; for a demo that is no loss.
+22. **CBOR comes from cborg, and COSE_Sign1 is written by hand.**
+    [cborg](https://github.com/rvagg/cborg) 6.2.1 is Apache-2.0 licensed, has no
+    dependencies, uses no eval, and encodes deterministically with its
+    `rfc8949EncodeOptions`; it decodes strictly and refuses repeated map keys, which
+    RFC 9052 §3 requires. The build copies its licence into `3rdpartylicenses.txt`.
+    cbor-x was set aside because its default build calls `new Function` as it loads,
+    to test for eval, which the site's policy does not allow. COSE_Sign1 is one short file,
+    `signing/cose.ts`, and its test verifies RFC 9052's own example.
+23. **The demo keys are specimens, committed.** `web/src/app/one-id/signing/demo-issuers.json`
+    holds two P-256 key pairs, private keys included, and says they hold no secret;
+    they ship in the browser bundle, as a demo needs. The Utopia passport office signs
+    the photoid and Verified Airline signs the boarding pass. The model's default
+    presentations call the airline Example Air, so the key's entry says which issuer of
+    the model it stands for, and the model's `issuer` field keeps the model's name.
+24. **The trusted keys stand in for the trust list.** The guide leaves the trust model
+    out (C-01, C-15 in verified-id's survey), so the list is the public half of the two
+    demo keys, shown with the model with a grey marker. It is one list for both kinds
+    of credential, and any listed key may sign either kind: C-01 asks whether it is one
+    list or two, and this does not answer it. A credential signed by a key not on the
+    list sets `issuerSignatureValid` to false, so the model refuses it as
+    `issuerSignatureInvalid`; the model's `untrustedIssuer` stays about its list of
+    issuer names. The model's 21 presentations keep the field their file gives, since
+    each is a worked example with fixed inputs.
+25. **The gate checks signatures where it checks a presentation.** That is the default
+    trip, the only traveler whose presentation the gate runs through the model's
+    presentation rules. Other travelers picked on the panel run the credential checks,
+    which take no signature, so the tamper control is off for them. Check-in checks the
+    photoid of every traveler, since it runs the presentation rules for each.
+26. **The tamper control is the presenter's.** It is behind the model toggle and labelled
+    a demo control outside the model, as the picks are. It flips the lowest bit of the
+    last byte of the signed payload of the boarding pass the gate receives, so the
+    bytes still read and the signature fails. A new pick or a new trip puts the byte
+    back. While a credential is changed, the presentation rows show no answer from the
+    model's table, whose inputs were the unchanged credentials.
+27. **The relay's cap stays at 16 KB.** Measured in the browser check through the
+    stand-in relay, with the placeholder portrait: the check-in request is 1,156 bytes,
+    its response with the signed photoid 1,479, the pass part with the signed boarding
+    pass 571, the gate's request 688, and its response with both signed credentials
+    2,282. A held credential is under a kilobyte, which `signing.spec.ts` holds, and
+    `relay.spec.ts` holds a gate response under 8 KB. A real portrait of tens of
+    kilobytes would need a larger cap.

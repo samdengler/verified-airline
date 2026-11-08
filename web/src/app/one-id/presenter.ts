@@ -3,6 +3,7 @@ import { Component, computed, inject } from '@angular/core';
 import { presentationReadings, presentationScenarios, readings, scenarios, standInsInvented, wording } from './data';
 import { affects, type Subject, isPresentation, sameTravelerOf, viewGate } from './decide';
 import { Marker } from './marker';
+import { Signatures } from './signatures';
 import { Trip } from './trip';
 
 /**
@@ -45,6 +46,14 @@ import { Trip } from './trip';
         <p class="oid-label">{{ w.cannotSee }}</p>
         <p class="oid-truth-line">{{ truth() }}</p>
         <p class="oid-small">{{ subject().example ? w.example : w.noExample }} @if (subject().example; as e) { <code>{{ e }}</code> }</p>
+      </section>
+
+      <section class="oid-stack oid-tamper" data-panel="tamper">
+        <p class="oid-eyebrow">{{ tw.eyebrow }}</p>
+        <h3>{{ tw.title }}</h3>
+        <p class="oid-small">{{ tw.note }}</p>
+        <button type="button" class="oid-choice" data-action="tamper" [attr.aria-pressed]="tampered()" [disabled]="!canTamper()" (click)="signatures.setTampered(!tampered())">{{ tampered() ? tw.undo : tw.do }}</button>
+        @if (!canTamper()) { <p class="oid-small">{{ tw.onlyDefault }}</p> }
       </section>
 
       <section class="oid-stack" data-state="trail">
@@ -111,7 +120,15 @@ import { Trip } from './trip';
 })
 export class Presenter {
   protected readonly trip = inject(Trip);
+  protected readonly signatures = inject(Signatures);
   protected readonly w = wording.lean.presenter;
+  protected readonly tw = wording.lean.signature.tamper;
+  protected readonly tampered = this.signatures.tampered;
+  /** The gate checks signatures where it checks a presentation of the traveler's own credentials: the default trip. */
+  protected readonly canTamper = computed(() => {
+    const s = this.subject();
+    return !isPresentation(s) && s.default;
+  });
   private readonly none = wording.lean.decision.none;
   protected readonly travelers = scenarios;
   protected readonly presentations = presentationScenarios;
