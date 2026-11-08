@@ -190,6 +190,29 @@
      "about": "traveler 1"}],
    "checkedAt": 1803904200},
   {"title":
+   "The airline signed the boarding pass again after the delay, and it ends an hour after the new departure",
+   "standIns": true,
+   "sourceDocument": null,
+   "journey":
+   {"scheduledDeparture": 1803895200,
+    "completed": 1803913200,
+    "actualDeparture": 1803906000},
+   "id": "signed-again-after-delay",
+   "example": "Rules.OneId.signedAgainAfterADelay",
+   "default": false,
+   "credentials":
+   [{"role": "boardingPass",
+     "mdoc":
+     {"validUntil": 1803909600,
+      "nameSpaces":
+      [{"name": "org.iata.bcbp.1",
+        "elements":
+        [{"value": {"text": "EXAMPLE:SMITH/JOHN"},
+          "identifier": "bcbp_string"}]}],
+      "docType": "org.iata.boardingpass.1"},
+     "about": "traveler 1"}],
+   "checkedAt": 1803904200},
+  {"title":
    "The boarding pass is read at the exact instant its validity ends, the scheduled departure",
    "standIns": true,
    "sourceDocument": null,

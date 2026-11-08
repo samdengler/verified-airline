@@ -181,7 +181,9 @@
    [{"theorem": "Rules.OneId.valid_until_actual_departure",
      "question":
      "Which departure is meant, and what happens to a boarding pass credential when its flight is delayed past the end of its validity?",
-     "examples": ["Rules.OneId.expiredBeforeADelayedDeparture"],
+     "examples":
+     ["Rules.OneId.expiredBeforeADelayedDeparture",
+      "Rules.OneId.signedAgainAfterADelay"],
      "criteria": ["OID-104.5"]}],
    "lean": "Rules.OneId.ValidityReading.departure",
    "label": "Which departure the end of validity is measured from.",
