@@ -36,7 +36,7 @@ if [ "${1:-}" = "--one-id" ]; then
   git diff --stat -- model/one-id/
   exit 0
 fi
-src="${1:-https://samdengler.github.io/verified-air/airline-data}"
+src="${1:-https://verified.dengler.io/airline-data}"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 for f in model.json facts.json theorems.json ar-policy.json ar-rules.json ar-checks.json; do

@@ -3,7 +3,7 @@
 Verified Airline is a fictional airline. Its site answers a traveler's
 questions about fares, payment, changes and cancellations, refunds, extras and
 schedule changes in plain words. Every fee and refund on it is computed from
-[Verified Air](https://samdengler.github.io/verified-air/), a model of the
+[Verified Air](https://verified.dengler.io/), a model of the
 business rules for airline offers and orders written in Lean, and a button
 shows the requirement behind each answer.
 

@@ -1,14 +1,14 @@
 {
  "source": {
   "repository": "https://github.com/samdengler/verified-air",
-  "commit": "cdffaaa4726690c7c8a289c9e33fdf631985884a",
-  "site": "https://samdengler.github.io/verified-air/"
+  "commit": "bf8939934a0296449a02f910f5fef600aa4cef42",
+  "site": "https://verified.dengler.io/"
  },
  "requirements": {
   "ONE-001": {
    "name": "Rules.OneOrder.accept",
    "ears": "WHEN a customer accepts an offer THE SYSTEM SHALL create an order with one order item for each offer item and one service for each passenger and flight segment of that item.",
-   "review": "https://samdengler.github.io/verified-air/review/Creating-an-order-from-an-offer/",
+   "review": "https://verified.dengler.io/review/Creating-an-order-from-an-offer/",
    "criteria": [
     {
      "id": "ONE-001.1",
@@ -40,7 +40,7 @@
   "ONE-002": {
    "name": "Rules.OneOrder.itemStatuses",
    "ears": "THE SYSTEM SHALL give each order item the status active, cancelled or closed from the service and delivery statuses of its services.",
-   "review": "https://samdengler.github.io/verified-air/review/Order-item-status/",
+   "review": "https://verified.dengler.io/review/Order-item-status/",
    "criteria": [
     {
      "id": "ONE-002.1",
@@ -67,7 +67,7 @@
   "ONE-003": {
    "name": "Rules.OneOrder.orderStatuses",
    "ears": "THE SYSTEM SHALL mark an order opened while any of its services holds value, and closed once all its items are closed or cancelled and all its services are delivered or removed.",
-   "review": "https://samdengler.github.io/verified-air/review/Order-status/",
+   "review": "https://verified.dengler.io/review/Order-status/",
    "criteria": [
     {
      "id": "ONE-003.1",
@@ -94,7 +94,7 @@
   "ONE-101": {
    "name": "Rules.OneOrder.Delivery.move",
    "ears": "WHEN an event happens to a service THE SYSTEM SHALL move its delivery status only along the moves in the delivery status table.",
-   "review": "https://samdengler.github.io/verified-air/review/Moves-between-delivery-statuses/",
+   "review": "https://verified.dengler.io/review/Moves-between-delivery-statuses/",
    "criteria": [
     {
      "id": "ONE-101.1",
@@ -126,7 +126,7 @@
   "ONE-102": {
    "name": "Rules.OneOrder.Delivery.endService",
    "ears": "WHEN a service is cancelled, expires, is not claimed or cannot be delivered THE SYSTEM SHALL move it to the delivery status that records why.",
-   "review": "https://samdengler.github.io/verified-air/review/Services-that-end-without-delivery/",
+   "review": "https://verified.dengler.io/review/Services-that-end-without-delivery/",
    "criteria": [
     {
      "id": "ONE-102.1",
@@ -163,7 +163,7 @@
   "ONE-103": {
    "name": "Rules.OneOrder.Delivery.isFinal",
    "ears": "THE SYSTEM SHALL treat DELIVERED, REMOVED, EXPIRED, NOT CLAIMED and FAILED TO DELIVER as final delivery statuses, which no event leaves.",
-   "review": "https://samdengler.github.io/verified-air/review/Final-delivery-statuses/",
+   "review": "https://verified.dengler.io/review/Final-delivery-statuses/",
    "criteria": [
     {
      "id": "ONE-103.1",
@@ -190,7 +190,7 @@
   "ONE-104": {
    "name": "Rules.OneOrder.Delivery.step",
    "ears": "WHEN the airline suspends a service THE SYSTEM SHALL record the delivery status it left and return it only to that status or remove it.",
-   "review": "https://samdengler.github.io/verified-air/review/Suspending-and-resuming-a-service/",
+   "review": "https://verified.dengler.io/review/Suspending-and-resuming-a-service/",
    "criteria": [
     {
      "id": "ONE-104.1",
@@ -222,7 +222,7 @@
   "ONE-105": {
    "name": "Rules.OneOrder.Delivery.endWith",
    "ears": "WHEN a rule in any area ends a service THE SYSTEM SHALL move the service's delivery status only along a move of the delivery status table.",
-   "review": "https://samdengler.github.io/verified-air/review/Ending-a-service-from-another-area/",
+   "review": "https://verified.dengler.io/review/Ending-a-service-from-another-area/",
    "criteria": [
     {
      "id": "ONE-105.1",
@@ -244,7 +244,7 @@
   "ONE-201": {
    "name": "Rules.OneOrder.Change.priceDifferential",
    "ears": "WHEN the airline prices a change or cancellation of order items THE SYSTEM SHALL state the amount due to the airline, the amount due by the airline and a type code that names the outcome.",
-   "review": "https://samdengler.github.io/verified-air/review/Price-differential-of-a-change/",
+   "review": "https://verified.dengler.io/review/Price-differential-of-a-change/",
    "criteria": [
     {
      "id": "ONE-201.1",
@@ -276,7 +276,7 @@
   "ONE-202": {
    "name": "Rules.OneOrder.Change.dueAmounts",
    "ears": "WHEN a change or cancellation carries a penalty THE SYSTEM SHALL either net the penalty against the price difference or charge it separately.",
-   "review": "https://samdengler.github.io/verified-air/review/Amounts-due-to-and-by-the-airline/",
+   "review": "https://verified.dengler.io/review/Amounts-due-to-and-by-the-airline/",
    "criteria": [
     {
      "id": "ONE-202.1",
@@ -303,7 +303,7 @@
   "ONE-203": {
    "name": "Rules.OneOrder.Change.requestCancellation",
    "ears": "WHEN a seller asks to cancel an order THE SYSTEM SHALL cancel it at once if no payment has been received for it, and otherwise only through a cancellation offer.",
-   "review": "https://samdengler.github.io/verified-air/review/Cancelling-an-order/",
+   "review": "https://verified.dengler.io/review/Cancelling-an-order/",
    "criteria": [
     {
      "id": "ONE-203.1",
@@ -335,7 +335,7 @@
   "ONE-204": {
    "name": "Rules.OneOrder.Change.changeItem",
    "ears": "WHEN a seller has accepted and paid a change to an order item THE SYSTEM SHALL add a new item with the services the change keeps and cancel the services it does not keep.",
-   "review": "https://samdengler.github.io/verified-air/review/Changing-an-order-item/",
+   "review": "https://verified.dengler.io/review/Changing-an-order-item/",
    "criteria": [
     {
      "id": "ONE-204.1",
@@ -367,7 +367,7 @@
   "ONE-205": {
    "name": "Rules.OneOrder.Change.settle",
    "ears": "WHEN a seller settles a change or cancellation offer THE SYSTEM SHALL record on the order what the customer paid, what the airline returned, the penalty and the forfeited amount.",
-   "review": "https://samdengler.github.io/verified-air/review/Money-recorded-on-an-order/",
+   "review": "https://verified.dengler.io/review/Money-recorded-on-an-order/",
    "criteria": [
     {
      "id": "ONE-205.1",
@@ -389,7 +389,7 @@
   "ONE-301": {
    "name": "Rules.OneOrder.Payment.Transaction.status",
    "ears": "THE SYSTEM SHALL give a payment the status FAILED if it has no payment method or the transaction of any of its payment methods failed, SUCCESSFUL if all of them succeeded, and PENDING otherwise.",
-   "review": "https://samdengler.github.io/verified-air/review/Paying-with-several-methods/",
+   "review": "https://verified.dengler.io/review/Paying-with-several-methods/",
    "criteria": [
     {
      "id": "ONE-301.1",
@@ -416,7 +416,7 @@
   "ONE-302": {
    "name": "Rules.OneOrder.Payment.isPaid",
    "ears": "THE SYSTEM SHALL count an order item paid once a SUCCESSFUL payment covers it.",
-   "review": "https://samdengler.github.io/verified-air/review/Paid-order-item/",
+   "review": "https://verified.dengler.io/review/Paid-order-item/",
    "criteria": [
     {
      "id": "ONE-302.1",
@@ -438,7 +438,7 @@
   "ONE-303": {
    "name": "Rules.OneOrder.Payment.recordOutcome",
    "ears": "WHEN the airline reports the outcome of a payment method's transaction THE SYSTEM SHALL record it as the transaction's status if the move from the recorded status is allowed.",
-   "review": "https://samdengler.github.io/verified-air/review/Payment-status-and-its-moves/",
+   "review": "https://verified.dengler.io/review/Payment-status-and-its-moves/",
    "criteria": [
     {
      "id": "ONE-303.1",
@@ -460,7 +460,7 @@
   "ONE-304": {
    "name": "Rules.OneOrder.Payment.acceptPayment",
    "ears": "WHEN a seller pays for order items THE SYSTEM SHALL accept the payment only if it is made before the items' payment time limits and its requested amounts add up to their price, and shall charge each payment method its requested amount plus its surcharge.",
-   "review": "https://samdengler.github.io/verified-air/review/Accepting-a-payment/",
+   "review": "https://verified.dengler.io/review/Accepting-a-payment/",
    "criteria": [
     {
      "id": "ONE-304.1",
@@ -502,7 +502,7 @@
   "ONE-305": {
    "name": "Rules.OneOrder.Payment.applyOutcome",
    "ears": "WHEN a payment becomes SUCCESSFUL THE SYSTEM SHALL move every CONFIRMED service of the order items it covers to READY TO PROCEED and remove their payment time limits.",
-   "review": "https://samdengler.github.io/verified-air/review/Applying-a-payment-outcome/",
+   "review": "https://verified.dengler.io/review/Applying-a-payment-outcome/",
    "criteria": [
     {
      "id": "ONE-305.1",
@@ -534,7 +534,7 @@
   "ONE-306": {
    "name": "Rules.OneOrder.Payment.expireUnpaid",
    "ears": "WHEN an order item's payment time limit passes with no SUCCESSFUL payment covering it THE SYSTEM SHALL remove the item and mark FAILED every PENDING payment that covers it.",
-   "review": "https://samdengler.github.io/verified-air/review/Unpaid-item-at-its-time-limit/",
+   "review": "https://verified.dengler.io/review/Unpaid-item-at-its-time-limit/",
    "criteria": [
     {
      "id": "ONE-306.1",
@@ -571,7 +571,7 @@
   "ONE-401": {
    "name": "Rules.OneOrder.Creation.selectItems",
    "ears": "WHEN a seller selects items from an offer THE SYSTEM SHALL accept the selection only if it names items the offer holds and includes every item the offer marks mandatory.",
-   "review": "https://samdengler.github.io/verified-air/review/Selecting-items-from-an-offer/",
+   "review": "https://verified.dengler.io/review/Selecting-items-from-an-offer/",
    "criteria": [
     {
      "id": "ONE-401.1",
@@ -598,7 +598,7 @@
   "ONE-402": {
    "name": "Rules.OneOrder.Creation.createOrder",
    "ears": "WHEN a seller sends a create request with selections from one or more offers THE SYSTEM SHALL check each selection and create one order from them, or reject the request.",
-   "review": "https://samdengler.github.io/verified-air/review/Creating-one-order-from-several-offers/",
+   "review": "https://verified.dengler.io/review/Creating-one-order-from-several-offers/",
    "criteria": [
     {
      "id": "ONE-402.1",
@@ -630,7 +630,7 @@
   "ONE-403": {
    "name": "Rules.OneOrder.Creation.createOnce",
    "ears": "WHEN a seller sends a create request THE SYSTEM SHALL create the order and record the offers it came from, unless an offer it names has already produced an order.",
-   "review": "https://samdengler.github.io/verified-air/review/Repeated-create-requests/",
+   "review": "https://verified.dengler.io/review/Repeated-create-requests/",
    "criteria": [
     {
      "id": "ONE-403.1",
@@ -657,7 +657,7 @@
   "ONE-404": {
    "name": "Rules.OneOrder.Creation.recordChanges",
    "ears": "WHEN the airline applies a group of changes to an order THE SYSTEM SHALL raise the order's version by one and record the group in the order's history.",
-   "review": "https://samdengler.github.io/verified-air/review/Recording-changes-to-an-order/",
+   "review": "https://verified.dengler.io/review/Recording-changes-to-an-order/",
    "criteria": [
     {
      "id": "ONE-404.1",
@@ -689,7 +689,7 @@
   "ONE-405": {
    "name": "Rules.OneOrder.Creation.requestChange",
    "ears": "WHEN a seller sends a change request THE SYSTEM SHALL compare the order version the request carries, if any, with the order's current version before applying the change.",
-   "review": "https://samdengler.github.io/verified-air/review/Change-against-a-stale-version/",
+   "review": "https://verified.dengler.io/review/Change-against-a-stale-version/",
    "criteria": [
     {
      "id": "ONE-405.1",
@@ -711,7 +711,7 @@
   "ONE-406": {
    "name": "Rules.OneOrder.Creation.mustKeep",
    "ears": "THE SYSTEM SHALL keep an order accessible for 13 months from its creation and for 13 months from its first usage while it has an active item, and for 7 days after every item has reached a final status.",
-   "review": "https://samdengler.github.io/verified-air/review/Order-retention/",
+   "review": "https://verified.dengler.io/review/Order-retention/",
    "criteria": [
     {
      "id": "ONE-406.1",
@@ -738,7 +738,7 @@
   "ONE-501": {
    "name": "Rules.OneOrder.Offers.guaranteesAt",
    "ears": "WHILE no order has been created from an offer THE SYSTEM SHALL treat an offer item's price and inventory as guaranteed only until both the item's guarantee time limit and the offer's expiry.",
-   "review": "https://samdengler.github.io/verified-air/review/Price-guarantee-at-an-instant/",
+   "review": "https://verified.dengler.io/review/Price-guarantee-at-an-instant/",
    "criteria": [
     {
      "id": "ONE-501.1",
@@ -770,7 +770,7 @@
   "ONE-502": {
    "name": "Rules.OneOrder.Offers.createOrder",
    "ears": "WHEN a customer accepts an offer whose items carry time limits THE SYSTEM SHALL create the order as ONE-001 does and give each order item its payment time limit and price guarantee from its offer item.",
-   "review": "https://samdengler.github.io/verified-air/review/Time-limits-of-a-new-order/",
+   "review": "https://verified.dengler.io/review/Time-limits-of-a-new-order/",
    "criteria": [
     {
      "id": "ONE-502.1",
@@ -807,7 +807,7 @@
   "ONE-503": {
    "name": "Rules.OneOrder.Offers.ruleInForce",
    "ears": "WHEN a change or cancellation is asked for at an instant THE SYSTEM SHALL take as the rule in force the rule for that action and the journey's current stage with the latest effective date not after that instant.",
-   "review": "https://samdengler.github.io/verified-air/review/Restriction-rule-in-force/",
+   "review": "https://verified.dengler.io/review/Restriction-rule-in-force/",
    "criteria": [
     {
      "id": "ONE-503.1",
@@ -839,7 +839,7 @@
   "ONE-504": {
    "name": "Rules.OneOrder.Offers.voluntaryChange",
    "ears": "WHEN a customer asks for a voluntary change THE SYSTEM SHALL refuse it if the rule in force forbids it, and otherwise quote it with the rule's fee as the penalty.",
-   "review": "https://samdengler.github.io/verified-air/review/Voluntary-change-under-the-rule-in-force/",
+   "review": "https://verified.dengler.io/review/Voluntary-change-under-the-rule-in-force/",
    "criteria": [
     {
      "id": "ONE-504.1",
@@ -866,7 +866,7 @@
   "ONE-505": {
    "name": "Rules.OneOrder.Offers.cancellationRefund",
    "ears": "WHEN a customer cancels an unused order item voluntarily THE SYSTEM SHALL return what the cancel rule in force gives: nothing if it forbids cancellation, and otherwise a full or a fixed refund.",
-   "review": "https://samdengler.github.io/verified-air/review/Refund-owed-on-voluntary-cancellation/",
+   "review": "https://verified.dengler.io/review/Refund-owed-on-voluntary-cancellation/",
    "criteria": [
     {
      "id": "ONE-505.1",
@@ -898,7 +898,7 @@
   "ONE-506": {
    "name": "Rules.OneOrder.Offers.priceTotal",
    "ears": "WHEN an airline states a price with its parts THE SYSTEM SHALL total the price as its base amount plus its surcharges, fees, taxes and the consumption tax not included in it.",
-   "review": "https://samdengler.github.io/verified-air/review/Totalling-a-price-from-its-parts/",
+   "review": "https://verified.dengler.io/review/Totalling-a-price-from-its-parts/",
    "criteria": [
     {
      "id": "ONE-506.1",
@@ -935,7 +935,7 @@
   "ONE-601": {
    "name": "Rules.OneOrder.Ancillaries.dependents",
    "ears": "THE SYSTEM SHALL count as dependent on a flight service the ancillary services of the order that the link between dependent and parent ties to it.",
-   "review": "https://samdengler.github.io/verified-air/review/Dependent-service-and-its-parent/",
+   "review": "https://verified.dengler.io/review/Dependent-service-and-its-parent/",
    "criteria": [
     {
      "id": "ONE-601.1",
@@ -962,7 +962,7 @@
   "ONE-602": {
    "name": "Rules.OneOrder.Ancillaries.addServices",
    "ears": "WHEN a seller adds services to an order THE SYSTEM SHALL accept the request only if every flight-related ancillary in it has a live flight service for its passenger and segment, in the order or in the request.",
-   "review": "https://samdengler.github.io/verified-air/review/Adding-services-to-an-order/",
+   "review": "https://verified.dengler.io/review/Adding-services-to-an-order/",
    "criteria": [
     {
      "id": "ONE-602.1",
@@ -989,7 +989,7 @@
   "ONE-603": {
    "name": "Rules.OneOrder.Ancillaries.cancelItems",
    "ears": "WHEN a seller cancels order items THE SYSTEM SHALL cancel every live service of the items named and treat the services that depend on a cancelled flight as the reading says.",
-   "review": "https://samdengler.github.io/verified-air/review/Cancelling-a-flight-with-ancillaries/",
+   "review": "https://verified.dengler.io/review/Cancelling-a-flight-with-ancillaries/",
    "criteria": [
     {
      "id": "ONE-603.1",
@@ -1026,7 +1026,7 @@
   "ONE-604": {
    "name": "Rules.OneOrder.Ancillaries.replaceFlight",
    "ears": "WHEN a flight service is replaced by a flight on another segment THE SYSTEM SHALL state for each live service that depends on it the effect the reading gives for its kind.",
-   "review": "https://samdengler.github.io/verified-air/review/Dependents-when-a-flight-changes/",
+   "review": "https://verified.dengler.io/review/Dependents-when-a-flight-changes/",
    "criteria": [
     {
      "id": "ONE-604.1",
@@ -1053,7 +1053,7 @@
   "ONE-605": {
    "name": "Rules.OneOrder.Ancillaries.chooseSeats",
    "ears": "WHEN a seller chooses seats for passengers THE SYSTEM SHALL add one order item for each seat the seat map marks available, and refuse the request if any seat chosen is not.",
-   "review": "https://samdengler.github.io/verified-air/review/Choosing-seats/",
+   "review": "https://verified.dengler.io/review/Choosing-seats/",
    "criteria": [
     {
      "id": "ONE-605.1",
@@ -1080,7 +1080,7 @@
   "ONE-606": {
    "name": "Rules.OneOrder.Ancillaries.chooseAlaCarte",
    "ears": "WHEN a seller chooses an a-la-carte offer item for passengers and segments it lists as eligible THE SYSTEM SHALL create one order item for each passenger and segment chosen, at the unit price times the quantity.",
-   "review": "https://samdengler.github.io/verified-air/review/Price-of-an-a-la-carte-selection/",
+   "review": "https://verified.dengler.io/review/Price-of-an-a-la-carte-selection/",
    "criteria": [
     {
      "id": "ONE-606.1",
@@ -1112,7 +1112,7 @@
   "ONE-607": {
    "name": "Rules.OneOrder.Ancillaries.removeFromBundle",
    "ears": "WHEN a seller removes services from a bundle THE SYSTEM SHALL cancel them and return their share of the bundle price under the reading.",
-   "review": "https://samdengler.github.io/verified-air/review/Value-of-one-bundled-service/",
+   "review": "https://verified.dengler.io/review/Value-of-one-bundled-service/",
    "criteria": [
     {
      "id": "ONE-607.1",
@@ -1139,7 +1139,7 @@
   "ONE-701": {
    "name": "Rules.OneOrder.AirlineChange.resolve",
    "ears": "WHEN an airline change notice offers follow-up actions THE SYSTEM SHALL keep them pending until the seller answers with one of them or a consequence of inaction applies.",
-   "review": "https://samdengler.github.io/verified-air/review/Answering-a-change-notice/",
+   "review": "https://verified.dengler.io/review/Answering-a-change-notice/",
    "criteria": [
     {
      "id": "ONE-701.1",
@@ -1171,7 +1171,7 @@
   "ONE-702": {
    "name": "Rules.OneOrder.AirlineChange.consequenceAt",
    "ears": "WHEN a time limit of a change notice passes and the seller has not answered THE SYSTEM SHALL apply the consequence of inaction of the follow-up action whose time limit passed first.",
-   "review": "https://samdengler.github.io/verified-air/review/Consequence-of-a-missed-time-limit/",
+   "review": "https://verified.dengler.io/review/Consequence-of-a-missed-time-limit/",
    "criteria": [
     {
      "id": "ONE-702.1",
@@ -1198,7 +1198,7 @@
   "ONE-703": {
    "name": "Rules.OneOrder.AirlineChange.declineOffer",
    "ears": "WHEN a customer declines an airline change through Cancel or Reshop THE SYSTEM SHALL price it as a cancellation or change of the affected order items, with the airline's cancellation or change fee as the penalty.",
-   "review": "https://samdengler.github.io/verified-air/review/Declining-an-airline-change/",
+   "review": "https://verified.dengler.io/review/Declining-an-airline-change/",
    "criteria": [
     {
      "id": "ONE-703.1",
@@ -1225,7 +1225,7 @@
   "ONE-704": {
    "name": "Rules.OneOrder.AirlineChange.cancelFlight",
    "ears": "WHEN the airline cancels a flight and does not re-accommodate the customer THE SYSTEM SHALL cancel every live service on that flight with delivery status UNABLE TO DELIVER.",
-   "review": "https://samdengler.github.io/verified-air/review/Cancelling-a-flight-without-re-accommodation/",
+   "review": "https://verified.dengler.io/review/Cancelling-a-flight-without-re-accommodation/",
    "criteria": [
     {
      "id": "ONE-704.1",
@@ -1262,7 +1262,7 @@
   "ONE-705": {
    "name": "Rules.OneOrder.AirlineChange.notifyChange",
    "ears": "WHEN the airline moves a customer to other flights THE SYSTEM SHALL replace the affected order item with a new item at the same price, holding a service for each passenger on each new flight.",
-   "review": "https://samdengler.github.io/verified-air/review/Re-accommodation-before-the-seller-answers/",
+   "review": "https://verified.dengler.io/review/Re-accommodation-before-the-seller-answers/",
    "criteria": [
     {
      "id": "ONE-705.1",
@@ -1294,7 +1294,7 @@
   "ONE-801": {
    "name": "Rules.OneOrder.Accounting.commissionOwed",
    "ears": "THE SYSTEM SHALL owe the seller of an order item the total of the item's commissions, each a fixed amount or a percentage of a stated base amount.",
-   "review": "https://samdengler.github.io/verified-air/review/Commission-on-an-item/",
+   "review": "https://verified.dengler.io/review/Commission-on-an-item/",
    "criteria": [
     {
      "id": "ONE-801.1",
@@ -1326,7 +1326,7 @@
   "ONE-802": {
    "name": "Rules.OneOrder.Accounting.clearancesFor",
    "ears": "WHEN a payment commitment is made THE SYSTEM SHALL state the clearances between the ORA and the seller for it, with their net clearance amounts.",
-   "review": "https://samdengler.github.io/verified-air/review/Net-clearance-amount/",
+   "review": "https://verified.dengler.io/review/Net-clearance-amount/",
    "criteria": [
     {
      "id": "ONE-802.1",
@@ -1363,7 +1363,7 @@
   "ONE-803": {
    "name": "Rules.OneOrder.Accounting.submit",
    "ears": "WHEN the ORA sends a clearance THE SYSTEM SHALL accept it unless it repeats a clearance already accepted, and record only accepted clearances.",
-   "review": "https://samdengler.github.io/verified-air/review/Accepting-a-clearance/",
+   "review": "https://verified.dengler.io/review/Accepting-a-clearance/",
    "criteria": [
     {
      "id": "ONE-803.1",
@@ -1390,7 +1390,7 @@
   "ONE-804": {
    "name": "Rules.OneOrder.Accounting.settleStep",
    "ears": "WHEN the ORA cancels a clearance or the Clearance Manager settles, claws back or writes off money on it THE SYSTEM SHALL move the clearance's status and amounts as the clearance statuses describe.",
-   "review": "https://samdengler.github.io/verified-air/review/Clearance-status/",
+   "review": "https://verified.dengler.io/review/Clearance-status/",
    "criteria": [
     {
      "id": "ONE-804.1",
@@ -1422,7 +1422,7 @@
   "ONE-805": {
    "name": "Rules.OneOrder.Accounting.settlementRole",
    "ears": "WHEN the Clearance Manager nets the clearances for a remittance date THE SYSTEM SHALL make each party a settlement payee or a remittance payer for its net position.",
-   "review": "https://samdengler.github.io/verified-air/review/Net-position-of-a-party/",
+   "review": "https://verified.dengler.io/review/Net-position-of-a-party/",
    "criteria": [
     {
      "id": "ONE-805.1",
@@ -1454,7 +1454,7 @@
   "ONE-806": {
    "name": "Rules.OneOrder.Accounting.clearingTotal",
    "ears": "WHEN the Clearance Manager sends a clearing THE SYSTEM SHALL make its total, and the bank transfer for it, the amounts settled less the amounts clawed back.",
-   "review": "https://samdengler.github.io/verified-air/review/Total-of-a-clearing/",
+   "review": "https://verified.dengler.io/review/Total-of-a-clearing/",
    "criteria": [
     {
      "id": "ONE-806.1",
@@ -1476,7 +1476,7 @@
   "ONE-807": {
    "name": "Rules.OneOrder.Accounting.allocate",
    "ears": "WHEN a remittance payer pays short and the Clearance Manager has no credit line THE SYSTEM SHALL split what was paid across the payer's clearances.",
-   "review": "https://samdengler.github.io/verified-air/review/Allocating-a-short-remittance/",
+   "review": "https://verified.dengler.io/review/Allocating-a-short-remittance/",
    "criteria": [
     {
      "id": "ONE-807.1",
@@ -1513,7 +1513,7 @@
   "ONE-808": {
    "name": "Rules.OneOrder.Accounting.acceptBill",
    "ears": "IF a service provider bills the ORA for a service before it has been delivered or consumed THEN THE SYSTEM SHALL refuse the bill unless a bilateral agreement allows earlier billing.",
-   "review": "https://samdengler.github.io/verified-air/review/Billing-by-service-providers/",
+   "review": "https://verified.dengler.io/review/Billing-by-service-providers/",
    "criteria": [
     {
      "id": "ONE-808.1",
@@ -1540,7 +1540,7 @@
   "ONE-809": {
    "name": "Rules.OneOrder.Accounting.bookStep",
    "ears": "THE SYSTEM SHALL hold the amount paid for a service as a liability until the service reaches a final delivery status, and only then recognize it as revenue.",
-   "review": "https://samdengler.github.io/verified-air/review/Accounting-for-paid-services/",
+   "review": "https://verified.dengler.io/review/Accounting-for-paid-services/",
    "criteria": [
     {
      "id": "ONE-809.1",
@@ -1577,7 +1577,7 @@
   "OO-001": {
    "name": "Rules.OfferOrder.accept",
    "ears": "WHEN a customer accepts an offer THE SYSTEM SHALL create an order only if the offer has not expired and contains at least one item.",
-   "review": "https://samdengler.github.io/verified-air/review/Accepting-an-offer/",
+   "review": "https://verified.dengler.io/review/Accepting-an-offer/",
    "criteria": [
     {
      "id": "OO-001.1",
@@ -1609,7 +1609,7 @@
   "OO-002": {
    "name": "Rules.OfferOrder.step",
    "ears": "WHEN a delivery event is applied to a service THE SYSTEM SHALL allow only the transitions ready to delivered, ready to cancelled, cancelled to refunded.",
-   "review": "https://samdengler.github.io/verified-air/review/Delivery-transitions/",
+   "review": "https://verified.dengler.io/review/Delivery-transitions/",
    "criteria": [
     {
      "id": "OO-002.1",
@@ -1641,7 +1641,7 @@
   "OO-003": {
    "name": "Rules.OfferOrder.acceptRefund",
    "ears": "WHEN a refund is requested against a payment THE SYSTEM SHALL accept it only if the refund amount does not exceed that payment's amount.",
-   "review": "https://samdengler.github.io/verified-air/review/Accepting-a-refund/",
+   "review": "https://verified.dengler.io/review/Accepting-a-refund/",
    "criteria": [
     {
      "id": "OO-003.1",
@@ -1661,420 +1661,420 @@
    {
     "theorem": "Rules.OneOrder.item_has_one_status",
     "question": "The guide's three conditions overlap and leave gaps. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-one-order-item-has-one-status"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-one-order-item-has-one-status"
    }
   ],
   "ONE-003.4": [
    {
     "theorem": "Rules.OneOrder.order_opened_or_closed",
     "question": "The guide closes an order only when every service is delivered or removed, and keeps it opened only while a service holds value. It does not say whether an expired, not claimed or failed service holds value. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-one-order-order-opened-or-closed"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-one-order-order-opened-or-closed"
    }
   ],
   "ONE-101.4": [
    {
     "theorem": "Rules.OneOrder.Delivery.paid_before_delivery",
     "question": "The sources treat READY TO PROCEED as the payment gate but never forbid delivery from CONFIRMED, and they do not say whether an UNABLE TO DELIVER service returns to READY TO PROCEED once the constraint lifts. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-delivery-paid-before-delivery"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-delivery-paid-before-delivery"
    }
   ],
   "ONE-103.4": [
    {
     "theorem": "Rules.OneOrder.Delivery.all_final_order_closed",
     "question": "The guide closes an order only when every service is DELIVERED or REMOVED. EXPIRED, NOT CLAIMED and FAILED TO DELIVER are final too, but an order whose services end in them is never closed. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-delivery-all-final-order-closed"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-delivery-all-final-order-closed"
    }
   ],
   "ONE-201.5": [
    {
     "theorem": "Rules.OneOrder.Change.differential_nets",
     "question": "Two cases break it. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-change-differential-nets"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-change-differential-nets"
    }
   ],
   "ONE-202.4": [
    {
     "theorem": "Rules.OneOrder.Change.cancel_not_owing",
     "question": "Under the reading that collects the whole penalty, a penalty larger than the refundable value leaves the customer owing the difference. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-change-cancel-not-owing"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-change-cancel-not-owing"
    }
   ],
   "ONE-203.2": [
    {
     "theorem": "Rules.OneOrder.Change.cancelled_at_once_closed",
     "question": "A cancellation removes each service through the delivery status table, and the table has no move to REMOVED from REQUESTED or from UNABLE TO DELIVER, under any reading. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-change-cancelled-at-once-closed"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-change-cancelled-at-once-closed"
    }
   ],
   "ONE-203.4": [
    {
     "theorem": "Rules.OneOrder.Change.offer_within_payments",
     "question": "The offer is priced from the price of the order's live items, as in the worked examples, and the payments received do not enter it. A partly paid order is cancelled through an offer that returns its whole price. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-change-offer-within-payments"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-change-offer-within-payments"
    }
   ],
   "ONE-204.5": [
    {
     "theorem": "Rules.OneOrder.Change.change_original_cancelled",
     "question": "The worked examples leave the transferred copies in the changed item READY TO PROCEED and show the item CANCELLED. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-change-change-original-cancelled"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-change-change-original-cancelled"
    }
   ],
   "ONE-205.3": [
    {
     "theorem": "Rules.OneOrder.Change.change_keeps_balance",
     "question": "After a change that keeps a service, the original item still holds value \\(see ONE-204.5\\), so its price still counts as live next to the new item's price. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-change-change-keeps-balance"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-change-change-keeps-balance"
    }
   ],
   "ONE-303.3": [
    {
     "theorem": "Rules.OneOrder.Payment.recordOutcome_settled_final",
     "question": "The guide says a PENDING payment moves to SUCCESSFUL or FAILED and does not say whether either is final. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-payment-recordOutcome-settled-final"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-payment-recordOutcome-settled-final"
    }
   ],
   "ONE-306.5": [
    {
     "theorem": "Rules.OneOrder.Payment.unpaid_item_removed_eventually",
     "question": "The rule removes an item only when its payment time limit passes, and the guide lets an airline create an order item without one. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-payment-unpaid-item-removed-eventually"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-payment-unpaid-item-removed-eventually"
    }
   ],
   "ONE-306.6": [
    {
     "theorem": "Rules.OneOrder.Payment.removed_item_holds_no_value",
     "question": "The guide says such an item is removed and names no resulting statuses. If its services become REMOVED, none holds value under every reading of the guide. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-payment-removed-item-holds-no-value"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-payment-removed-item-holds-no-value"
    }
   ],
   "ONE-401.4": [
    {
     "theorem": "Rules.OneOrder.Creation.select_includes_mandatory",
     "question": "The guidance asks for at least one mandatory item in each offer and exempts a la carte offers. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-creation-select-includes-mandatory"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-creation-select-includes-mandatory"
    }
   ],
   "ONE-402.1": [
    {
     "theorem": "Rules.OneOrder.Creation.create_items_match_selection",
     "question": "The sources allow one request to select from several offers and do not say what happens when one of them is rejected. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-creation-create-items-match-selection"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-creation-create-items-match-selection"
    }
   ],
   "ONE-402.2": [
    {
     "theorem": "Rules.OneOrder.Creation.create_price_eq_sum",
     "question": "Under the reading where the selections that pass go ahead, the items selected from a rejected offer are left out, and the order costs less than the items selected. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-creation-create-price-eq-sum"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-creation-create-price-eq-sum"
    }
   ],
   "ONE-402.3": [
    {
     "theorem": "Rules.OneOrder.Creation.create_rejects_expired",
     "question": "The sources allow one request to select from several offers and do not say what happens when one of them has expired or fails its checks. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-creation-create-rejects-expired"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-creation-create-rejects-expired"
    }
   ],
   "ONE-402.5": [
    {
     "theorem": "Rules.OneOrder.Creation.create_single_currency",
     "question": "Each offer is checked for its own currency, and a request may select from offers priced in different currencies. The order then holds items in two currencies, and its item prices have no sum. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-creation-create-single-currency"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-creation-create-single-currency"
    }
   ],
   "ONE-403.4": [
    {
     "theorem": "Rules.OneOrder.Creation.once_per_offer",
     "question": "The sources do not say that creating an order uses up its offer. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-creation-once-per-offer"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-creation-once-per-offer"
    }
   ],
   "ONE-404.5": [
    {
     "theorem": "Rules.OneOrder.Creation.history_rebuilds_current",
     "question": "The guide lists change groups oldest first, each raising the version by one, while the capability page for order history lists them newest first and says each lowers the version. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-creation-history-rebuilds-current"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-creation-history-rebuilds-current"
    }
   ],
   "ONE-405.3": [
    {
     "theorem": "Rules.OneOrder.Creation.stale_rejected",
     "question": "The guide lets the airline return an error when the versions differ and does not require it. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-creation-stale-rejected"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-creation-stale-rejected"
    }
   ],
   "ONE-406.4": [
    {
     "theorem": "Rules.OneOrder.Creation.keep_while_active",
     "question": "The resolution asks for 13 months from creation and 13 months from first usage, and nothing after both have passed. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-creation-keep-while-active"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-creation-keep-while-active"
    }
   ],
   "ONE-501.5": [
    {
     "theorem": "Rules.OneOrder.Offers.guaranteed_while_acceptable",
     "question": "The guide says a price is guaranteed until its time limit and does not say whether the limit's own instant is inside. An offer is rejected as expired at its expiry instant. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-offers-guaranteed-while-acceptable"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-offers-guaranteed-while-acceptable"
    }
   ],
   "ONE-502.4": [
    {
     "theorem": "Rules.OneOrder.Offers.createOrder_price_guaranteed",
     "question": "The guide recommends repricing into a new offer when a price guarantee has lapsed, and does not say what the airline must do when the customer accepts the offer before it expires. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-offers-createOrder-price-guaranteed"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-offers-createOrder-price-guaranteed"
    }
   ],
   "ONE-502.5": [
    {
     "theorem": "Rules.OneOrder.Offers.createOrder_limit_not_before_creation",
     "question": "An offer item may state its payment time limit as a fixed date and time, and the guide does not say what happens when that instant has passed by the time the order is created. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-offers-createOrder-limit-not-before-creation"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-offers-createOrder-limit-not-before-creation"
    }
   ],
   "ONE-502.6": [
    {
     "theorem": "Rules.OneOrder.Offers.zero_duration_payable",
     "question": "The guide says a payment time limit of zero means payment is due at order creation. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-offers-zero-duration-payable"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-offers-zero-duration-payable"
    }
   ],
   "ONE-503.5": [
    {
     "theorem": "Rules.OneOrder.Offers.ruleInForce_covers_stage",
     "question": "A rule starts at its effective date, and the guide does not say what applies in a stage before its first rule starts, or, when expiration dates end rules, in a gap before the next rule starts. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-offers-ruleInForce-covers-stage"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-offers-ruleInForce-covers-stage"
    }
   ],
   "ONE-505.5": [
    {
     "theorem": "Rules.OneOrder.Offers.cancel_returns_refundable_charges",
     "question": "The guide gives each tax, fee and charge its own refund flag and gives each offer item cancel rules, and never says how the two combine. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-offers-cancel-returns-refundable-charges"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-offers-cancel-returns-refundable-charges"
    }
   ],
   "ONE-506.6": [
    {
     "theorem": "Rules.OneOrder.Offers.price_adds_excluded_lines",
     "question": "The guide's examples state both the tax lines and a total of excluded tax, and one example marks every HST line as not included while stating an excluded total of zero. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-offers-price-adds-excluded-lines"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-offers-price-adds-excluded-lines"
    }
   ],
   "ONE-601.4": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.dependents_cover",
     "question": "Under the reference reading only an ancillary that names its flight counts. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-dependents-cover"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-dependents-cover"
    }
   ],
   "ONE-602.4": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.change_keeps_flights",
     "question": "The guide states the rule when an ancillary is bought. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-change-keeps-flights"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-change-keeps-flights"
    }
   ],
   "ONE-603.4": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.cancel_items_no_live_dependents",
     "question": "Under the reading where the dependents stay as they are, a cancelled flight leaves its bag confirmed on a segment the passenger no longer flies. The example `cancelFlightWithBag` shows it. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-cancel-items-no-live-dependents"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-cancel-items-no-live-dependents"
    }
   ],
   "ONE-603.5": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.cancel_items_respects_conditions",
     "question": "Under the reading where dependents are cancelled with their flight, cancelling a flight cancels the extra bag bought for it, although the bag's conditions do not allow cancellation, as in the add bag worked example. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-cancel-items-respects-conditions"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-cancel-items-respects-conditions"
    }
   ],
   "ONE-603.6": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.cancel_items_allowed",
     "question": "Under the reading where a cancellation is refused until the seller names the dependents too, a flight whose extra bag may not be cancelled can never be cancelled: naming the flight alone is refused for the bag, and naming the bag too is refused by the bag's conditions. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-cancel-items-allowed"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-cancel-items-allowed"
    }
   ],
   "ONE-604.4": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.replace_no_seat_clash",
     "question": "Under a reading where seats move with their flight, a seat keeps its number on the new flight, and nothing checks the new flight's seat map. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-replace-no-seat-clash"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-replace-no-seat-clash"
    }
   ],
   "ONE-605.3": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.choose_seats_one_passenger_per_seat",
     "question": "The guide checks a seat choice against the seat map and states no rule that a seat goes to one passenger. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-choose-seats-one-passenger-per-seat"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-choose-seats-one-passenger-per-seat"
    }
   ],
   "ONE-605.4": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.choose_seats_one_seat_per_passenger",
     "question": "The guide does not say whether choosing a seat replaces a seat the passenger already holds. A passenger who holds 12B and chooses 14A in a second request holds both, each in its own active order item. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-choose-seats-one-seat-per-passenger"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-choose-seats-one-seat-per-passenger"
    }
   ],
   "ONE-606.5": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.alacarte_one_item",
     "question": "The add bag worked example orders a 50.00 bag at quantity 1 for one passenger over two journeys and gets two order items of 50.00, so one offer item becomes two order items and the bag costs 100.00. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-alacarte-one-item"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-alacarte-one-item"
    }
   ],
   "ONE-607.3": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.bundle_return_le_price",
     "question": "The guide prices a bundle only as a whole. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-bundle-return-le-price"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-bundle-return-le-price"
    }
   ],
   "ONE-607.4": [
    {
     "theorem": "Rules.OneOrder.Ancillaries.bundle_return_all",
     "question": "Under a reading that gives no share to any service, removing a passenger's flight and bag from a 1,000.00 EUR bundle returns nothing, and so does removing every service. The example `bundleShares` shows it. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-bundle-return-all"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-ancillaries-bundle-return-all"
    }
   ],
   "ONE-701.5": [
    {
     "theorem": "Rules.OneOrder.AirlineChange.contact_airline_answers",
     "question": "Contacting the airline happens outside the order, and the sources do not say whether the order records it or whether it clears the other pending actions. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-airline-change-contact-airline-answers"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-airline-change-contact-airline-answers"
    }
   ],
   "ONE-702.4": [
    {
     "theorem": "Rules.OneOrder.AirlineChange.resolved_before_departure",
     "question": "The sources make both the time limit and the consequence optional, and do not tie the time limit to the departure. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-airline-change-resolved-before-departure"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-airline-change-resolved-before-departure"
    }
   ],
   "ONE-703.4": [
    {
     "theorem": "Rules.OneOrder.AirlineChange.decline_cancel_no_penalty",
     "question": "The sources offer Cancel as an answer to an airline change and never say whether the airline's fees apply; the cancellation page leaves penalties to the airline. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-airline-change-decline-cancel-no-penalty"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-airline-change-decline-cancel-no-penalty"
    }
   ],
   "ONE-703.5": [
    {
     "theorem": "Rules.OneOrder.AirlineChange.decline_reshop_no_fee",
     "question": "The sources say a reshop after an airline change may or may not cost the customer more, and give no rule. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-airline-change-decline-reshop-no-fee"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-airline-change-decline-reshop-no-fee"
    }
   ],
   "ONE-704.4": [
    {
     "theorem": "Rules.OneOrder.AirlineChange.cancel_flight_refunds",
     "question": "The flight cancellation worked example offers no follow-up action and no refund, and no source says whether a flight the airline cannot deliver entitles the customer to money back. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-airline-change-cancel-flight-refunds"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-airline-change-cancel-flight-refunds"
    }
   ],
   "ONE-704.5": [
    {
     "theorem": "Rules.OneOrder.AirlineChange.cancel_flight_cancelled_items",
     "question": "The Order concept ties a CANCELLED service to a cancelled order item, and the cancellation page treats cancelling some services of an item as a change. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-airline-change-cancel-flight-cancelled-items"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-airline-change-cancel-flight-cancelled-items"
    }
   ],
   "ONE-704.6": [
    {
     "theorem": "Rules.OneOrder.AirlineChange.cancel_flight_leaves_no_live",
     "question": "The flight's services are ended through the delivery status table, and the table has no move to UNABLE TO DELIVER from REQUESTED, IN PROGRESS or SUSPENDED, under any reading. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-airline-change-cancel-flight-leaves-no-live"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-airline-change-cancel-flight-leaves-no-live"
    }
   ],
   "ONE-705.4": [
    {
     "theorem": "Rules.OneOrder.AirlineChange.accept_pending_keeps_original",
     "question": "In the itinerary change worked example the change is already in the order while Accept is pending: the original item is CANCELLED at the next version. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-airline-change-accept-pending-keeps-original"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-airline-change-accept-pending-keeps-original"
    }
   ],
   "ONE-705.5": [
    {
     "theorem": "Rules.OneOrder.AirlineChange.reaccommodated_paid",
     "question": "In the itinerary change worked example the services the airline creates start CONFIRMED, a status the Order concept reserves for services still awaiting payment, although the customer paid in full and the exchange is even. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-airline-change-reaccommodated-paid"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-airline-change-reaccommodated-paid"
    }
   ],
   "ONE-802.6": [
    {
     "theorem": "Rules.OneOrder.Accounting.refund_not_paid_by_seller",
     "question": "Under the reading that recalls the commission first paid in full on any refund, a partial refund smaller than that commission gives a negative amount. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-accounting-refund-not-paid-by-seller"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-accounting-refund-not-paid-by-seller"
    }
   ],
   "ONE-803.4": [
    {
     "theorem": "Rules.OneOrder.Accounting.one_clearance_per_payment",
     "question": "The Clearance Manager checks clearance data signed by both parties only for a repeated clearance ID. Two signed clearances for one payment with different clearance IDs are both accepted. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-accounting-one-clearance-per-payment"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-accounting-one-clearance-per-payment"
    }
   ],
   "ONE-804.5": [
    {
     "theorem": "Rules.OneOrder.Accounting.clearance_amounts_accounted",
     "question": "Under a reading where a clawed-back amount does not count as unsettled again, a clawback takes money back from the payee without adding it to what is owed, so that part of the agreed amount is neither settled, unsettled nor written off. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-accounting-clearance-amounts-accounted"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-accounting-clearance-amounts-accounted"
    }
   ],
   "ONE-805.5": [
    {
     "theorem": "Rules.OneOrder.Accounting.net_positions_sum_zero",
     "question": "Under the reading that leaves an EasyPay clearance out of its payer's position and keeps it in the payee's, the positions add up to the EasyPay amounts. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-accounting-net-positions-sum-zero"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-accounting-net-positions-sum-zero"
    }
   ],
   "ONE-806.3": [
    {
     "theorem": "Rules.OneOrder.Accounting.payee_clearing_nonneg",
     "question": "A payee whose clawbacks in a clearing exceed what it is due in that clearing gets a negative total, which a bank transfer to the payee cannot carry. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-accounting-payee-clearing-nonneg"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-accounting-payee-clearing-nonneg"
    }
   ],
   "ONE-807.5": [
    {
     "theorem": "Rules.OneOrder.Accounting.allocation_whole_payment",
     "question": "Under the Remittance of Funds page each settlement payee's share has to be rounded to a minor unit, and the rounded shares need not add up to the payment. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-accounting-allocation-whole-payment"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-accounting-allocation-whole-payment"
    }
   ],
   "ONE-807.6": [
    {
     "theorem": "Rules.OneOrder.Accounting.one_allocation",
     "question": "The Remittance of Funds page splits a short payment across the settlement payees in proportion to what each is owed; the Transfer of Funds page applies it to the payer's obligations in the order they were recorded, whatever the payee. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-accounting-one-allocation"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-accounting-one-allocation"
    }
   ],
   "ONE-809.3": [
    {
     "theorem": "Rules.OneOrder.Accounting.final_status_no_liability",
     "question": "The sources do not say which final statuses earn revenue. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-accounting-final-status-no-liability"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-accounting-final-status-no-liability"
    }
   ],
   "ONE-809.4": [
    {
     "theorem": "Rules.OneOrder.Accounting.order_books_balance",
     "question": "Under the reading where accounting records a cancellation as the airline sends it, a refund, penalty and forfeited amount that do not add up to what was paid break the balance. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-accounting-order-books-balance"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-accounting-order-books-balance"
    }
   ],
   "ONE-809.5": [
    {
     "theorem": "Rules.OneOrder.Accounting.refunds_within_payments",
     "question": "Under the reading where accounting records a cancellation as the airline sends it, nothing stops a refund larger than what was paid. …",
-    "review": "https://samdengler.github.io/verified-air/review/Questions-from-the-ONE-Order-rules/#question-accounting-refunds-within-payments"
+    "review": "https://verified.dengler.io/review/Questions-from-the-ONE-Order-rules/#question-accounting-refunds-within-payments"
    }
   ],
   "OO-003.2": [
    {
     "theorem": "Rules.OfferOrder.refunds_le_payments",
     "question": "This does not hold as the rule is written: `acceptRefund` checks each refund against its payment alone, so two refunds of 60.00 USD against one payment of 100.00 USD are each accepted and together return 120.00 USD. …",
-    "review": "https://samdengler.github.io/verified-air/review/Open-Questions/"
+    "review": "https://verified.dengler.io/review/Open-Questions/"
    }
   ]
  }

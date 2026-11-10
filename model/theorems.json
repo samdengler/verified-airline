@@ -1,8 +1,8 @@
 {
  "source": {
   "repository": "https://github.com/samdengler/verified-air",
-  "commit": "cdffaaa4726690c7c8a289c9e33fdf631985884a",
-  "site": "https://samdengler.github.io/verified-air/"
+  "commit": "bf8939934a0296449a02f910f5fef600aa4cef42",
+  "site": "https://verified.dengler.io/"
  },
  "facts": {
   "fares.basic.cancel.afterDeparture": {
@@ -11,7 +11,7 @@
    "rule": "BASIC-CANCEL-FLOWN",
    "path": "Airline/Theorems.lean",
    "line": 82,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L82"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L82"
   },
   "fares.basic.cancel.beforeDeparture": {
    "theorem": "Airline.basic_cancel_beforeDeparture",
@@ -19,7 +19,7 @@
    "rule": "BASIC-CANCEL-PAID",
    "path": "Airline/Theorems.lean",
    "line": 76,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L76"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L76"
   },
   "fares.basic.cancel.noShow": {
    "theorem": "Airline.basic_cancel_noShow",
@@ -27,7 +27,7 @@
    "rule": "BASIC-CANCEL-MISSED",
    "path": "Airline/Theorems.lean",
    "line": 88,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L88"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L88"
   },
   "fares.basic.change.afterDeparture": {
    "theorem": "Airline.basic_change_afterDeparture",
@@ -35,7 +35,7 @@
    "rule": "BASIC-CHANGE-FLOWN",
    "path": "Airline/Theorems.lean",
    "line": 64,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L64"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L64"
   },
   "fares.basic.change.beforeDeparture": {
    "theorem": "Airline.basic_change_beforeDeparture",
@@ -43,7 +43,7 @@
    "rule": "BASIC-CHANGE-PAID",
    "path": "Airline/Theorems.lean",
    "line": 58,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L58"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L58"
   },
   "fares.basic.change.noShow": {
    "theorem": "Airline.basic_change_noShow",
@@ -51,7 +51,7 @@
    "rule": "BASIC-CHANGE-MISSED",
    "path": "Airline/Theorems.lean",
    "line": 70,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L70"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L70"
   },
   "fares.flex.cancel.afterDeparture": {
    "theorem": "Airline.flex_cancel_afterDeparture",
@@ -59,7 +59,7 @@
    "rule": "FLEX-CANCEL-FLOWN",
    "path": "Airline/Theorems.lean",
    "line": 165,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L165"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L165"
   },
   "fares.flex.cancel.beforeDeparture": {
    "theorem": "Airline.flex_cancel_beforeDeparture",
@@ -67,7 +67,7 @@
    "rule": "FLEX-CANCEL-PAID",
    "path": "Airline/Theorems.lean",
    "line": 158,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L158"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L158"
   },
   "fares.flex.cancel.noShow": {
    "theorem": "Airline.flex_cancel_noShow",
@@ -75,7 +75,7 @@
    "rule": "FLEX-CANCEL-MISSED",
    "path": "Airline/Theorems.lean",
    "line": 172,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L172"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L172"
   },
   "fares.flex.change.afterDeparture": {
    "theorem": "Airline.flex_change_afterDeparture",
@@ -83,7 +83,7 @@
    "rule": "FLEX-CHANGE-FLOWN",
    "path": "Airline/Theorems.lean",
    "line": 144,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L144"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L144"
   },
   "fares.flex.change.beforeDeparture": {
    "theorem": "Airline.flex_change_beforeDeparture",
@@ -91,7 +91,7 @@
    "rule": "FLEX-CHANGE-PAID",
    "path": "Airline/Theorems.lean",
    "line": 137,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L137"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L137"
   },
   "fares.flex.change.noShow": {
    "theorem": "Airline.flex_change_noShow",
@@ -99,7 +99,7 @@
    "rule": "FLEX-CHANGE-MISSED",
    "path": "Airline/Theorems.lean",
    "line": 151,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L151"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L151"
   },
   "fares.main.cancel.afterDeparture": {
    "theorem": "Airline.main_cancel_afterDeparture",
@@ -107,7 +107,7 @@
    "rule": "MAIN-CANCEL-FLOWN",
    "path": "Airline/Theorems.lean",
    "line": 123,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L123"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L123"
   },
   "fares.main.cancel.beforeDeparture": {
    "theorem": "Airline.main_cancel_beforeDeparture",
@@ -115,7 +115,7 @@
    "rule": "MAIN-CANCEL-PAID",
    "path": "Airline/Theorems.lean",
    "line": 116,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L116"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L116"
   },
   "fares.main.cancel.noShow": {
    "theorem": "Airline.main_cancel_noShow",
@@ -123,7 +123,7 @@
    "rule": "MAIN-CANCEL-MISSED",
    "path": "Airline/Theorems.lean",
    "line": 129,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L129"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L129"
   },
   "fares.main.change.afterDeparture": {
    "theorem": "Airline.main_change_afterDeparture",
@@ -131,7 +131,7 @@
    "rule": "MAIN-CHANGE-FLOWN",
    "path": "Airline/Theorems.lean",
    "line": 103,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L103"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L103"
   },
   "fares.main.change.beforeDeparture": {
    "theorem": "Airline.main_change_beforeDeparture",
@@ -139,7 +139,7 @@
    "rule": "MAIN-CHANGE-PAID",
    "path": "Airline/Theorems.lean",
    "line": 96,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L96"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L96"
   },
   "fares.main.change.noShow": {
    "theorem": "Airline.main_change_noShow",
@@ -147,7 +147,7 @@
    "rule": "MAIN-CHANGE-MISSED",
    "path": "Airline/Theorems.lean",
    "line": 109,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L109"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L109"
   }
  },
  "general": {
@@ -157,7 +157,7 @@
    "rule": "Rules.OneOrder.Change.dueAmounts",
    "path": "Airline/Theorems.lean",
    "line": 202,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L202"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L202"
   },
   "fareDifference": {
    "theorem": "Airline.change_fareDifference",
@@ -165,7 +165,7 @@
    "rule": "Rules.OneOrder.Change.priceDifferential",
    "path": "Airline/Theorems.lean",
    "line": 184,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L184"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L184"
   },
   "farePricePositive": {
    "theorem": "Airline.fares_pricePositive",
@@ -173,7 +173,7 @@
    "rule": "Airline.Fares",
    "path": "Airline/Theorems.lean",
    "line": 247,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L247"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L247"
   },
   "moneyNonNegative": {
    "theorem": "Airline.money_nonNegative",
@@ -181,7 +181,7 @@
    "rule": "Rules.Core.Money",
    "path": "Airline/Theorems.lean",
    "line": 242,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L242"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L242"
   },
   "refundOverPayment": {
    "theorem": "Airline.refund_overPayment",
@@ -189,7 +189,7 @@
    "rule": "Rules.OfferOrder.acceptRefund",
    "path": "Airline/Theorems.lean",
    "line": 221,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L221"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L221"
   },
   "refundWithinPayment": {
    "theorem": "Airline.refund_withinPayment",
@@ -197,7 +197,7 @@
    "rule": "Rules.OfferOrder.acceptRefund",
    "path": "Airline/Theorems.lean",
    "line": 230,
-   "url": "https://github.com/samdengler/verified-air/blob/cdffaaa4726690c7c8a289c9e33fdf631985884a/Airline/Theorems.lean#L230"
+   "url": "https://github.com/samdengler/verified-air/blob/bf8939934a0296449a02f910f5fef600aa4cef42/Airline/Theorems.lean#L230"
   }
  }
 }
